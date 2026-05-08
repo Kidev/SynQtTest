@@ -5,6 +5,6 @@
 // browser tests; a service entity owns it in the mesh one. Same Source either way.
 import SynQt
 
-ProbeSource {
+Probe {
     value: 7
 }
