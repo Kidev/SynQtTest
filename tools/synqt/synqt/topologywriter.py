@@ -130,7 +130,7 @@ def is_cross_host(endpoint: Dict[str, Any]) -> bool:
 
 
 def _schema_steps(root: Path, entity: Dict[str, Any]) -> List[str]:
-    """The forward-only migration steps a persistence entity applies at startup: an inline
+    """The forward-only migration steps a relational entity applies at startup: an inline
     ``schema`` list wins; otherwise the entity's ``schema.sql`` split into one statement per
     step (line comments stripped, empty statements dropped)."""
     inline = entity.get("schema")

@@ -131,7 +131,7 @@ stricter than the entities themselves manage.
 
 One topology this cannot express: a web edge that owns an engine of its own. A shared
 namespace cannot publish a port, so `synqt docker init` stops and says so. Move the engine
-behind a persistence entity, which is where it belongs regardless.
+behind a relational entity, which is where it belongs regardless.
 
 ## The image
 
