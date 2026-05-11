@@ -109,10 +109,10 @@ offsetting from it and scaling by a zoom that grows a little with your size. For
 the camera sits still at the middle of the map with a single blob; the next parts make
 it move and fill it with players.
 
-Replace `client/Main.qml` with this starting scene:
+Replace `client/app/Main.qml` with this starting scene:
 
 ```qml
-// client/Main.qml
+// client/app/Main.qml
 import QtQuick
 import QtQuick.Controls
 import SynQt                       // the new import: Server, Session, and contracts
