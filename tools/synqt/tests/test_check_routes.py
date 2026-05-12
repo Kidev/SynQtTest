@@ -143,11 +143,10 @@ project:
 
 entities:
   - name: web
-    kind: service
-    capability: web_edge
+    type: web_edge
 
   - name: app
-    kind: client
+    type: client
 
 router:
   fallback: /
@@ -320,7 +319,7 @@ def test_a_client_entity_with_no_name_still_has_its_views_checked():
     # lint_routes directly, not check_project: an entity with no name trips an unrelated
     # rule in validate() long before the route table is read.
     root = _project()
-    config = {"entities": [{"kind": "client"}],
+    config = {"entities": [{"type": "client"}],
               "routes": [{"path": "/", "view": "Missing.qml"}],
               "router": {"fallback": "/"}}
     findings = check.lint_routes(config, root)

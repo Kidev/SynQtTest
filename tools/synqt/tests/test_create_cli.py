@@ -53,6 +53,19 @@ def _run_new(parent: Path, name: str, *flags: str) -> str:
     return completed.stdout
 
 
+def _run_add_entity(project: Path, name: str, entity_type: str) -> None:
+    """`synqt add entity <name> --type <type>`: the scriptable way to the same entity.
+
+    `synqt new` has no flag for a starting entity, so the reference for a project with
+    one is two commands rather than one, and this is the second.
+    """
+    completed = subprocess.run(
+        [sys.executable, "-m", "synqt", "add", "entity", name, "--type", entity_type,
+         "--project-dir", str(project)],
+        capture_output=True, text=True, env=_cli_env(), timeout=120)
+    assert completed.returncode == 0, completed.stderr
+
+
 def _run_create(parent: Path, answers: Sequence[str]) -> str:
     """`synqt create` attached to a pty, answering each question in order.
 
@@ -91,24 +104,27 @@ def _differences(left: Path, right: Path) -> Tuple[List[str], List[str]]:
     return missing, differing
 
 
-# The answer sets worth running end to end. Each is (answers typed, equivalent flags):
-# the plainest project, one with authentication, and one with two blueprint entities, so
-# every question has at least one case where its answer is not the default.
+# The answer sets worth running end to end. Each is (answers typed, flags for `new`,
+# entities to add afterwards): the plainest project, one with authentication, and one
+# with two entities, so every question has at least one case where its answer is not the
+# default. The trailing "" in each answer list is the empty entity name that ends the
+# entity loop.
 _EQUIVALENT = [
-    pytest.param(["shop", "", ""], [], id="defaults"),
-    pytest.param(["shop", "github", ""], ["--auth", "github"], id="auth"),
-    pytest.param(["shop", "none", "orders:relational, sessions:cache"],
-                 ["--blueprint", "orders:relational", "--blueprint", "sessions:cache"],
-                 id="blueprints"),
-    pytest.param(["shop", "google", "orders:relational"],
-                 ["--auth", "google", "--blueprint", "orders:relational"],
-                 id="auth-and-blueprint"),
+    pytest.param(["shop", "", ""], [], [], id="defaults"),
+    pytest.param(["shop", "github", ""], ["--auth", "github"], [], id="auth"),
+    pytest.param(["shop", "none", "orders", "relational", "sessions", "cache", ""],
+                 [], [("orders", "relational"), ("sessions", "cache")],
+                 id="entities"),
+    pytest.param(["shop", "google", "orders", "relational", ""],
+                 ["--auth", "google"], [("orders", "relational")],
+                 id="auth-and-entity"),
 ]
 
 
 @pytest.mark.skipif(not _HAS_PTY, reason="synqt create needs a terminal; Windows has no os.openpty")
-@pytest.mark.parametrize("answers,flags", _EQUIVALENT)
-def test_the_answers_scaffold_what_the_flags_scaffold(tmp_path, answers, flags):
+@pytest.mark.parametrize("answers,flags,entities", _EQUIVALENT)
+def test_the_answers_scaffold_what_the_commands_scaffold(tmp_path, answers, flags,
+                                                         entities):
     asked = tmp_path / "asked"
     flagged = tmp_path / "flagged"
     asked.mkdir()
@@ -116,6 +132,8 @@ def test_the_answers_scaffold_what_the_flags_scaffold(tmp_path, answers, flags):
 
     printed = _run_create(asked, answers)
     reference = _run_new(flagged, "shop", *flags)
+    for name, entity_type in entities:
+        _run_add_entity(flagged / "shop", name, entity_type)
 
     missing, differing = _differences(asked / "shop", flagged / "shop")
     assert missing == [], f"only one front end wrote: {missing}"
@@ -134,7 +152,7 @@ def test_the_name_can_come_from_the_command_line_instead_of_a_question(tmp_path)
     # one. Getting this wrong would consume the auth answer as the name.
     controller, follower = os.openpty()
     try:
-        os.write(controller, b"github\norders:relational\n")
+        os.write(controller, b"github\norders\nrelational\n\n")
         completed = subprocess.run(
             [sys.executable, "-m", "synqt", "create", "shop", "--parent-dir", str(tmp_path)],
             stdin=follower, capture_output=True, text=True, env=_cli_env(), timeout=120)
@@ -145,8 +163,8 @@ def test_the_name_can_come_from_the_command_line_instead_of_a_question(tmp_path)
 
     flagged = tmp_path / "flagged"
     flagged.mkdir()
-    reference = _run_new(flagged, "shop", "--auth", "github",
-                         "--blueprint", "orders:relational")
+    reference = _run_new(flagged, "shop", "--auth", "github")
+    _run_add_entity(flagged / "shop", "orders", "relational")
 
     missing, differing = _differences(tmp_path / "shop", flagged / "shop")
     assert missing == []

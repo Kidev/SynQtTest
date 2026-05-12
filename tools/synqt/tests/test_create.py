@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux
 # SPDX-License-Identifier: Apache-2.0
 
-"""``synqt create`` asks the questions ``synqt new`` takes as flags.
+"""``synqt create`` asks what ``synqt new`` and ``synqt add entity`` take as arguments.
 
-The two commands have to stay one scaffolder with two front ends, so the end-to-end test
-here asserts that answering the questions produces exactly what the equivalent flags
+The two paths have to stay one scaffolder with two front ends, so the end-to-end test here
+asserts that answering the questions produces exactly what the equivalent commands
 produce. The rest pins the refusals: no terminal, and an answer that names nothing.
 """
 
@@ -34,7 +34,7 @@ def test_create_refuses_without_a_terminal():
 
 def test_empty_answers_take_the_defaults():
     chosen = create.answers(io.StringIO(), _answers("", "", ""))
-    assert chosen == {"name": "my-app", "auth": None, "blueprints": []}
+    assert chosen == {"name": "my-app", "auth": None, "entities": []}
 
 
 def test_a_name_is_one_directory_component():
@@ -65,38 +65,40 @@ def test_an_untemplated_provider_is_taken_and_flagged():
     assert "no template" in out.getvalue()
 
 
-def test_blueprints_are_parsed_and_trimmed():
-    chosen = create.ask_blueprints(io.StringIO(),
-                                   _answers(" orders : relational , sessions:cache "))
+def test_each_entity_is_a_name_then_a_type():
+    """Two questions, never one answer carrying both. The name is asked for first and on
+    its own, because it is the entity's folder, its own QML file and its accessor in
+    every consumer; a single answer that packed a name and a type together is the shape
+    this deliberately does not have."""
+    chosen = create.ask_entities(io.StringIO(),
+                                 _answers("orders", "relational", "sessions", "cache", ""))
     assert chosen == [("orders", "relational"), ("sessions", "cache")]
 
 
-def test_an_unknown_blueprint_names_the_ones_that_exist():
+def test_an_entity_with_no_type_named_is_a_plain_service():
+    chosen = create.ask_entities(io.StringIO(), _answers("billing", "", ""))
+    assert chosen == [("billing", "service")]
+
+
+def test_an_unknown_type_names_the_ones_that_exist():
     with pytest.raises(create.CreateError) as raised:
-        create.ask_blueprints(io.StringIO(), _answers("orders:postgres"))
+        create.ask_entities(io.StringIO(), _answers("orders", "postgres"))
     assert "relational" in str(raised.value)
-
-
-def test_a_kind_with_no_name_is_refused_rather_than_named_for_you():
-    """The name is the entity's folder, its own QML file, and its accessor in every
-    consumer. Deriving one from the kind puts a word nobody chose into all three."""
-    with pytest.raises(create.CreateError) as raised:
-        create.ask_blueprints(io.StringIO(), _answers("relational"))
-    assert "<name>:<kind>" in str(raised.value)
 
 
 def test_two_starting_entities_may_not_share_a_name():
     with pytest.raises(create.CreateError) as raised:
-        create.ask_blueprints(io.StringIO(), _answers("store:relational,store:cache"))
+        create.ask_entities(io.StringIO(),
+                            _answers("store", "relational", "store", "cache"))
     assert "store" in str(raised.value)
 
 
-def test_every_offered_blueprint_is_one_addentity_knows():
+def test_every_offered_type_is_one_addentity_knows():
     # The menu is a hand-written subset, so it can drift from the scaffolder it feeds.
     from synqt import addentity
-    for blueprint in create._STARTING_BLUEPRINTS:
-        assert blueprint in addentity.BLUEPRINTS
-        assert blueprint in create._BLUEPRINT_BLURB
+    for entity_type in create._STARTING_TYPES:
+        assert entity_type in addentity.TYPES
+        assert entity_type in create._TYPE_BLURB
 
 
 def test_input_ending_mid_question_stops_rather_than_guessing():
@@ -105,14 +107,14 @@ def test_input_ending_mid_question_stops_rather_than_guessing():
     assert "input ended" in str(raised.value)
 
 
-def test_answering_the_questions_matches_the_equivalent_flags():
+def test_answering_the_questions_matches_the_equivalent_commands():
     asked = Path(tempfile.mkdtemp())
     flagged = Path(tempfile.mkdtemp())
     try:
         create.create(asked, out=io.StringIO(), interactive=True,
-                      source=_answers("shop", "github", "orders:relational"))
+                      source=_answers("shop", "github", "orders", "relational", ""))
         newproject.scaffold(flagged, "shop", auth="github",
-                            blueprints=[("orders", "relational")])
+                            starting=[("orders", "relational")])
 
         asked_config = yaml.safe_load((asked / "shop" / "synqt.yaml").read_text())
         flagged_config = yaml.safe_load((flagged / "shop" / "synqt.yaml").read_text())

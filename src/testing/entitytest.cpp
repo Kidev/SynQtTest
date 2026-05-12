@@ -209,8 +209,8 @@ void EntityTest::buildHelpers()
         return;   // built once per harness; load() resets their contents, not their wiring
     }
 
-    // Every helper an entity could have, rather than the ones its blueprint would give it.
-    // A test harness that guessed the blueprint would be one more thing to configure, and
+    // Every helper an entity could have, rather than the one its type would give it.
+    // A test harness that guessed the type would be one more thing to configure, and
     // guessing wrong would surface as an undefined name rather than as a clear failure.
     ProviderConfig persistenceConfig;
     persistenceConfig.name = QStringLiteral("sqlite");

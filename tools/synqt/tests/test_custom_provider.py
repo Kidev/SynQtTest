@@ -16,13 +16,13 @@ from synqt import addprovider, cmakegen
 
 
 def _config(provider_name):
-    entity = {"name": "database", "kind": "service", "blueprint": "relational"}
+    entity = {"name": "database", "type": "relational"}
     if provider_name is not None:
         entity["provider"] = {"name": provider_name}
     return {
         "project": {"name": "shop"},
-        "entities": [{"name": "client", "kind": "client"},
-                     {"name": "web", "kind": "service", "capability": "web_edge"},
+        "entities": [{"name": "client", "type": "client"},
+                     {"name": "web", "type": "web_edge"},
                      entity],
     }
 

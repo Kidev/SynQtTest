@@ -47,7 +47,7 @@ work, scaffold = Path(sys.argv[1]), Path(sys.argv[2])
 # One provider per family, each named distinctly so the test can tell them apart in the
 # registry. scaffold() writes to <project>/providers/custom/, so give each its own project
 # and collect the results; that keeps this honest about what the tool actually emits.
-for name, family in (("MyStore", "persistence"), ("MyCache", "cache"), ("MyDocs", "document")):
+for name, family in (("MyStore", "relational"), ("MyCache", "cache"), ("MyDocs", "document")):
     project = work / f"project-{family}"
     project.mkdir(parents=True, exist_ok=True)
     addprovider.scaffold(project, name, family)

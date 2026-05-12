@@ -34,7 +34,7 @@ struct ProviderRegistration
 /// registry, so a custom provider can never shadow a bundled one: `sqlite` always means the
 /// bundled SQLite provider, and `custom:sqlite` is a different provider entirely.
 ///
-/// Registration must happen before the entity runtime builds its blueprint context, and the
+/// Registration must happen before the entity runtime builds its type context, and the
 /// tables are not synchronized: register at static initialization (the macros below) or from
 /// the entity's main() before start(). Static initialization order does not matter here
 /// because the tables are function-local statics, constructed on first use.
@@ -79,7 +79,7 @@ public:
 
 /// The diagnostic for a `provider.name` that selects nothing, naming what the family does
 /// offer so a typo reports the alternatives instead of failing silently. `family` is the
-/// blueprint family ("persistence"), `bundled` its built-in provider names. Shared by the
+/// provider family ("relational"), `bundled` its built-in provider names. Shared by the
 /// three family factories, which is the only reason it lives here.
 QString unknownProviderMessage(const QString &family, const QString &configName,
                                const QStringList &bundled);
