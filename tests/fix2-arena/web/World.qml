@@ -5,7 +5,7 @@ pragma Singleton                      // one shared instance for the whole edge
 import QtQuick
 
 // The authoritative arena, simulated once (the same `pragma Singleton` world as
-// examples/arena/web/World.qml: one shared instance the per-session Arena Sources reach by
+// examples/arena/web/edge/World.qml: one shared instance the per-session Arena Sources reach by
 // name, `World`; this test registers it as a QML singleton type). It owns the roster and
 // integrates every blob's
 // motion itself at the speed that blob's mass allows; the only movement input a client can

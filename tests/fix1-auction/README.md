@@ -18,7 +18,7 @@ localhost edge cert generated at configure time, then `ctest`).
 - Hands-on check 2: `placeBid` while signed out (as from the browser console) is refused
   by the edge, whatever the UI shows.
 - The Hall-of-Fame segmentation; the auctioneer's `closeLot` records a winner in the
-  database, and the database records only for the edge (`Caller.entity === "web"`),
+  books entity, and it records only for the edge (`Caller.entity === "edge"`),
   refusing a listed-but-non-edge consumer.
 
 The third hands-on check (client-as-consumer of the database `ledger` fails `synqt check`) is
