@@ -64,6 +64,17 @@ def _entity_type_messages(declared: List[Dict[str, Any]]) -> List[str]:
             messages.append(
                 f"error: entity '{name}' has type '{declared_type}', which is not one of "
                 f"{sorted(appmodel.TYPE_FOLDERS)}")
+        # `inbound: true` on an api entity is a promise version 1 does not keep yet: nothing
+        # generates the QHttpServer surface it asks for. Said here rather than left silent,
+        # because the alternative is a gateway that looks exposed, is not, and whose
+        # THIRD-PARTY-LICENSES correctly says it links no HTTP Server while the config says
+        # it should.
+        if declared_type == "api" and entity.get("inbound"):
+            messages.append(
+                f"warn: entity '{name}' sets 'inbound: true', which version 1 does not "
+                "implement: the entity makes outbound calls through `Http` but serves no "
+                "public HTTP surface. Expose it through the web edge instead: "
+                "https://synqt.org/entities/")
     return messages
 
 
@@ -916,7 +927,7 @@ def _normalized_route_path(path: str) -> str:
 
 
 # The OAuth routes' yaml keys and their defaults (docs/project-layout-and-config.md,
-# "identity"), and the fixed defaults src/service/identityconfig.h ships when a project
+# "identity"), and the fixed defaults src/identity/identityconfig.h ships when a project
 # has no `identity` section at all yet. Kept in sync with those defaults; if either
 # drifts, update both.
 _IDENTITY_ROUTE_KEYS = {
@@ -939,7 +950,7 @@ def _reserved_edge_paths(config: Dict[str, Any]) -> Set[str]:
     login/callback/logout routes.
 
     The two are reserved for different reasons. The login/callback/logout routes are
-    registered on QHttpServer (src/service/webedge.cpp), so the edge answers them
+    registered on QHttpServer (src/edge/webedge.cpp), so the edge answers them
     itself and a client route there is shadowed outright. `/sync` is not an HTTP route
     at all: the upgrade verifier runs on any path, and a plain GET of it falls through
     to the shell like any other deep link. It is reserved because it is the URL the
