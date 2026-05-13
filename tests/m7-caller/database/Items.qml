@@ -7,7 +7,7 @@ import SynQt
 // The authoritative Source on the database entity. It authorizes the CALLING ENTITY, not
 // a user: only the web edge (Caller.entity === "web") may write. Any other entity; even
 // one on the connect point's consumer allowlist; is refused here in the slot. This is a
-// per_peer instance over mutual TLS, so Caller.entity is the name on the certificate the
+// one instance per calling entity, over mutual TLS, so Caller.entity is the name on the certificate the
 // handshake verified.
 Items {
     id: items

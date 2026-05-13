@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // FIX-1 acceptance: the auction tutorial's hands-on checks, proven end to end on the real
-// gavel system (examples/gavel). The web edge owns the live auction (per_session, so Caller
+// gavel system (examples/gavel). The web edge owns the live auction (a Source per caller, so Caller
 // is the bidding user) and is the single authority; the database owns the durable ledger
 // and authorizes the calling entity. Verifies the tutorial's "try it, then think" checks:
 //   1. a bid that does not beat the standing one is refused BY THE EDGE (not the UI);
@@ -64,7 +64,7 @@ ConnectPointConfig ledgerConnectPoint(quint16 port)
     connectPoint.owner = QStringLiteral("books");
     connectPoint.consumers = {QStringLiteral("edge"), QStringLiteral("auditor")};
     connectPoint.serverFile = QStringLiteral(FIX1_GAVEL_DIR "/db/relational/books/Ledger.qml");
-    connectPoint.instance = ConnectPointInstance::PerPeer;
+    connectPoint.instance = ConnectPointInstance::PerCaller;
     connectPoint.endpoint.mode = MeshTransportMode::MutualTls;
     connectPoint.endpoint.host = QStringLiteral("127.0.0.1");
     connectPoint.endpoint.port = port;
@@ -131,7 +131,7 @@ private slots:
         synqtRegisterLedgerSources();
         synqtRegisterHallSources();
 
-        // The database entity owns `ledger` (per_peer), on an OS-assigned mTLS port.
+        // The database entity owns `ledger`, on an OS-assigned mTLS port.
         m_dbEngine = std::make_unique<QQmlEngine>();
         Topology dbTopology;
         dbTopology.entity = QStringLiteral("books");
@@ -162,7 +162,7 @@ private slots:
         QTRY_VERIFY((view = databaseView()) != nullptr);
         QTRY_VERIFY(qobject_cast<QRemoteObjectDynamicReplica *>(view)->isReplicaValid());
 
-        // The web edge: it owns `auction` and `hall`, both per_session so every slot has
+        // The web edge: it owns `auction` and `hall`, a Source per caller on both so every slot has
         // its Caller, and both reading the one lot and the one Hall of Fame from the edge
         // entity's own singleton. It reaches the database through the "Books" accessor of
         // its mesh runtime.
@@ -179,7 +179,7 @@ private slots:
         auction.name = QStringLiteral("auction");
         auction.contract = QStringLiteral("Auction");
         auction.serverFile = QStringLiteral(FIX1_GAVEL_DIR "/web/edge/Auction.qml");
-        auction.instance = InstanceMode::PerSession;   // one per user, so Caller is the bidder
+        auction.instance = InstanceMode::PerCaller;   // one per user, so Caller is the bidder
         WebEdgeConnectPoint hall;
         hall.name = QStringLiteral("hall");
         hall.contract = QStringLiteral("Hall");
@@ -187,7 +187,7 @@ private slots:
         // Per session like every other point. The hall is the same for everyone, and the
         // state behind it lives in the edge entity's own singleton; the Source is this
         // session's window onto it, and it has a Caller because every caller does.
-        hall.instance = InstanceMode::PerSession;
+        hall.instance = InstanceMode::PerCaller;
         config.connectPoints = {auction, hall};
 
         m_edge = std::make_unique<WebEdge>(config, m_edgeEngine.get());

@@ -8,11 +8,11 @@ Proves the M7 acceptance on the three-entity todo: the two identity systems, the
 
 ## The three entities
 
-- database owns the `items` connect point (`ConnectPointInstance::PerPeer`, mutual
+- database owns the `items` connect point (`ConnectPointInstance::PerCaller`, mutual
   TLS). `database/Items.qml` authorizes the calling entity (only `Caller.entity ===
   "web"` may write) and announces row changes as signals (scalar params replicate
   reliably; a `var`/model over a dynamic replica does not).
-- web (the edge) owns the `todo` connect point (`InstanceMode::PerSession`, scope
+- web (the edge) owns the `todo` connect point (`InstanceMode::PerCaller`, scope
   `user`) and consumes `items` from the database as entity `web`. `web/Todo.qml`
   authorizes the user (`Caller.hasScope`, `Caller.identity`), keeps an owner id per
   row for the removal check, and publishes a model whose declared roles exclude
@@ -69,9 +69,10 @@ with no entities and no transport:
   `Q_ARG(<cppType>, ...)` silently fails to match); it also emits an `emit<Signal>` method per
   contract signal, which `Caller.emitSignal` drives. M6 only exercised no-arg slots, so this
   surfaced here.
-- Connect points that need a `Caller` use per-connection Source instances (per_session on
-  the browser link, per_peer on the mesh), each bound to its session/entity; `shared`
-  connect points keep one Source hosted on every connection's node.
+- Every connect point mints a Source per caller (`instance: caller`, the default), each
+  bound to that caller's session or verified entity name. A user's tabs reach one Source,
+  which `instanceDecidesWhatASecondTabContinues` proves against `instance: connection` on
+  the same Source file.
 
 ## Run
 

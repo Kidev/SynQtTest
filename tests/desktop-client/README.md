@@ -14,7 +14,7 @@ closes that gap.
 ## What it does
 
 Over the real three-entity gavel topology (client + web edge + persistence database, with
-connect points, `per_session`, identity, and a provider), it:
+connect points, a scope-gated point, identity, and a provider), it:
 
 1. marks the client `targets: [wasm, desktop]` and sets a distinctive `build.desktop.edge_url`;
 2. runs the actual tooling (`presets.write` then `build.compile_incremental(client="desktop")`),
