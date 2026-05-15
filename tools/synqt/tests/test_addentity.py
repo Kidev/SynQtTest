@@ -141,8 +141,9 @@ class AddEntityTest(unittest.TestCase):
         root = self._project()
         addentity.scaffold(root, "rollups", "jobs")
         folder = root / "jobs/rollups"
-        self.assertEqual(sorted(path.name for path in folder.iterdir()),
-                         ["Rollups.qml", "main.cpp"])
+        # Only what its author writes: the generated main.cpp is under generated/.
+        self.assertEqual(sorted(path.name for path in folder.iterdir()), ["Rollups.qml"])
+        self.assertTrue((root / "generated" / "jobs" / "rollups" / "main.cpp").exists())
 
     def test_the_message_names_the_file_it_wrote(self):
         root = self._project()

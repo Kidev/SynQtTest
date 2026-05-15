@@ -17,7 +17,7 @@ class PagesService;
 
 /// The web edge's own Source for the framework-supplied Pages connect point (see
 /// docs on remote pages, Plan B). WebEdge hosts one instance of this per accepted
-/// connection, exactly the way it hosts a per_session application connect point: a
+/// connection, exactly the way it hosts a per-caller application connect point: a
 /// fresh Source carrying that connection's own Caller. The PageStore and
 /// PagesService it is built over are shared across every connection (the page
 /// table is the same for everyone), so this class holds no state of its own beyond

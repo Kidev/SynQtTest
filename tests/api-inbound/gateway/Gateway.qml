@@ -12,6 +12,8 @@ import QtQuick
 // `Api` is a context object the runtime installs rather than a type to import; an entity
 // that also used a SynQt QML type would import it for that.
 QtObject {
+    id: root
+
     property int settled: 0
 
     Component.onCompleted: {
@@ -35,5 +37,14 @@ QtObject {
 
         // A handler that throws must not take the process with it.
         Api.get("/broken", () => { throw new Error("deliberate"); });
+
+        // The deferred shape, which is what a handler reaching a connect point or an
+        // upstream really does: take the request, return nothing, answer on a later turn.
+        Api.get("/slow", request => {
+            Qt.callLater(() => { request.reply({ late: true }); });
+        });
+
+        // And the one that never answers, which must cost a 504 and not a held socket.
+        Api.get("/silent", () => {});
     }
 }

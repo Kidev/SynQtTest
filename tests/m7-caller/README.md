@@ -71,7 +71,7 @@ with no entities and no transport:
   surfaced here.
 - Every connect point mints a Source per caller (`instance: caller`, the default), each
   bound to that caller's session or verified entity name. A user's tabs reach one Source,
-  which `instanceDecidesWhatASecondTabContinues` proves against `instance: connection` on
+  which `instanceDecidesWhatASecondTabContinues` proves against `instance: link` on
   the same Source file.
 
 ## Run
