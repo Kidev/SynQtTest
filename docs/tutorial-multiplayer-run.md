@@ -358,5 +358,5 @@ would use for anything else.
 - Give the round a history. Record every round's winner and margin in the database, not
   just a running point total, and show a "recent rounds" list beside the Hall of Fame.
 - Read [the programming model](programming-model.md) to formalize the connect points,
-  scopes, `instance` modes, and `Caller` checks you used, and [security](security.md) for
+  scopes, `shared:` answers, and `Caller` checks you used, and [security](security.md) for
   why the boundaries fall where they do.
