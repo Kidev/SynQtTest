@@ -182,7 +182,7 @@ if [ "$PLATFORM" = "macos" ]; then
     # Qt entries `otool -L` prints are all `@rpath/...` and name no kit at all. Grepping the -L
     # output for the kit therefore matches nothing whether or not the bundle is deployed, which
     # is a check that passes for the broken case as readily as for the fixed one.
-    CLIENT_BIN="$APP/Contents/MacOS/client"
+    CLIENT_BIN="$APP/Contents/MacOS/$CLIENT"
     before="$(otool -l "$CLIENT_BIN" 2>/dev/null | grep -c "$QT_HOST" || true)"
     echo "  pre-deploy: $before LC_RPATH reference(s) into the build kit ($QT_HOST)"
 
@@ -191,9 +191,9 @@ if [ "$PLATFORM" = "macos" ]; then
         # deployed bundle cannot be booted with QT_QPA_PLATFORM=offscreen at all; it aborts
         # with "Could not find the Qt platform plugin", which is correct behaviour for a
         # deployed app and was, briefly, this fixture reporting a crash that was its own doing.
-        cp -R "$APP" "$PROBE/client.app"
-        APP="$PROBE/client.app"
-        CLIENT_BIN="$APP/Contents/MacOS/client"
+        cp -R "$APP" "$PROBE/$CLIENT.app"
+        APP="$PROBE/$CLIENT.app"
+        CLIENT_BIN="$APP/Contents/MacOS/$CLIENT"
         deploy_probe || rc=1
         # Self-contained is asserted structurally rather than by the kit rpath disappearing:
         # whether macdeployqt strips the original LC_RPATH or merely prepends its own has

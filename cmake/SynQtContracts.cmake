@@ -86,6 +86,14 @@ function(synqt_add_contract target)
     set(gendir "${CMAKE_CURRENT_BINARY_DIR}/synqt_generated/${target}")
     file(MAKE_DIRECTORY "${gendir}")
 
+    # The name that goes into a *file* name below, and from there into a C++ include guard.
+    # repc builds the guard out of the .rep's basename with no sanitising at all, so a
+    # target with a dash in it ("counter-client") produced
+    # `#ifndef REP_COUNTER__COUNTER-CLIENT_REPLICA_H`: a macro name with a minus in it, which
+    # every compiler reads as a name followed by leftover tokens and -Werror turns into a
+    # failed build nobody could trace back to the target's name.
+    string(MAKE_C_IDENTIFIER "${target}" target_id)
+
     foreach(syn IN LISTS ARG_SYN)
         get_filename_component(syn_abs "${syn}" ABSOLUTE)
         get_filename_component(stem "${syn}" NAME_WE)
@@ -118,14 +126,14 @@ function(synqt_add_contract target)
         # it does too. Nothing downstream sees the longer name: the generated code includes
         # `<contract>_rep.h`, and the shim below keeps `rep_<contract>_<role>.h` working for
         # the handful of places that include repc's header directly.
-        set(rep "${gendir}/${lstem}__${target}.rep")
+        set(rep "${gendir}/${lstem}__${target_id}.rep")
         configure_file("${gendir}/${lstem}.rep" "${rep}" COPYONLY)
         # repc calls the both-sided output "merged", not "both".
         set(repc_kind "${ARG_ROLE}")
         if(repc_kind STREQUAL "both")
             set(repc_kind "merged")
         endif()
-        set(repc_header "rep_${lstem}__${target}_${repc_kind}.h")
+        set(repc_header "rep_${lstem}__${target_id}_${repc_kind}.h")
 
         # A rep with a POD defines its Q_GADGET in both the _source and _replica
         # headers, so a single target that is BOTH an owner and a consumer must use
