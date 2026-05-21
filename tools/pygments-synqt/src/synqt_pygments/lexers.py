@@ -17,23 +17,57 @@ docs map the `qml` fence to it via `extend_pygments_lang` in mkdocs.yml, so
 ````qml` blocks match the hand-authored home page tooltip.
 """
 
-from pygments.lexer import RegexLexer, bygroups, inherit, words
+from pygments.lexer import RegexLexer, bygroups, default, inherit, words
+from pygments.lexers.data import YamlLexer
 from pygments.lexers.webmisc import QmlLexer
-from pygments.token import Comment, Keyword, Name, Operator, Punctuation, Text, Whitespace
+from pygments.token import (Comment, Keyword, Name, Number, Operator, Punctuation,
+                            Text, Whitespace)
 
-__all__ = ["SynLexer", "CliLexer", "SynqtQmlLexer"]
+__all__ = ["SynLexer", "CliLexer", "SynqtQmlLexer", "SynqtYamlLexer"]
 
 
 class SynLexer(RegexLexer):
-    """Lexer for SynQt `.syn` contract files."""
+    """Lexer for SynQt contract members: a `.syn` file, and the `export:` block of a
+    connect point in `synqt.yaml`, which is the same language written on the point.
+
+    Four things are colored apart, because four things is what a member line says: what
+    kind of member it is (`prop`, `model`, `signal`, `slot`), what type each value is,
+    how wide that type is allowed to be (`string[80]`), and what everything is called.
+    The width is the one most worth seeing: it is a rule the owner keeps at the boundary,
+    not a comment about the intended size, and a reader skimming a contract should be able
+    to find every one of them without reading the line.
+    """
 
     name = "SynQt Contract"
     aliases = ["syn", "synqt-contract"]
     filenames = ["*.syn"]
     mimetypes = ["text/x-synqt-contract"]
 
-    keywords = ("contract", "record", "prop", "model", "signal", "slot")
-    builtin_types = ("int", "string", "bool", "float", "double")
+    keywords = ("contract", "record")
+    member_kinds = ("prop", "model", "signal", "slot")
+    # QML's own value types, which is the whole vocabulary a contract may name (see
+    # docs/programming-model.md); there is no int16 and no float32 to write.
+    builtin_types = ("int", "string", "bool", "real", "float", "double", "var", "url",
+                     "date", "color", "point", "size", "rect")
+
+    # Tokens of their own rather than the stock `Keyword.Type` and `Number.Integer`,
+    # for the same reason the runtime accessors have one: Pygments writes an unknown
+    # leaf as its own CSS class (`kt-Contract`, `mi-Width`), so the docs can color a
+    # contract's types and widths without touching the class every other code block on
+    # the site shares. Material paints `.k` and `.kt` the same, so without this a
+    # member's kind and its type are one color and the line says less than it holds.
+    contract_type = Keyword.Type.Contract
+    width = Number.Integer.Width
+
+    # A type with the width it is allowed to carry: the brackets and the number are their
+    # own tokens, so the width can be colored as the boundary check it is.
+    sized_type = (r"\b([A-Za-z_]\w*)(\[)(\d+)(\])",
+                  bygroups(contract_type, Punctuation, width, Punctuation))
+    plain_type = (words(builtin_types, prefix=r"\b", suffix=r"\b"), contract_type)
+    # A capitalized identifier is a contract or record type, whether it is being declared
+    # (`contract Todo`) or referenced as a parameter or return type
+    # (`slot insert(ItemRow row)`).
+    named_type = (r"[A-Z][A-Za-z0-9_]*", Name.Class)
 
     tokens = {
         "root": [
@@ -42,13 +76,27 @@ class SynLexer(RegexLexer):
             (r"[{}()]", Punctuation),
             (r",", Punctuation),
             (words(keywords, suffix=r"\b"), Keyword),
-            (words(builtin_types, suffix=r"\b"), Keyword.Type),
-            # A capitalized identifier is a contract or record type, whether it is
-            # being declared (`contract Todo`) or referenced as a parameter or
-            # return type (`slot insert(ItemRow row)`).
-            (r"[A-Z][A-Za-z0-9_]*", Name.Class),
-            (r"[a-z_][A-Za-z0-9_]*", Name),
+            # Each member kind hands over to a state that reads the type (if the kind has
+            # one) and then the member's own name, so a name is colored as a name wherever
+            # it sits on the line rather than by how far along it is.
+            (r"\b(prop)\b", Keyword, "member"),
+            (r"\b(model|signal)\b", Keyword, "member"),
+            (r"\b(slot)\b", Keyword, "member"),
+            sized_type,
+            plain_type,
+            named_type,
+            (r"[a-z_][A-Za-z0-9_]*", Name.Variable),
             (r".", Text),
+        ],
+        # Between a member kind and the member's own name: any number of type tokens (none
+        # for a signal, one for a prop, one or none for a slot), then the name.
+        "member": [
+            (r"[ \t]+", Whitespace),
+            sized_type,
+            plain_type,
+            named_type,
+            (r"[a-z_][A-Za-z0-9_]*", Name.Function, "#pop"),
+            default("#pop"),
         ],
     }
 
@@ -165,3 +213,43 @@ class CliLexer(RegexLexer):
             (r".", Text),
         ],
     }
+
+
+class SynqtYamlLexer(YamlLexer):
+    """YAML that reads a connect point's ``export:`` block as the contract it is.
+
+    A `synqt.yaml` is two languages in one file. Almost all of it is configuration, and
+    YAML colors that well enough. The `export:` block on a connect point is not
+    configuration at all: it is the contract, the one place a project says what may cross
+    a link, and a plain YAML lexer hands the whole thing over as one undifferentiated
+    string. Every member, every type, and every width comes out the same color, which is
+    the opposite of what the block is for.
+
+    So the block is lexed with :class:`SynLexer`, the same lexer the `.syn` reference
+    pages use, and the two read alike wherever they appear. Nothing else in the file
+    changes: only the scalar directly under an `export:` key is taken, and it is taken by
+    following the key rather than by matching the text, so a value that happens to look
+    like a member somewhere else is left alone.
+    """
+
+    name = "SynQt YAML"
+    aliases = ["synqt-yaml"]
+    filenames = []
+    mimetypes = []
+
+    def get_tokens_unprocessed(self, text):
+        contract = SynLexer()
+        inside = False
+        for index, token, value in super().get_tokens_unprocessed(text):
+            if token is Name.Tag:
+                # Any other key ends the block: YAML gives the block scalar's lines back
+                # one at a time with no marker for where it stops, and the next key is the
+                # first thing that can only appear outside it.
+                inside = value.strip() == "export"
+                yield index, token, value
+                continue
+            if inside and token in Name.Constant:
+                for offset, kind, part in contract.get_tokens_unprocessed(value):
+                    yield index + offset, kind, part
+                continue
+            yield index, token, value
