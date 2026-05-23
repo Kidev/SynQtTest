@@ -40,8 +40,8 @@ With the symlink layout, a deploy is four commands and a rollback is two.
 rsync -a gavel-v1.0.0/ /srv/gavel-v1.0.0/
 cp -a /srv/gavel/synqt/mesh /srv/gavel/*/.env /srv/gavel-v1.0.0/...   # the material that stays
 ln -sfn /srv/gavel-v1.0.0 /srv/gavel
-sudo systemctl restart gavel-database   # owners first, per process-manifest.json
-sudo systemctl restart gavel-web
+sudo systemctl restart gavel-books      # owners first, per process-manifest.json
+sudo systemctl restart gavel-edge
 ```
 
 The certificates and the env files stay with the host, not with the release. They are not
@@ -175,10 +175,10 @@ certificate and that did not change:
 ```cli
 # on the machine that holds ca.key, not on a host
 synqt mesh status
-synqt mesh rotate database
+synqt mesh rotate books
 ```
 
-then copy the new `database.crt` and `database.key` to the database host and restart that
+then copy the new `books.crt` and `books.key` to the database host and restart that
 entity. The edge notices nothing beyond a reconnect.
 
 Rotating the **authority** is the one to schedule. Every entity trusts exactly one CA
