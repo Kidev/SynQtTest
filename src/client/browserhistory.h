@@ -10,6 +10,20 @@
 
 namespace SynQt {
 
+/// Leave the app for `url`, as a real navigation and not a route change.
+///
+/// This is what signing in and signing out are: the edge answers those routes with a
+/// redirect, and the app comes back reloaded, as whoever it now is. Nothing about it is a
+/// history entry, so it is a function rather than a method on the class below, but it
+/// lives in this file because `window.location` is the browser knowledge this file exists
+/// to hold, and having two places reach for it is how one of them ends up wrong.
+///
+/// A desktop build has nowhere to navigate to: the app is the window, not a page in one.
+/// It hands the URL to the system browser instead, which is where an OAuth flow belongs on
+/// a desktop anyway (RFC 8252), and returns false so the caller knows the visitor left for
+/// somewhere this process cannot see the end of.
+bool leaveForUrl(const QString &url);
+
 /// The browser's session history, and the one place in the client that knows
 /// the browser has one.
 ///
