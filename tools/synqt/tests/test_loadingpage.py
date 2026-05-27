@@ -173,6 +173,18 @@ class ShellTest(unittest.TestCase):
         self.assertIn("position: fixed", overlay)
         self.assertIn("inset: 0", overlay)
 
+    def test_the_background_is_measured_against_the_viewport_it_has_to_cover(self):
+        # The root element's background is painted over the whole canvas, but an image in
+        # it is sized against the root element's own box and then tiled to fill the rest.
+        # So the moment the canvas is taller than that box the gradient restarts partway
+        # down, or leaves what it does not reach. Attached to the viewport and told not to
+        # repeat, it is measured against the thing it is covering.
+        shell = self._shell()
+        for element in ("html, body", "#synqt-loading"):
+            block = re.search(re.escape(element) + r"\s*\{([^}]*)\}", shell).group(1)
+            self.assertIn("background-attachment: fixed", block, element)
+            self.assertIn("background-repeat: no-repeat", block, element)
+
     def test_title_is_escaped(self):
         shell = self._shell(_config(title='A<script>"&'))
         self.assertNotIn("<script>", shell)
