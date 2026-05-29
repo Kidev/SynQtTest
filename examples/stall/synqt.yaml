@@ -43,8 +43,7 @@ entities:
 
 connect_points:
   # The offers the browser watches: owned by the edge, filled from the database.
-  - name: catalog
-    owner: edge
+  - owner: edge
     consumers: [app]
     # Only these two roles cross the wire: the internal sku the edge keys stock on never
     # reaches the browser-facing offers model.
@@ -55,8 +54,7 @@ connect_points:
   # The durable stock: owned by the database, reachable only by the edge (never the
   # browser; a client consumer here fails `synqt check`, since the database is not a
   # web edge). This is the "database unreachable from the browser" connect point.
-  - name: inventory
-    owner: stock
+  - owner: stock
     consumers: [edge]
     # The stock entity authorizes the calling ENTITY (Caller.entity === "edge"), never a
     # user. A restocked item is announced as a scalar signal (scalars replicate reliably),

@@ -107,7 +107,7 @@ MouseArea {
 Timer {
     interval: 66; repeat: true
     running: Session.hasScope("player")
-    onTriggered: Server.arena.steer(root.aimX, root.aimY)
+    onTriggered: Server.steer(root.aimX, root.aimY)
 }
 ```
 
@@ -125,7 +125,7 @@ for others only. Add inside the `view` `Rectangle`:
 
 ```qml
 Repeater {
-    model: Server.arena.blobs
+    model: Server.blobs
     delegate: Item {
         readonly property bool mine: Session.identity && model.id === Session.identity.sub
         // Capture every authoritative update. For me it reconciles the prediction;
@@ -166,7 +166,7 @@ Repeater {
 // simply pop in as you approach and out as you leave (in the last part the edge only
 // sends the nearby ones, which is the same effect for free).
 Repeater {
-    model: Server.arena.pellets
+    model: Server.pellets
     delegate: Rectangle {
         width: 8 * view.zoom; height: 8 * view.zoom; radius: width / 2
         color: "#8899bb"
@@ -202,7 +202,7 @@ Column {
     Text { text: "On the map"; color: "white"; font.bold: true; font.pixelSize: 14
            style: Text.Outline; styleColor: "black" }
     Repeater {
-        model: Server.arena.board
+        model: Server.board
         delegate: Text {
             text: (index + 1) + ". " + model.name + "  " + Math.round(model.mass)
             color: "white"; font.pixelSize: 13
@@ -229,7 +229,7 @@ Timer {
     running: Session.hasScope("player")
     onTriggered: {
         const sent = Date.now()
-        Server.arena.ping().then(() => { root.latencyMs = Date.now() - sent })
+        Server.ping().then(() => { root.latencyMs = Date.now() - sent })
     }
 }
 
@@ -246,7 +246,7 @@ Text {
     Timer { id: hideTimer; interval: 2500; onTriggered: banner.opacity = 0 }
 }
 
-Arena.onEaten: (prey, predator) => {
+EdgeContract.onEaten: (prey, predator) => {
     const me = Session.identity ? Session.identity.login : null
     if (prey === me)          banner.flash("You were eaten by " + predator + "!")
     else if (predator === me) banner.flash("You ate " + prey)

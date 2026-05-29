@@ -119,7 +119,7 @@ def test_the_project_reads_back_as_a_design_document(server):
 def test_the_project_reads_back_the_contract_behind_every_link(server):
     base, _ = server
     body = _json(_get(f"{base}/api/project"))
-    ledger = next(link for link in body["document"]["links"] if link["name"] == "ledger")
+    ledger = next(link for link in body["document"]["links"] if link["owner"] == "books")
     assert ledger["owner"] == "books"
     assert ledger["members"]
 
@@ -128,7 +128,7 @@ def test_infer_reads_the_contracts_back_out_of_the_qml(server):
     base, project = server
     before = (project / "synqt.yaml").read_text()
     body = _json(_post(f"{base}/api/infer", {}))
-    auction = next(link for link in body["document"]["links"] if link["name"] == "auction")
+    auction = next(link for link in body["document"]["links"] if link["owner"] == "edge")
     assert {member["name"] for member in auction["members"]} >= {"itemName", "placeBid"}
     assert body["document"]["sourceHash"] == designdoc.source_hash(project)
     assert body["typedBy"] in ("ts", "heuristic")
@@ -217,7 +217,7 @@ def test_validate_answers_without_touching_the_project(server):
     base, project = server
     before = (project / "synqt.yaml").read_text()
     document = designdoc.read(project)
-    ledger = next(link for link in document["links"] if link["name"] == "ledger")
+    ledger = next(link for link in document["links"] if link["owner"] == "books")
     ledger["consumers"] = ["edge", "app"]
     body = _json(_post(f"{base}/api/validate", {"document": document}))
     assert body["ok"] is False
@@ -284,13 +284,13 @@ def test_apply_refuses_a_design_that_does_not_pass_check(server):
     """
     base, project = server
     document = designdoc.read(project)
-    ledger = next(link for link in document["links"] if link["name"] == "ledger")
+    ledger = next(link for link in document["links"] if link["owner"] == "books")
     ledger["consumers"] = ["edge", "app"]
     plan = _json(_post(f"{base}/api/plan", {"document": document}))
     assert plan["ok"] is False
     assert _refused(f"{base}/api/apply", data={"document": document,
                                                "digest": plan["digest"]}) == 400
-    assert _config(project)["connect_points"][2]["consumers"] == ["edge"]
+    assert _config(project)["connect_points"][1]["consumers"] == ["edge"]
 
 
 def test_a_body_that_is_not_a_document_is_refused_rather_than_guessed_at(server):

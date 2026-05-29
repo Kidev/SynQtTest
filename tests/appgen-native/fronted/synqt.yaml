@@ -43,8 +43,7 @@ entities:
 
 connect_points:
   # The front. It carries one surface; who answers it depends on who is asking.
-  - name: gate
-    owner: gate
+  - owner: gate
     consumers: [app]
     behind:
       anonymous: lobby
@@ -57,8 +56,7 @@ connect_points:
       <admin> slot restock(string[64] sku, int count)
 
   # What anyone reaches, answered by the entity anonymous callers are handed to.
-  - name: front
-    owner: lobby
+  - owner: lobby
     consumers: [gate]
     export: |
       prop string[80] headline
@@ -66,8 +64,7 @@ connect_points:
 
   # The same, plus the admin members: an admin satisfies anonymous, so callers of both
   # scopes land here and this entity answers everything either of them reaches.
-  - name: desk
-    owner: backoffice
+  - owner: backoffice
     consumers: [gate]
     export: |
       prop string[80] headline

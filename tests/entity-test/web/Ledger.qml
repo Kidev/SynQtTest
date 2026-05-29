@@ -31,7 +31,7 @@ Ledger {
     // consumed entity, so this is the shape it cannot drive; the suite pins that it says
     // so out loud rather than passing quietly.
     function forwardToDatabase(item) {
-        Database.ledger.recordWinner(item, "bob", 1);
+        Database.recordWinner(item, "bob", 1);
     }
 
     // Only the edge may write the permanent record, and it is an entity, not a person.

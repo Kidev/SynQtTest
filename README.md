@@ -59,8 +59,7 @@ itself, the typed shape of what may cross it.
 
 ```yaml
 connect_points:
-  - name: todo             # the browser and the edge share this, and nothing else
-    owner: edge
+  - owner: edge
     consumers: [app]
     export: |
       model items(string[280] text, string[80] author, bool done)  // only these cross
@@ -71,7 +70,7 @@ connect_points:
 Property changes and signals flow from the owner to the consumers; calls flow the
 other way, where the owner decides whether to honor them. The browser reaches the
 edge's connect points through `Server`, one entity reaches another's by that
-entity's name (`Store.users.find(id)`), and inside a connect point's own
+entity's name (`Store.find(id)`), and inside a connect point's own
 function `Caller` says who is asking, so the owner can authorize every request.
 
 Not every visitor's browser gives Qt a WebGL context. It can be disabled by policy or

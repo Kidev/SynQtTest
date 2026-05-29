@@ -410,8 +410,7 @@ void SynClient::bindPagesConnectPoint()
         return;
     }
 
-    auto *facade{qobject_cast<ConsumerBase *>(
-        m_server->value(pointName).value<QObject *>())};
+    auto *facade{qobject_cast<ConsumerBase *>(m_server->point(pointName))};
     if (!facade) {
         // No consumer facade registered for "Pages" in this build: a raw Replica alone
         // cannot answer fetchPage() with a value this class can read generically (its

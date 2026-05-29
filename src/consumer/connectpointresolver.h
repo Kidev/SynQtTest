@@ -16,7 +16,8 @@ namespace SynQt {
 /// entity consumes. A `<Contract>.on<Signal>` attached handler has no `target`: it resolves
 /// the connect point it consumes for that contract through this registry. Consumer facades
 /// publish themselves here as they bind a replica (and re-publish on reconnect); the attached
-/// type resolves by contract, optionally disambiguated by the connect point's name (`.point`).
+/// type resolves by contract alone, and there is never more than one candidate, because a
+/// contract belongs to an owner and an owner exports one connect point.
 ///
 /// Process-global (one entity runs one process): the accessor family (\qmlServer,
 /// Database, ...) and the attached types share one view of what is currently consumed.

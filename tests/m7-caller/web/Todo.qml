@@ -44,7 +44,7 @@ Todo {
             return;
         }
         // Persist via the database entity; it authorizes that the caller is the edge.
-        Database.items.insert(clean, Caller.identity.email, Caller.identity.sub);
+        Database.insert(clean, Caller.identity.email, Caller.identity.sub);
     }
 
     function remove(id) {
@@ -53,13 +53,13 @@ Todo {
             Caller.emitSignal("rejected", "You can only remove your own items.");
             return;
         }
-        Database.items.remove(id);
+        Database.remove(id);
     }
 
     // A generated Source is a QObject (no default child list), so subscribe to the shared
     // database's change signals imperatively.
     Component.onCompleted: {
-        Database.items.itemAdded.connect(onItemAdded);
-        Database.items.itemRemoved.connect(onItemRemoved);
+        Database.itemAdded.connect(onItemAdded);
+        Database.itemRemoved.connect(onItemRemoved);
     }
 }
