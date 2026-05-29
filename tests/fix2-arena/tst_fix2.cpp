@@ -22,7 +22,7 @@
 #include "synclient.h"
 #include "synclientconfig.h"
 
-#include "edgecontract_sourcehelper.h"  // synqtRegisterEdgeContractSources()
+#include "edge_sourcehelper.h"  // synqtRegisterEdgeSources()
 
 #include <QElapsedTimer>
 #include <QQmlEngine>
@@ -61,7 +61,7 @@ SynClientConfig clientConfig(quint16 port, const QByteArray &cookie)
 {
     SynClientConfig config;
     config.edgeUrl = QUrl{QStringLiteral("wss://127.0.0.1:%1/sync").arg(port)};
-    config.connectPoints = {{QStringLiteral("edge"), QStringLiteral("EdgeContract")}};
+    config.connectPoints = {{QStringLiteral("edge"), QStringLiteral("Edge")}};
     config.pinnedCaCertPath = QStringLiteral(FIX2_CERT_DIR "/ca.crt");
     config.sessionCookie = cookie;
     config.scopeOrder = {QStringLiteral("anonymous"), QStringLiteral("player")};
@@ -98,7 +98,7 @@ private slots:
     void initTestCase()
     {
         QVERIFY2(QSslSocket::supportsSsl(), "TLS backend unavailable");
-        synqtRegisterEdgeContractSources();
+        synqtRegisterEdgeSources();
 
         m_engine = std::make_unique<QQmlEngine>();
 
@@ -122,8 +122,8 @@ private slots:
 
         WebEdgeConnectPoint arena;
         arena.name = QStringLiteral("edge");
-        arena.contract = QStringLiteral("EdgeContract");
-        arena.serverFile = QStringLiteral(FIX2_SRCDIR "/web/EdgeContract.qml");
+        arena.contract = QStringLiteral("Edge");
+        arena.serverFile = QStringLiteral(FIX2_SRCDIR "/web/Edge.qml");
         arena.scope = QStringLiteral("player");        // only approved players acquire it
         arena.shared = false;                         // one per player, so Caller is bound
         config.connectPoints = {arena};

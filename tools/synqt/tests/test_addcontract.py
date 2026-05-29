@@ -52,7 +52,7 @@ class AddConnectPointTest(unittest.TestCase):
         # Nothing names the point and nothing names the contract: the owner names both.
         self.assertNotIn("name", point)
         self.assertNotIn("contract", point)
-        self.assertEqual(appmodel.contract_of(point), "FeedsContract")
+        self.assertEqual(appmodel.contract_of(point), "Feeds")
 
     def test_what_crosses_the_point_is_written_on_the_point(self):
         root = self._project()
@@ -99,19 +99,19 @@ class AddConnectPointTest(unittest.TestCase):
         """
         root = self._project()
         message = addcontract.scaffold_connect_point(root, "feeds", consumers=["edge"])
-        source = (root / FEEDS / "FeedsContract.qml").read_text()
-        self.assertIn("FeedsContract {", source)
+        source = (root / FEEDS / "Feeds.qml").read_text()
+        self.assertIn("Feeds {", source)
         self.assertIn("SPDX-License-Identifier: Apache-2.0", source)
         self.assertIn("Caller", source)
-        self.assertIn(f"{FEEDS}/FeedsContract.qml", message)
+        self.assertIn(f"{FEEDS}/Feeds.qml", message)
 
     def test_a_source_somebody_has_already_written_is_left_alone(self):
         root = self._project()
         (root / FEEDS).mkdir(parents=True)
-        (root / FEEDS / "FeedsContract.qml").write_text("// mine\nFeedsContract {\n}\n")
+        (root / FEEDS / "Feeds.qml").write_text("// mine\nFeeds {\n}\n")
         addcontract.scaffold_connect_point(root, "feeds", consumers=["edge"])
-        self.assertEqual((root / FEEDS / "FeedsContract.qml").read_text(),
-                         "// mine\nFeedsContract {\n}\n")
+        self.assertEqual((root / FEEDS / "Feeds.qml").read_text(),
+                         "// mine\nFeeds {\n}\n")
 
     def test_a_source_rooted_at_the_wrong_type_is_reported_rather_than_rewritten(self):
         """The likeliest file to be sitting there is the stub `synqt add entity` writes,
@@ -121,32 +121,36 @@ class AddConnectPointTest(unittest.TestCase):
         """
         root = self._project()
         (root / FEEDS).mkdir(parents=True)
-        (root / FEEDS / "FeedsContract.qml").write_text(
-            "import QtQuick\n\n// A comment naming FeedsContract, not the root type.\n"
+        (root / FEEDS / "Feeds.qml").write_text(
+            "import QtQuick\n\n// A comment naming Feeds, not the root type.\n"
             "QtObject {\n}\n")
         message = addcontract.scaffold_connect_point(root, "feeds", consumers=["edge"])
         self.assertIn("QtObject", message)
-        self.assertIn("FeedsContract", message)
-        self.assertIn("QtObject {", (root / FEEDS / "FeedsContract.qml").read_text())
+        self.assertIn("Feeds", message)
+        self.assertIn("QtObject {", (root / FEEDS / "Feeds.qml").read_text())
 
     def test_an_owner_qml_cannot_name_a_type_after_is_refused(self):
-        """The contract is the owner capitalized plus Contract, so it is a QML type name or
-        nothing is written at all."""
+        """The contract is the owner capitalized, so it is a QML type name or nothing is
+        written at all."""
         root = self._project()
         with self.assertRaises(addcontract.AddContractError):
             addcontract.scaffold_connect_point(root, "price list", consumers=["edge"])
         self.assertEqual((root / "synqt.yaml").read_text(), WRITTEN_BY_HAND)
         self.assertFalse((root / FEEDS).exists())
 
-    def test_the_contract_never_collides_with_a_helper_the_runtime_installs(self):
-        """`feeds` may call out, so its QML has `Http` in scope. The suffix is what keeps
-        the contract clear of that and of the entity's own file, however the entity is
-        named: `feeds` exports `FeedsContract`, never `Feeds` and never `Http`."""
+    def test_an_entity_named_after_a_helper_is_refused(self):
+        """An entity that may call out has `Http` in scope, so an entity named `http` would
+        export a type that shadows it wherever it is called. Refused at the point that would
+        have written the file, rather than at the far end of a build."""
         root = self._project()
+        calls_out = {"name": "http", "type": "api",
+                     "network": {"outbound": ["https://example.com/"]}}
+        with self.assertRaises(addcontract.AddContractError) as caught:
+            addcontract.check_qml_name("Http", entity_type="api", entity=calls_out)
+        self.assertIn("shadow it", str(caught.exception))
         addcontract.scaffold_connect_point(root, "feeds", consumers=["edge"])
-        self.assertTrue((root / FEEDS / "FeedsContract.qml").exists())
+        self.assertTrue((root / FEEDS / "Feeds.qml").exists())
         self.assertFalse((root / FEEDS / "Http.qml").exists())
-        self.assertFalse((root / FEEDS / "Feeds.qml").exists())
 
     def test_a_second_point_on_one_owner_is_refused(self):
         root = self._project()

@@ -67,7 +67,7 @@ connect_points:
     # not have the member: the slot is refused before it runs, so there is no check to
     # write, and to forget, in the QML that implements it.
     #
-    # The three properties are exported by name: web/edge/EdgeContract.qml binds each of
+    # The three properties are exported by name: web/edge/Edge.qml binds each of
     # them to Edge.qml, which declares what they are, so saying it twice here would be a
     # second place to keep in step. `synqt check` refuses a name the owner does not have.
     export: |
@@ -84,7 +84,7 @@ connect_points:
   # The durable ledger: owned by the books, reachable only by the edge (never the
   # browser; a client consumer here fails `synqt check`, since the books entity is not a
   # web edge). That one-name consumer list is the whole of the rule, which is why
-  # BooksContract.qml has no check in it about who is calling.
+  # Books.qml has no check in it about who is calling.
   - owner: books
     consumers: [edge]
     # A recorded winner is announced as a scalar signal (scalars replicate reliably), and

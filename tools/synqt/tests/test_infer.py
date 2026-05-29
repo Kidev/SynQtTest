@@ -21,7 +21,7 @@ OWNER = """\
 import QtQuick
 import SynQt
 
-EdgeContract {
+Edge {
     id: auction
 
     itemName: "a lasagna"
@@ -78,44 +78,44 @@ def _edge(edges, point):
 
 
 def test_the_contract_name_comes_from_the_root_type():
-    name, _ = infer.scan_owner("web/edge/EdgeContract.qml", OWNER)
-    assert name == "EdgeContract"
+    name, _ = infer.scan_owner("web/edge/Edge.qml", OWNER)
+    assert name == "Edge"
 
 
 def test_an_assigned_property_is_a_prop_typed_from_its_literal():
-    _, members = infer.scan_owner("web/edge/EdgeContract.qml", OWNER)
+    _, members = infer.scan_owner("web/edge/Edge.qml", OWNER)
     assert _member(members, "itemName").kind == "prop"
     assert _member(members, "itemName").type == "string"
     assert _member(members, "highBid").type == "int"
 
 
 def test_a_declared_property_keeps_its_declared_type():
-    _, members = infer.scan_owner("web/edge/EdgeContract.qml", OWNER)
+    _, members = infer.scan_owner("web/edge/Edge.qml", OWNER)
     assert _member(members, "reserve").type == "real"
     assert _member(members, "reserve").certain is True
 
 
 def test_a_function_is_a_slot_with_its_parameter_names():
-    _, members = infer.scan_owner("web/edge/EdgeContract.qml", OWNER)
+    _, members = infer.scan_owner("web/edge/Edge.qml", OWNER)
     place = _member(members, "placeBid")
     assert place.kind == "slot"
     assert [p.name for p in place.params] == ["amount"]
 
 
 def test_an_untyped_parameter_is_marked_uncertain():
-    _, members = infer.scan_owner("web/edge/EdgeContract.qml", OWNER)
+    _, members = infer.scan_owner("web/edge/Edge.qml", OWNER)
     assert _member(members, "placeBid").certain is False
 
 
 def test_caller_emit_is_a_signal_typed_from_the_argument():
-    _, members = infer.scan_owner("web/edge/EdgeContract.qml", OWNER)
+    _, members = infer.scan_owner("web/edge/Edge.qml", OWNER)
     rejected = _member(members, "bidRejected")
     assert rejected.kind == "signal"
     assert [p.type for p in rejected.params] == ["string"]
 
 
 def test_set_model_gives_a_model_with_the_row_literal_keys():
-    _, members = infer.scan_owner("web/edge/EdgeContract.qml", OWNER)
+    _, members = infer.scan_owner("web/edge/Edge.qml", OWNER)
     winners = _member(members, "winners")
     assert winners.kind == "model"
     # Typed from the row literal: a string and an int.
@@ -124,8 +124,8 @@ def test_set_model_gives_a_model_with_the_row_literal_keys():
 
 
 def test_every_member_records_the_file_and_line_it_came_from():
-    _, members = infer.scan_owner("web/edge/EdgeContract.qml", OWNER)
-    assert all(m.evidence and m.evidence[0].startswith("web/edge/EdgeContract.qml:") for m in members)
+    _, members = infer.scan_owner("web/edge/Edge.qml", OWNER)
+    assert all(m.evidence and m.evidence[0].startswith("web/edge/Edge.qml:") for m in members)
 
 
 def test_a_file_whose_root_is_not_a_source_yields_nothing():
@@ -206,7 +206,7 @@ def _project(tmp_path):
     """A two entity project on disk: the owner's Source, and a client that reads it."""
     (tmp_path / "web" / "edge").mkdir(parents=True)
     (tmp_path / "client" / "app").mkdir(parents=True)
-    (tmp_path / "web" / "edge" / "EdgeContract.qml").write_text(OWNER, encoding="utf-8")
+    (tmp_path / "web" / "edge" / "Edge.qml").write_text(OWNER, encoding="utf-8")
     (tmp_path / "client" / "app" / "Main.qml").write_text(CLIENT, encoding="utf-8")
     (tmp_path / "synqt.yaml").write_text(textwrap.dedent("""\
         project:
@@ -221,7 +221,7 @@ def test_collect_unions_both_ends_and_lists_the_consumers(tmp_path):
     edges = infer.collect(tmp_path, _project(tmp_path))
     assert len(edges) == 1
     auction = _edge(edges, "edge")
-    assert (auction.owner, auction.contract, auction.consumers) == ("edge", "EdgeContract",
+    assert (auction.owner, auction.contract, auction.consumers) == ("edge", "Edge",
                                                                     ("app",))
     # The owner alone knows about its models and signals; the client alone proves
     # nothing new about them, and neither end is dropped for it.
@@ -230,7 +230,7 @@ def test_collect_unions_both_ends_and_lists_the_consumers(tmp_path):
     place = _member(auction.members, "placeBid")
     assert [(p.type, p.name) for p in place.params] == [("real", "amount")]
     assert place.certain is True
-    assert any(where.startswith("web/edge/EdgeContract.qml:") for where in place.evidence)
+    assert any(where.startswith("web/edge/Edge.qml:") for where in place.evidence)
     assert any(where.startswith("client/app/Main.qml:") for where in place.evidence)
 
 
@@ -296,7 +296,7 @@ def test_a_rendered_export_parses_as_a_contract():
 
 def test_every_rendered_member_says_which_file_it_came_from():
     rendered = infer.render_export(_example("gavel")["edge"])
-    assert "web/edge/EdgeContract.qml:" in rendered
+    assert "web/edge/Edge.qml:" in rendered
     assert "client/app/Main.qml:" in rendered
 
 
@@ -315,7 +315,7 @@ def test_write_refuses_a_point_that_already_says_what_crosses_it(tmp_path):
     assert "edge" in written
     rewritten = yaml.safe_load((project / "synqt.yaml").read_text(encoding="utf-8"))
     point = next(p for p in rewritten["connect_points"] if p["owner"] == "edge")
-    assert designdoc.parse_export("EdgeContract", point)
+    assert designdoc.parse_export("Edge", point)
 
 
 def test_write_fills_in_the_points_that_never_said(tmp_path):
@@ -330,7 +330,7 @@ def test_write_fills_in_the_points_that_never_said(tmp_path):
     assert sorted(written) == ["books", "edge"]
     rewritten = yaml.safe_load((project / "synqt.yaml").read_text(encoding="utf-8"))
     books = next(p for p in rewritten["connect_points"] if p["owner"] == "books")
-    assert designdoc.parse_export("BooksContract", books)
+    assert designdoc.parse_export("Books", books)
 
 
 def test_the_json_output_is_a_design_document(tmp_path):
