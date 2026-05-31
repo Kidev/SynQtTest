@@ -91,12 +91,12 @@ bool leaveForUrl(const QString &url)
     emscripten::val::global("location").call<void>("assign", url.toStdString());
     return true;
 #else
-    // A desktop build has nowhere to navigate to, and it does not open the system browser
-    // either: the OAuth flow for a native app returns over a loopback redirect this client
-    // does not listen on yet (docs/desktop.md, "Signing in"). Sending somebody to a sign-in
-    // whose answer nothing here can receive is worse than saying so.
-    qWarning("SynQt: %s is a browser navigation, and this is a native build. The desktop "
-             "sign-in flow is not wired up yet; see https://synqt.org/desktop/.",
+    // A desktop build has no page to leave and no address bar to leave it in. Signing in
+    // does not come through here on that target: it opens the system browser and waits on a
+    // loopback port instead (SynClient::beginDesktopLogin). Anything else that asks a native
+    // window to navigate has asked for something that does not exist here.
+    qWarning("SynQt: %s is a browser navigation, and this is a native build, which has no "
+             "page to leave. See https://synqt.org/desktop/.",
              qUtf8Printable(url));
     return false;
 #endif
