@@ -78,6 +78,35 @@ What the suite proves, in the order it would hurt to get wrong:
    browser is stood in for through `QDesktopServices::setUrlHandler`, Qt's own seam;
    nothing in the client is widened to be testable.
 
+## Staying signed in (`tst_device.cpp`, `tst_devicestore.cpp`)
+
+`identity.desktop_session: device` lets a native app come back signed in without a browser.
+What it keeps is not the session: it is a device credential, redeemable once, at one route,
+for a fresh session of the ordinary length. See
+[desktop](../../docs/desktop.md#storing-the-session).
+
+`tst_device.cpp` is the edge half, driven over real HTTP against a `DeviceRegistry` on a
+throwaway SQLite store: enrolment issues a credential and not a session, a device secret
+presented at the WebSocket upgrade is refused, every redemption rotates, a retired generation
+inside the overlap window costs nothing and past it revokes the family and its sessions,
+scope is re-derived through the mapping hook, both expiry clocks are enforced, an `Origin`
+header is refused, logout ends the family, and an unknown secret is refused without signing
+its owner out. The far side of a window measured in days is reached by moving a row's
+timestamps with SQL, not by adding millisecond knobs to the config.
+
+`tst_devicestore.cpp` is the client half. The test that matters most is the one that would
+still pass if the feature were broken: with no store available, nothing is written anywhere,
+asserted against the real config, data and cache directories, because there is no file
+fallback and never will be. It also covers the round trip, that erasing what is not there
+succeeds, that a failed write leaves nothing behind (otherwise a keyring that cannot write
+would stage a theft the edge acts on), that the 2 s deadline holds, and end to end that a
+second launch is still signed in and a logout stops the third.
+
+On Linux ctest runs it through `tests/lib/keyring-session.sh`, which gives it a private
+session bus and a private keyring rather than the developer's own; where those tools are
+missing the store tests skip, which is what a visitor on such a machine gets. CI sets
+`SYNQT_REQUIRE_SECURE_STORE` on the column that provides a store, so a skip there fails.
+
 ## The promoted auth entity (`identity.provider_entity`)
 
 `providerEntityCentralizedLogin` and `providerEntityDistributedSessions` cover the shape
