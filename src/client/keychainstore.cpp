@@ -67,6 +67,20 @@ CFMutableDictionaryRef itemQuery(const CfString &service, const CfString &accoun
     return query;
 }
 
+/// Read one item out of one of the two keychains.
+///
+/// Split out because, unlike a write, a read has to be able to ask both of them.
+OSStatus copyItem(const CfString &service, const CfString &account, bool dataProtection,
+                  CFTypeRef *found)
+{
+    CFMutableDictionaryRef query{itemQuery(service, account, dataProtection)};
+    CFDictionarySetValue(query, kSecReturnData, kCFBooleanTrue);
+    CFDictionarySetValue(query, kSecMatchLimit, kSecMatchLimitOne);
+    const OSStatus status{SecItemCopyMatching(query, found)};
+    CFRelease(query);
+    return status;
+}
+
 QString describe(OSStatus status)
 {
     CFStringRef message{SecCopyErrorMessageString(status, nullptr)};
@@ -153,20 +167,25 @@ bool KeychainStore::load(const QString &account, QByteArray *secret, QString *er
 {
     const CfString service{serviceName()};
     const CfString accountRef{account};
-    CFMutableDictionaryRef query{itemQuery(service, accountRef, m_dataProtection)};
-    CFDictionarySetValue(query, kSecReturnData, kCFBooleanTrue);
-    CFDictionarySetValue(query, kSecMatchLimit, kSecMatchLimitOne);
 
     CFTypeRef found{nullptr};
-    OSStatus status{SecItemCopyMatching(query, &found)};
-    CFRelease(query);
-    if (status == errSecMissingEntitlement && m_dataProtection) {
-        m_dataProtection = false;
-        query = itemQuery(service, accountRef, false);
-        CFDictionarySetValue(query, kSecReturnData, kCFBooleanTrue);
-        CFDictionarySetValue(query, kSecMatchLimit, kSecMatchLimitOne);
-        status = SecItemCopyMatching(query, &found);
-        CFRelease(query);
+    OSStatus status{copyItem(service, accountRef, m_dataProtection, &found)};
+    if (m_dataProtection && found == nullptr) {
+        // A read is not told which keychain this build may use, the way a write is. SecItemAdd
+        // refuses with errSecMissingEntitlement, which is what moves store() to the file-based
+        // keychain; SecItemCopyMatching against the same out-of-reach keychain answers
+        // errSecItemNotFound instead, and that is indistinguishable from an ordinary first
+        // launch. Believing it is how an unsigned build never finds what it stored: every one
+        // of these tries the data-protection keychain first, and the credential it wrote sits
+        // in the file-based one being asked for again at every launch. So look in the other
+        // keychain too, and conclude that this is where this build's items live only when the
+        // item is actually there. A signed build with nothing stored yet keeps the keychain it
+        // is entitled to, and writes its first item there.
+        const OSStatus fallback{copyItem(service, accountRef, false, &found)};
+        if (found != nullptr || status == errSecMissingEntitlement) {
+            m_dataProtection = false;
+            status = fallback;
+        }
     }
 
     if (status == errSecItemNotFound) {
