@@ -463,6 +463,61 @@ private slots:
         QCOMPARE(redeem(held).status, 404);
     }
 
+    // Which family a session came from has to outlive the process that learned it.
+    //
+    // It was a QHash on the edge, justified by "a session does not outlive this process
+    // either". That stopped being true the moment the session store could be shared and
+    // the edge could be replicated: a visitor who enrols through one process and signs out
+    // against another would keep the credential the sign-out was supposed to end, silently
+    // and for its full lifetime. Nothing about the sign-out would look wrong.
+    void theSessionToFamilyBindingOutlivesTheProcess()
+    {
+        DeviceConfig config;
+        config.enabled = true;
+        config.store.name = QStringLiteral("sqlite");
+        config.store.file = storeFile();
+
+        const QByteArray session{QByteArrayLiteral("session-outlives-the-process")};
+        {
+            DeviceRegistry first{config};
+            QString error;
+            QVERIFY2(first.open(&error), qPrintable(error));
+            first.bindSession(session, QStringLiteral("family-outlives"));
+            QCOMPARE(first.familyOf(session), QStringLiteral("family-outlives"));
+        }
+
+        // A different registry over the same store is what a second replica is, and what
+        // this process is after a restart. It has to reach the same answer.
+        {
+            DeviceRegistry second{config};
+            QString error;
+            QVERIFY2(second.open(&error), qPrintable(error));
+            QCOMPARE(second.familyOf(session), QStringLiteral("family-outlives"));
+
+            second.unbindSession(session);
+            QCOMPARE(second.familyOf(session), QString{});
+        }
+    }
+
+    // Rebinding is a replace and not a second row: a session id is rotated on elevation,
+    // and the rotated id naming the same family must not leave the old one naming it too.
+    void rebindingASessionReplacesTheFamily()
+    {
+        DeviceConfig config;
+        config.enabled = true;
+        config.store.name = QStringLiteral("sqlite");
+        config.store.file = storeFile();
+
+        DeviceRegistry registry{config};
+        QString error;
+        QVERIFY2(registry.open(&error), qPrintable(error));
+
+        const QByteArray session{QByteArrayLiteral("session-rebound")};
+        registry.bindSession(session, QStringLiteral("family-one"));
+        registry.bindSession(session, QStringLiteral("family-two"));
+        QCOMPARE(registry.familyOf(session), QStringLiteral("family-two"));
+    }
+
     // Nonsense is refused the same way everything else is: one answer, no oracle.
     void anUnknownCredentialIsRefused()
     {
