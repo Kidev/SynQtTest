@@ -41,7 +41,7 @@ it on two separate registrable domains over TLS, with the Playwright builds.
 | WebKit | `+ Partitioned` | **fail** | **fail** | see below |
 | all three | `SameSite=Lax` (control) | fail | fail | fail |
 
-Two readings of that table are load bearing:
+Two readings of that table matter:
 
 - Chromium reports the partition key it stored, and for the login row it is
   `https://synqtedge.test`, the edge's site. That is the mechanism, not an inference

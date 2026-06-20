@@ -6,7 +6,7 @@ built as a native application for Windows, macOS, and Linux, connecting to the s
 web edge, over the same secure link, under the same security model. One QML codebase
 becomes a browser app and a native desktop app at once.
 
-This is a deliberate consequence of the architecture, not a bolt-on. The client is
+This follows from the architecture. The client is
 already the most constrained entity in the system (the browser sandbox anchors its
 shape: it can only connect out, never listen, and holds no secret and no mesh
 certificate). A native build lifts none of those constraints away. It keeps the
@@ -57,9 +57,8 @@ A browser client is served by the edge, so it learns the edge origin from the pa
 it loaded: the runtime config is delivered with the bundle. A desktop client is
 not served by anyone; it must be told the edge's public URL. You provide it in
 [`build.desktop.edge_url`](#configuration), and it is compiled into the binary. An
-app that has to reach more than one deployment is therefore more than one build,
-which is the honest shape: the edge a client trusts is not a preference a user
-should be able to retarget.
+app that has to reach more than one deployment is therefore more than one build: the
+edge a client trusts is not a preference a user should be able to retarget.
 
 ### Signing in
 
@@ -140,9 +139,9 @@ identity:
 
 **What is stored is not the session.** It is a *device credential*: an opaque pair the
 edge issues, redeemable exactly once, at exactly one route, and what it buys is a fresh
-session of the ordinary length. That separation is the point. If the stored thing were
-the session id, "stay signed in for a month" and "a stolen file is good for a month"
-would be one number, and the pressure would always be to make it larger.
+session of the ordinary length. If the stored thing were the session id, "stay signed in
+for a month" and "a stolen file is good for a month" would be one number, and the
+pressure would always be to make it larger.
 
 Three properties follow:
 
@@ -153,7 +152,7 @@ Three properties follow:
   `overlap_seconds` it is the honest case, a client that lost the answer before it
   could store it, and it costs nothing. Presented after that window it means two copies
   exist, so the device and every session it opened are revoked and somebody signs in
-  again. This is the property no file permission gives: theft stops being silent.
+  again. Theft stops being silent, which no file permission achieves.
 - **Scope is re-derived at every redemption**, through the same
   [mapping hook](authentication.md) a login runs through. Somebody demoted yesterday
   does not carry yesterday's scope for the rest of the month.
@@ -180,11 +179,11 @@ none of those is an answer about the credential, so the app waits and stays sign
 
 **There is no file fallback**, on any platform, in any build, including development. A
 machine with no store persists nothing and its visitor signs in once per launch, which
-is exactly what `desktop_session: memory` does everywhere. That is deliberate: what
-makes this credential safe to hand out at all is that a copy of it cannot be taken
-without taking the OS store's protection with it.
+is exactly what `desktop_session: memory` does everywhere. What makes this credential
+safe to hand out at all is that a copy of it cannot be taken without taking the OS
+store's protection with it.
 
-Some honest limits, stated rather than implied:
+Four limits apply:
 
 - On Windows and Linux the boundary is the OS user, not the application. Any process
   running as that user can read the item back. macOS is the only one of the three with
@@ -202,7 +201,7 @@ Some honest limits, stated rather than implied:
   entity those tokens today, so nothing breaks; a system that later needs them across a
   relaunch has to have the visitor sign in again, which is the honest version of a
   30-day refresh token sitting on a disk.
-- `min_binding` is a **fleet policy control, not an attack control**. The level is
+- `min_binding` is a **fleet policy control**. The level is
   reported by the client about its own store, and a patched client can claim more than
   it has; proving it would need key attestation, which SynQt does not do. It is the
   same kind of control as [route guards](programming-model.md) and a
@@ -326,7 +325,7 @@ Only system libraries are left to the host: the C runtime and the display server
 libraries, exactly as any other native application on the platform expects. For a single
 distributable file, wrap the tree with `linuxdeploy` or an AppImage recipe.
 
-Why the second flag is mandatory. What an unsigned build costs is different on each
+The second flag is mandatory because what an unsigned build costs is different on each
 platform, and only one of the three answers is "it will not run":
 
 | Platform | Unsigned binary | Signing is |
@@ -337,8 +336,7 @@ platform, and only one of the three answers is "it will not run":
 
 So `--deploy` alone is refused, and the refusal states which of those three applies to
 the host you are on, and offers only the flags that host accepts. `--unsigned` is an
-acknowledgement, not a workaround: on Linux it is simply the normal state, on macOS it
-means local use only.
+acknowledgement: on Linux it is the normal state, on macOS it means local use only.
 
 `--sign` takes a codesign identity on macOS (passed to `macdeployqt -codesign`, which
 signs the frameworks and plugins inside the bundle before the bundle itself) and a

@@ -23,7 +23,7 @@ inverses edit the machine, and elevate only for the file that needs it.
 Same-site, `SameSite`, cookie partitioning, CORS and CSP are computed from the scheme and
 the registrable domain. None of them looks at where the packets went. A browser cannot
 tell `https://synqtedge.test` on loopback from the same name in another country, so for
-those questions this is not an approximation of the real thing, it is the real thing. It
+those questions this is the real thing rather than an approximation of it. It
 stops being one the moment the question is latency, a proxy, or real TLS termination:
 those are properties of the path, and the path here is a lie.
 

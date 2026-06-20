@@ -96,7 +96,7 @@ written, so please open a pull request against
 [the SynQt repository](https://github.com/Kidev/SynQt) and let it become a bundled
 provider.
 
-That is not a courtesy: it is how the provider list gets past the handful of engines one
+That is how the provider list gets past the handful of engines one
 maintainer happens to use. A contributed provider goes in beside `postgres` and `redis`,
 where it is built in CI, kept working across Qt releases, and found by
 `synqt providers` rather than by whoever thinks to search for it.

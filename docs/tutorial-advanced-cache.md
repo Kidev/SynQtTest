@@ -32,7 +32,7 @@ QString name() const;
 
 Look at what is missing. `set`, `del`, and `expire` return nothing, and `get` has no way
 to report a failure: an absent value and an unreachable engine both come back as an
-invalid `QVariant`. That is not an oversight, it is the family's contract. A cache is an
+invalid `QVariant`. That is the family's contract. A cache is an
 optimization, so a miss is a normal result and a broken cache is a slow system rather
 than a broken one. Callers are entitled to ignore the difference, which means your adaptor
 must never turn a cache problem into an application problem: no throwing, no blocking
@@ -217,7 +217,7 @@ public:
     }
 ```
 
-Note what the socket is not doing: it is not asynchronous. Every exchange here blocks, for
+The socket is not asynchronous. Every exchange here blocks, for
 at most a quarter second, on the entity's own event loop. That is the right trade for a
 cache lookup that normally takes under a millisecond on a private network, and it is why
 the timeout is short and treated as a miss rather than retried. If your engine's typical
@@ -226,7 +226,7 @@ honest place for it is an entity of its own with a connect point.
 
 ## Step 3: The protocol
 
-Two helpers carry every command. They are the whole of the wire handling:
+Two helpers carry every command. Together they are all the wire handling:
 
 ```cpp
 private:
@@ -449,7 +449,7 @@ what answered.
 
 A display name containing a space, say `alice 0 0 6`, would make the key
 `profile:alice 0 0 6`. The memcached protocol is line-based and space-separated, so that
-key is not a key at all: the rest of it is read as the command's arguments. With
+everything after the space is read as the command's arguments. With
 `key.toUtf8()` the user is writing memcached commands, and can overwrite or expire entries
 belonging to other users by choosing a name carefully.
 

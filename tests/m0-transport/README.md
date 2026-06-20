@@ -76,8 +76,8 @@ needs `SharedArrayBuffer`, and the browser only grants that under cross-origin i
 `security.cross_origin_isolation` is on). `run-mt.sh` builds the threaded client, serves it
 with those headers and asserts the page is `crossOriginIsolated`, has `SharedArrayBuffer`,
 boots the threaded runtime, and still passes all four QtRO paths; then serves the identical
-bundle without the headers and asserts it is *not* isolated, proving the headers are
-load-bearing. Run in every engine Playwright can launch, the same way the single-threaded
+bundle without the headers and asserts it is *not* isolated, proving the isolation comes
+from the headers. Run in every engine Playwright can launch, the same way the single-threaded
 matrix is.
 
 The isolated page is served under the policy the edge actually emits, with one difference:

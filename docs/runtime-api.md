@@ -3,7 +3,7 @@
 The framework injects a small set of objects into your QML. This page is the
 exact reference for each one: every member, its type, where it is available, and
 what it does. The [programming model](programming-model.md) is the narrative
-introduction; this is the lookup table you keep open while writing code.
+introduction; this page is the reference.
 
 There is no global `Server`, `Session`, or `Client` singleton to import and no
 base class to subclass. Each accessor is scoped to where it makes sense: the
@@ -90,10 +90,10 @@ and "are we connected."
 | `connected` | the link is up and replicas are live. |
 | `reconnecting` | the link dropped or was refused; the client is retrying with capped exponential backoff. Replicas report not-ready; bindings hold their last values. |
 
-So is an edge that accepts the connection and then says nothing, which is what a hung
-proxy looks like and is not a failure anything reports: each attempt has a deadline of
-its own, and when it passes the client gives up on that attempt and backs off like any
-other. `connecting` is therefore always a state the client leaves.
+An edge that accepts the connection and then says nothing is `connecting` too. That is
+what a hung proxy looks like, and nothing reports it as a failure, so each attempt
+carries a deadline of its own; when it passes the client gives up on that attempt and
+backs off like any other. `connecting` is therefore always a state the client leaves.
 
 A refused upgrade is `reconnecting` too, not a state of its own. The browser does
 not report why a WebSocket handshake failed, so a client cannot tell an edge that
@@ -133,8 +133,8 @@ action, and calling one says so rather than requesting a URL the edge does not s
 !!! note "Client-side scope checks are UX only"
     Hiding a button with `Session.hasScope(...)` is a convenience, never the
     security boundary. Every privileged action is checked again on the owner,
-    inside the slot, against [`Caller`](#service-caller). This duplication is
-    intentional; see [security](security.md).
+    inside the slot, against [`Caller`](#service-caller). See
+    [security](security.md) for why the check exists in both places.
 
 ---
 
@@ -209,8 +209,7 @@ for how a view is named and where its file goes.
 A route path is a sequence of segments, each either a literal or a `:name`
 parameter that captures. When two routes both match, the one with more literal
 segments wins, whatever order they are declared in: `/c/summary` beats
-`/c/:campaign` even when `/c/:campaign` comes first in `synqt.yaml`. Precedence is a
-property of the table, not of the order something happened to emit it in.
+`/c/:campaign` even when `/c/:campaign` comes first in `synqt.yaml`.
 
 An empty segment is not a segment, so `/c` and `/c/` are one route and `synqt check`
 [rejects declaring both](project-layout-and-config.md#validation). A query string is
@@ -250,16 +249,16 @@ up on `/admin`, not on the home page with no explanation.
 The remembered path is cleared by being read, whether or not it turned out to be
 usable, so a stale intent cannot steer a later visit. It is not cleared by
 navigating somewhere else: a visitor bounced off `/admin` who then browses to
-`/products` and signs in there is still taken to `/admin`. That is deliberate: the
-page they were refused is the one they asked for, and whatever they looked at while
-signed out was them waiting to be let in.
+`/products` and signs in there is still taken to `/admin`. The page they were refused
+is the one they asked for, and whatever they looked at while signed out was them
+waiting to be let in.
 
 The stored path is under the control of whoever put the link in front of the
 visitor, so it is validated before anything acts on it. The rules, and why they are
 what they are, are in
 [deep links and the login resume](security.md#deep-links-and-the-login-resume).
 
-A route guard is a redirect rule, not a secrecy mechanism. The client is one
+A route guard redirects; it keeps nothing secret. The client is one
 compiled bundle, so every view's QML ships to every visitor; guards steer
 navigation, while the data behind a privileged view still arrives only through
 scope-gated connect points the edge refuses to an under-scoped session. This is
@@ -279,8 +278,8 @@ build for as long as their tab stays open. `App` is how the app finds out.
 
 **If you handle `updateReady`, you own the timing. If you handle nothing, the client
 reloads immediately**, on the grounds that an update nobody applies is worse than an
-interruption. That default is a mechanism, not a convention: the runtime checks whether
-anything is connected to the signal and reloads when nothing is.
+interruption. The runtime implements that by checking whether anything is connected to
+the signal and reloading when nothing is.
 
 Handle it whenever a reload could lose work. `App.onUpdateReady` is an attached
 handler, so it reads like a contract's own signal (`Arena.onEaten`) and needs no
@@ -336,8 +335,8 @@ nothing at all, which is what the notice explains.
 ## Service: `Caller`
 
 Inside a connect point's slot, `Caller` is whoever invoked it. It is one of two
-things, and which one is explicit. This is how an owner authorizes a request
-without any ambient global.
+things, and which one is explicit, so an owner authorizes a request without any
+ambient global.
 
 | Member | Available when | Type | Description |
 |--------|----------------|------|-------------|
@@ -383,7 +382,7 @@ function insert(row) {
 
 ### The session down the chain
 
-A system is a chain, and only its first link authenticates a person. The browser reaches
+Only the first link of a chain authenticates a person. The browser reaches
 the web edge, the edge reaches a service, that service reaches another. The database in
 the example above is two links from the browser and can never be reached by it, so the
 call it answers is the edge's; without help, all it would know is that the edge called.
@@ -410,7 +409,7 @@ a downstream service keys its own per-session state on. It changes when the cred
 rotates, which happens on a scope change, because an elevated session is a different
 session.
 
-!!! warning "A forwarded session is an assertion, not an authentication"
+!!! warning "Authorize the entity, then read the session"
     The certificate authenticated the calling entity. Everything that rides along with the
     call is that entity's word about who it is acting for, and is worth exactly as much as
     trusting that entity, which is a decision the connect point's consumer list already
@@ -421,7 +420,7 @@ session.
     the edge as a credential the edge looks up, and nothing inside a call can change who
     that is.
 
-Two limits worth knowing. `Caller.setScope` is the edge's alone: a downstream service
+Two limits apply. `Caller.setScope` is the edge's alone: a downstream service
 cannot elevate a session it did not authenticate. And a downstream entity answers each
 call for whoever it is for, but its Sources are still one per calling entity, not one per
 person: one mesh link can carry one copy of a pushed property or model, so state that must
@@ -490,8 +489,8 @@ There are two ways to emit a contract signal, and the difference is the audience
 - `Caller.emit<Signal>(...)` (`Caller.emitRejected(reason)`) delivers it to the one caller
   currently in the slot.
 
-So the two coincide, and `Caller.emit<Signal>` is the habit to keep, because it says which
-audience it means.
+On an entity that is not shared the two reach the same caller, and `Caller.emit<Signal>`
+is the habit to keep, because it names the audience it means.
 
 To reach *every* consumer, change what they are all reading: put the state in the entity's
 own singleton and let each Source republish from it. That is the arrangement described
@@ -700,7 +699,7 @@ A jobs entity is internal only: nothing on it is ever reachable from a browser.
 
 ## Availability and lifecycle
 
-The framework, not your code, owns each accessor's lifecycle:
+The framework owns each accessor's lifecycle:
 
 - A scope-gated `Server.<name>` is acquired only when the session meets the
   connect point's `scope`. Below that scope the Replica is never handed over, so

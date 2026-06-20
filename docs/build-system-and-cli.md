@@ -200,7 +200,7 @@ unless you add `--force`, because what is on disk is somebody's writing and this
 reading of a shape. `--json` prints the same result as the document `synqt design` draws,
 which is how the editor offers to fill a contract in for you.
 
-It is evidence, not proof. Nothing is compiled: the scan matches shapes in the source, so
+The result is evidence rather than proof. Nothing is compiled: the scan matches shapes in the source, so
 a literal argument proves a type and an expression proves nothing. A member it had to
 guess at is marked `check this type` on its own line rather than presented as fact, and
 the lines it names are there so the first thing you can do with a guess is go and look at
@@ -223,7 +223,7 @@ comes back `var`, marked for you to fill in.
 
 `synqt check` reads the same two ends and asks a narrower question: has the contract on
 this link and the QML around it drifted apart? Three answers come out of it, and each is
-narrow on purpose, because a check that cries wolf about correct code is one people learn
+narrow, because a check that cries wolf about correct code is one people learn
 to run with their eyes closed. A consumer naming a member the contract does not declare is
 an **error**: the replica it holds has no such member, so the call fails in a browser and
 not at build time. A member the contract declares that neither end mentions is a **note**:
@@ -259,7 +259,7 @@ line names the interpreter and the directory the CLI is running from, which is w
 separates "the version I installed" from "the version on this PATH". `synqt doctor`
 opens with the same three lines, so a pasted doctor report carries them too.
 
-You do not have to remember to run it. `synqt build`, `synqt dev`, and `synqt serve`
+`synqt build`, `synqt dev`, and `synqt serve`
 each run the [topology validation](project-layout-and-config.md#validation) first and
 refuse to continue if it fails, so a configuration that cannot be deployed is caught
 before anything is compiled or started rather than at the deployment. They run the
@@ -273,8 +273,8 @@ those to a localhost topology would reject a project that is working exactly as 
 so they are on automatically for `synqt build --release` and `synqt serve`, and available
 from `synqt check --release` when you want to ask the production question early. One rule
 goes the other way: a missing mesh certificate is only an error at the moment entities
-start, because certificates are issued from the CA and the CA private key is deliberately
-never on the machine that builds.
+start, because certificates are issued from the CA and the CA private key is never on the
+machine that builds.
 
 `synqt check` also reports QML that `qmlformat` would reformat, when the project sets
 `check.qml_format: true` (`synqt new` does). It reports and never rewrites, and the
@@ -283,7 +283,7 @@ teaches people to skim the output that matters. The rules come from the project'
 `.qmlformat.ini`, which `synqt new` writes and `synqt check` passes explicitly; with no
 settings file the check is skipped rather than guessed, because qmlformat otherwise falls
 back to a per user file and would answer differently on every machine. Two settings are
-off in the scaffolded file on purpose, with the reasons written in it: `NormalizeOrder`
+off in the scaffolded file, with the reasons written in it: `NormalizeOrder`
 sorts properties alphabetically, which is not the convention this project follows, and a
 `MaxColumnWidth` makes qmlformat wrap wherever the limit lands rather than where the
 expression means something.
@@ -317,7 +317,7 @@ Every command that applies a layer says so in its output.
 
 `synqt build` takes three more. `--entity <name>` builds one entity rather than the whole
 system (an unknown name is an error, not an empty build). `--threads single|multi`
-overrides `build.client_threads` for that one build; it is deliberately absent from
+overrides `build.client_threads` for that one build; it is absent from
 `synqt dev`, because dev re-reads `synqt.yaml` on every hot reload, so an override living
 only in the command line would be dropped mid session, and a threaded client served
 without cross origin isolation gets no SharedArrayBuffer and silently runs on one
@@ -340,9 +340,8 @@ and only one of the three answers is "it will not run". The full table, what eac
 platform's step does, and what `DEPLOY.txt` still leaves you to do are in
 [desktop clients](desktop.md#building-for-desktop).
 
-The intent is the npm shaped path: `synqt new app`, `cd app`, `synqt dev`, and the
-app runs in a browser with its edge and any service entities attached, without
-reading a build manual.
+`synqt new app`, `cd app`, `synqt dev`, and the app runs in a browser with its edge
+and any service entities attached, without reading a build manual.
 
 ## Scaffolding a project: `synqt new` and `synqt create`
 
@@ -375,7 +374,7 @@ The questions exist because the secure choice should be made consciously at the
 start, not discovered later. No insecure auth state is the default, and the questions
 make the alternatives explicit and reviewed.
 
-They are two commands rather than one command with a `--interactive` flag on purpose.
+They are two commands rather than one command with a `--interactive` flag.
 A single command that prompts when it finds a terminal and picks defaults when it does
 not is two behaviors under one name: the CI run takes a path nobody watched it take,
 and the difference only shows up later, in the generated project. So `synqt create`
@@ -450,7 +449,7 @@ contributor can drive CMake directly with the presets if they prefer.
 
 The WebAssembly preset's build directory is keyed to the kit
 (`build/wasm-singlethread` or `build/wasm-multithread`, following
-`build.client_threads`), and the two never share one. This is not tidiness: a kit is
+`build.client_threads`), and the two never share one. A kit is
 selected by the toolchain file, and CMake reads `CMAKE_TOOLCHAIN_FILE` only on the
 first configure of a directory and caches it from then on. Pointed at a directory the
 other kit configured, it silently keeps the old toolchain and builds the wrong client
