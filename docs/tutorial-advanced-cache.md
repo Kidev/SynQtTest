@@ -8,9 +8,9 @@ driver existed, so the adaptor was a connection and a dialect. This page is the 
 shape. Memcached has no Qt driver, no Qt module, and no client library SynQt pulls in, so
 the adaptor is the protocol itself, written by hand over a socket.
 
-That is a good thing to have done once. Most engines worth adapting are in this shape,
-and the protocol is usually the easy part: what takes the thought is what to do where the
-engine and the interface disagree, and Memcached disagrees in three interesting places.
+Most engines worth adapting are in this shape, and the protocol is usually the easy part:
+what takes the thought is what to do where the engine and the interface disagree, and
+Memcached disagrees in three interesting places.
 
 ## Step 1: A smaller interface, and a different error model
 
@@ -337,8 +337,8 @@ public:
 
 ## Step 4: The three disagreements
 
-Here is where an adaptor stops being transcription. Memcached and `ICacheProvider` do not
-agree about counters, and there are exactly three gaps.
+Memcached and `ICacheProvider` do not agree about counters, and there are exactly three
+gaps.
 
 It will not create the counter. `incr` on a key that does not exist returns
 `NOT_FOUND`; it does not start at zero. The interface promises to return the new value, so
@@ -472,8 +472,8 @@ exists.
 
 - An engine with no Qt driver is still one class: the family interface does not care
   whether there is a library behind it.
-- The cache family's error model is deliberately lossy. A miss and a failure look the
-  same, on purpose, so a broken cache degrades a system instead of breaking it.
+- The cache family's error model is lossy: a miss and a failure look the same, so a
+  broken cache degrades a system instead of breaking it.
 - A synchronous family interface means a blocking call on the entity's event loop, so it
   needs a short timeout and a treat-it-as-a-miss policy. An engine too slow for that
   belongs behind a connect point, not behind a cache interface.

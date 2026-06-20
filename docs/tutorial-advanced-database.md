@@ -213,8 +213,8 @@ and not the string the host was reached with.
 
 An unverified connection is refused in release. `refusesInsecure()`, two steps below,
 is the whole of that policy. Development on loopback stays easy, and a release build
-pointed at a real address with verification off does not start. This is a rule an adaptor
-inherits, not one it decides: see
+pointed at a real address with verification off does not start. An adaptor inherits this
+rule rather than deciding it: see
 [security of third party backends](providers.md#security-of-third-party-backends).
 
 The connection belongs to one thread. Qt SQL requires that a `QSqlDatabase` be used
@@ -267,7 +267,7 @@ private:
     }
 ```
 
-That branch on `m_inTransaction` is the single most common bug in a hand-written
+That branch on `m_inTransaction` is an easy thing to leave out of a hand-written
 relational provider. A pool hands out whichever connection is free, and a transaction
 lives on one connection; take a fresh lease inside a transaction and the statement is
 committed independently while the transaction it was supposed to be part of rolls back
@@ -340,9 +340,9 @@ private:
 
 A migration list is the schema's history, and `migrate()` is handed all of it every time
 the entity starts. Its job is to apply the steps that have not been applied yet, in order,
-and to be a no-op when there are none. It never goes backwards: there is no `down`, on
-purpose, because a rollback that runs against production data is a data loss feature
-wearing a safety label.
+and to be a no-op when there are none. It never goes backwards: there is no `down`,
+because a rollback that runs against production data destroys data while looking like a
+safety measure.
 
 ```cpp
 public:

@@ -87,10 +87,10 @@ The build-time palette check is a convenience that catches the mistake early. Th
 own `QmlPalette` is what actually enforces the palette on a delivered page at run time, and
 it is stricter than the build-time scan: it strips comments first and refuses any quoted
 (path) import outright. A page the build-time scan misses is still refused by the client,
-just later than you would like.
+at navigation time rather than at build time.
 
-The client reads a page the way the QML engine's own lexer reads it, which is the point:
-a check that reads it any other way has a hiding place in the difference. Comments and
+The client reads a page the way the QML engine's own lexer reads it, because a check that
+reads it any other way has a hiding place in the difference. Comments and
 string literals come out first, a statement ends at a semicolon as readily as at a line
 break, every line terminator the engine honors counts (a lone carriage return ends a line,
 and a leading byte order mark is skipped rather than mistaken for the start of the page
@@ -213,5 +213,4 @@ the bundle as a `view:`. Do not deliver them.
   `scope:` on the connect point that carries the data, as you would for any view.
 
 Reach for a remote page when a view is peripheral, changes on its own cadence, or is
-reached by a minority of visitors. That is where keeping it out of the bundle and editable
-on the edge earns its keep.
+reached by a minority of visitors.

@@ -8,7 +8,7 @@ your system has to reach something SynQt has never heard of: an in house key val
 store, a warehouse database three teams already depend on, the single sign on service
 your company will not be replacing for you.
 
-There is exactly one seam in SynQt for that, and it is deliberately narrow. An entity
+There is exactly one seam in SynQt for that, and it is narrow. An entity
 has two faces. Inward, it is a connect point: a typed contract, carried over the
 authenticated mesh, authorized in every slot. Outward, it is a provider: the one part
 of the entity that knows what the data is actually stored in. Consumers see only the
@@ -52,7 +52,7 @@ reach past the entity to the engine behind it.
   a verified connection or none at all.
 - What to do when your engine does not fit the interface. Some engines have no
   transactions, some have no TLS, some cannot count atomically. Each of those has a
-  right answer, and it is never to pretend.
+  right answer, and none of them is to pretend the engine can do it.
 - Why identity is not a provider, and what the equivalent seam looks like for an
   authentication service that is not an OAuth2 provider off the shelf.
 
