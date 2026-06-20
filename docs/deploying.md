@@ -16,11 +16,12 @@ worth saying which is which. That page gets a system running on a machine that h
 installed, with a certificate authority created and discarded inside the compose project.
 This page is about a system somebody else depends on.
 
-**A SynQt deployment is a project directory.** Every entity binary resolves its runtime files relative to the directory
-it is started from, exactly as they are spelled in `synqt.yaml`: its topology under
-`build/<entity>/`, its certificate under `synqt/mesh/`, its secrets in its own `.env`,
-and, for the edge, the client bundle under `build/client/`. Copy a binary out of that
-tree on its own and it will start looking for all of them in the wrong place.
+**A SynQt deployment is a project directory.** Every entity binary resolves its runtime
+files relative to the directory it is started from, exactly as they are spelled in
+`synqt.yaml`: its topology under `build/<entity>/`, its certificate under
+`synqt/mesh/`, its secrets in its own `.env`, and, for the edge, the client bundle
+under `build/client/`. Copy a binary out of that tree on its own and it will start
+looking for all of them in the wrong place.
 
 ## 1. Ask the production question before you build
 

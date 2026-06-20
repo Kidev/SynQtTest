@@ -1,6 +1,6 @@
 # Real bidders
 
-There is a problem with our auction, and you may have already felt it.
+There is a problem with the auction so far.
 
 > [!CAUTION]
 > Right now the bidder is just a name you type. Nothing stops you from bidding as
@@ -58,9 +58,9 @@ GITHUB_CLIENT_SECRET=your-generated-secret
 > see it, but the habit matters more than the safety net.
 
 > [!NOTE]
-> Why does one command give you a setup that is already hardened (PKCE, a secure
-> cookie, the secret kept server side)? Because any safety control that is optional
-> is one someone eventually forgets. SynQt makes the secure path the default path,
+> One command gives a setup that is already hardened (PKCE, a secure cookie, the
+> secret kept server side) because any safety control that is optional is one
+> someone eventually forgets. SynQt makes the secure path the default path,
 > with no working but insecure middle state to get stuck in. If you want the full
 > picture of what was turned on for you, see [authentication](authentication.md).
 
@@ -160,8 +160,7 @@ The bid is rejected. You see nothing change at all: the standing bid is where it
 
 Hiding the controls only removed the button from view. A determined visitor can
 still call the slot directly, as you just did. What actually stopped the bid was the
-`<user>` gate on `placeBid`, which the edge applies before the function runs. The UI
-visibility was a courtesy; the edge was the guard.
+`<user>` gate on `placeBid`, which the edge applies before the function runs.
 
 This is the same lesson as [the base case](tutorial-base-auction.md), now for
 permissions: authorization happens on
@@ -173,8 +172,8 @@ laid out in [security](security.md).
 
 ## Bonus: an auctioneer who can close a lot
 
-Let us give one person, the auctioneer, the power to close the current lot and put
-up the next one. This shows a higher permission level (admin).
+One person, the auctioneer, gets the power to close the current lot and put up the
+next one. This shows a higher permission level (admin).
 
 Add to the edge's `export:`, gated a level higher:
 

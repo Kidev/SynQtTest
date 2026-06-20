@@ -13,7 +13,7 @@ survive a restart. That is a database's job, exactly as in
 [the Hall of Fame](tutorial-hall-of-fame.md). Add one:
 
 ```cli
-synqt add entity database --type relational
+synqt add entity records --type relational
 ```
 
 Give it a connect point in `synqt.yaml`. This is the database's API, used only by the
@@ -97,61 +97,79 @@ right: the owner sets it once per round and every browser sees the new value pus
 `champions` is a model the edge fills from the database. `roundEnded` announces the
 crowning.
 
-## Step 3: The edge runs the clock and mirrors the Hall
+## Step 3: The world runs the clock, the Source publishes it
 
-Teach `web/edge/Edge.qml` two new jobs: keep the champions list fresh from the database,
-and run the ten minute round. Add to the edge's Source:
+A round belongs to the arena, not to one player's view of it, so it goes where the arena
+is: `web/edge/World.qml`, the singleton from
+[part two](tutorial-multiplayer-world.md#step-3-the-edge-owns-the-arena-once). The
+champions list is the same, one list for everybody. Add to `World.qml`:
 
 ```qml
-    // Hall of Fame, mirrored from the database
-    // Records.scores is how the edge reaches the database's connect point, the same
-    // way the browser reaches the edge with Server.
-    function refreshChampions() {
-        Records.top().then(rows => arena.setChampions(rows))
-    }
-    Records.onStandingsChanged: arena.refreshChampions()
-
-    // The ten minute round
     readonly property int roundMs: 10 * 60 * 1000     // shorten this to test quickly
 
-    Component.onCompleted: {
-        arena.roundEndsAt = Date.now() + arena.roundMs
-        arena.refreshChampions()
+    property real roundEndsAt: 0
+    property var  champions: []
+
+    signal roundEnded(string winner)
+
+    // Records is how the edge reaches the database's connect point, the same way the
+    // browser reaches the edge with Server. An entity has one point, so the name is
+    // the whole address.
+    function refreshChampions() {
+        Records.top().then(rows => { world.champions = rows })
     }
+    Records.onStandingsChanged: world.refreshChampions()
 
     Timer {
-        interval: arena.roundMs; repeat: true; running: true
+        interval: world.roundMs; repeat: true; running: true
         onTriggered: {
             // Crown the biggest blob still on the map and give them a point.
             let winner = null
-            for (const sub in arena.roster) {
-                const b = arena.roster[sub]
+            for (const sub in world.roster) {
+                const b = world.roster[sub]
                 if (b.online && (!winner || b.mass > winner.mass)) winner = b
             }
             if (winner) {
                 Records.award(winner.id, winner.name)   // edge -> database
-                arena.roundEnded(winner.name)                   // tell every browser
+                world.roundEnded(winner.name)           // every Source relays this
             }
             // Reset the arena: everyone back to a small blob at a fresh spot.
-            for (const sub in arena.roster) {
-                const b = arena.roster[sub]
-                b.mass = arena.startMass
-                b.x = b.tx = arena.randPos()
-                b.y = b.ty = arena.randPos()
+            for (const sub in world.roster) {
+                const b = world.roster[sub]
+                b.mass = world.startMass
+                b.x = b.tx = world.randPos()
+                b.y = b.ty = world.randPos()
             }
-            for (const p of arena.pellets) { p.x = arena.randPos(); p.y = arena.randPos() }
-            arena.pelletsDirty = true
-            arena.roundEndsAt = Date.now() + arena.roundMs
-            publishBlobs()
+            for (const p of world.pellets) { p.x = world.randPos(); p.y = world.randPos() }
+            world.pelletsVersion += 1
+            world.roundEndsAt = Date.now() + world.roundMs
         }
     }
 ```
 
-Wire the new connect point in `synqt.yaml`, alongside the edge's:
+Extend `Component.onCompleted` in the same file to start the first round:
 
-```yaml
-  - owner: records            # the records entity owns durable storage
-    consumers: [edge]         # only the edge may reach it, never the browser
+```qml
+        world.roundEndsAt = Date.now() + world.roundMs
+        world.refreshChampions()
+```
+
+Then `web/edge/Edge.qml`, one per player session, relays the event and publishes the two
+new values:
+
+```qml
+    // The Hall of Fame is the world's, not this session's: one binding, and every
+    // session publishes it.
+    championsRows: World.champions
+
+    Component.onCompleted:
+        World.roundEnded.connect(winner => arena.roundEnded(winner))
+```
+
+and, in the tick it already has, mirror the clock:
+
+```qml
+            arena.roundEndsAt = World.roundEndsAt
 ```
 
 The edge consumes the records entity's point and owns its own; the browser consumes the
@@ -214,7 +232,7 @@ Edge.onRoundEnded: winner => banner.flash("Round over! " + winner + " takes the 
 
 Save and look at the browser. Sign in with an approved account and play as before, but
 now a clock counts down at the top and a Hall of Fame sits bottom right. To see a round
-resolve without waiting ten minutes, drop `roundMs` in `web/edge/Edge.qml` to something like
+resolve without waiting ten minutes, drop `roundMs` in `web/edge/World.qml` to something like
 `20 * 1000`, save, and play a short round. When the clock hits zero the biggest blob is
 crowned, everyone resets small, and that name appears in the Hall of Fame with one
 point. Now stop `synqt dev` and start it again: the live arena is empty, but the Hall of
@@ -248,4 +266,4 @@ the line back to `[edge]`. The full reasoning is in [security](security.md).
 
 The game is now complete and persistent. One thing is still wasteful: the edge
 broadcasts the whole arena to every browser, even the blobs and pellets off your
-screen. Fixing that is what turns this from a demo into something that scales.
+screen. The last part sends each player only their own slice.

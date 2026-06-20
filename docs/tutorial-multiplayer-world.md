@@ -338,20 +338,21 @@ Edge {
 > split you just wrote is what makes that a change to one file: the simulation is already
 > in one place, and only what each Source publishes has to narrow.
 
-Wire the connect point in `synqt.yaml`:
+The connect point is already declared, from step 1. What is left is the one line on
+the entity that makes its Source per player, in `synqt.yaml`:
 
 ```yaml
-connect_points:
-  - owner: edge               # the edge holds the one real arena
-    consumers: [app]          # the browser mirrors it
-    scope: player             # only approved players get the arena at all
-    # the edge says shared: false, which is what puts a Caller in
-    # the slots above. The arena itself is shared because World.qml is.
+entities:
+  - name: edge
+    type: web_edge
+    # A Source per player session, which is what puts a Caller in the slots above.
+    # The arena itself stays shared, because World.qml is a singleton.
+    shared: false
 ```
 
-`scope: player` is doing real work: a signed in visitor who is not on the guest list
-never has `arena` acquired for them, so they cannot call `steer` or even see the
-roster. The gate is the connect point, not the UI.
+`scope: player` on the connect point is doing real work: a signed in visitor who is
+not on the guest list never has `arena` acquired for them, so they cannot call `steer`
+or even see the roster. The gate is the connect point, not the UI.
 
 ## Why this movement is honest
 

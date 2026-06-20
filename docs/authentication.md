@@ -1,19 +1,18 @@
 # Authentication and identity
 
-Authentication should be easy to add and hard to get wrong. This page covers
-how SynQt makes user login a one command, secure by default capability, the
-reasoning behind each default, the distinction between user identity and entity
-identity, and the session lifecycle. The security rationale here is the same as in
-[security](security.md); this page is the practical, opinionated front door to it.
+This page covers how SynQt makes user login a one command, secure by default
+capability, the reasoning behind each default, the distinction between user identity
+and entity identity, and the session lifecycle. The security rationale here is the
+same as in [security](security.md); this page is the practical version of it.
 
 ## Secure defaults, with no insecure state to get stuck in
 
-The most dangerous thing about authentication is the gap between "it works" and
-"it is safe." Many systems reach a working login that is quietly insecure (a token
-in local storage, a secret in the browser bundle, a missing CSRF defense, a cookie
-without the right flags) and never close the gap because the demo already worked.
+Authentication has a gap between "it works" and "it is safe." Many systems reach a
+working login that is quietly insecure (a token in local storage, a secret in the
+browser bundle, a missing CSRF defense, a cookie without the right flags) and never
+close the gap because the demo already worked.
 
-SynQt's stance is that the default path is the secure path, and there is no
+In SynQt the default path is the secure path, and there is no
 working but insecure intermediate state to get stuck in. The single command that
 adds auth produces a configuration that is already hardened. You can widen it
 deliberately, but you never have to remember to add the protections, because they
@@ -45,8 +44,7 @@ Concretely, the defaults baked in by `synqt add auth`:
 - Login rate limiting and the same origin and upgrade checks the rest of the system
   uses.
 
-None of these is something the developer has to wire by hand. They are the output
-of the command.
+None of these has to be wired by hand; they are the output of the command.
 
 ## Adding auth: one command
 
@@ -256,7 +254,7 @@ own that lands independently of the browser that produced it. Every replica pres
 entity identity, so the auth entity is answering one consumer that happens to be several
 processes.
 
-It is also literally one line, because everything the line implies is generated. Declare
+It is also one line, because everything the line implies is generated. Declare
 the entity, name it, and `synqt build` writes the two connect points (`identity` and
 `sessions`, one Source per caller so one edge's answer never reaches another), the Source QML that
 bridges each to its engine, and the entity's `main.cpp` holding the OAuth engine and the
@@ -276,8 +274,7 @@ identity:
       client_secret: env:GITHUB_CLIENT_SECRET   # now the AUTH entity's .env, not the edge's
 ```
 
-What moves is worth being precise about, because it is the reason to do this at all. The
-promoted edge is given provider *names* and nothing else: no client id, no provider
+The promoted edge is given provider *names* and nothing else: no client id, no provider
 endpoint, no client secret, and no token. It keeps the browser facing half (the login and
 callback routes, the origin and session checks, the cookie) and asks the auth entity over
 the mesh for every step that needs a secret. The scope mapping hook stays on the edge too:

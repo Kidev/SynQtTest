@@ -200,8 +200,8 @@ unless you add `--force`, because what is on disk is somebody's writing and this
 reading of a shape. `--json` prints the same result as the document `synqt design` draws,
 which is how the editor offers to fill a contract in for you.
 
-The result is evidence rather than proof. Nothing is compiled: the scan matches shapes in the source, so
-a literal argument proves a type and an expression proves nothing. A member it had to
+The result is evidence rather than proof. Nothing is compiled: the scan matches shapes
+in the source, so a literal argument proves a type and an expression proves nothing. A member it had to
 guess at is marked `check this type` on its own line rather than presented as fact, and
 the lines it names are there so the first thing you can do with a guess is go and look at
 what produced it. Two ordinary QML habits make the answer much better, and they are the

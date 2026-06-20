@@ -5,7 +5,7 @@ but wasteful in one way: the edge sends every player the whole arena, even the b
 pellets off their screen. Your camera shows only a window, maybe a thousand units of a
 four thousand unit map, so most of what arrives is never drawn. This last part sends
 each player only what they can see. It plays exactly the same; the change is in what
-crosses the wire, and it is the difference between a demo and something that scales.
+crosses the wire.
 
 This is interest management, and the split it needs is one you already have. Each
 player already has their own `Arena` Source over one shared `World`; what changes is that
@@ -219,9 +219,9 @@ Edge {
 }
 ```
 
-The edge's connect point in `synqt.yaml` does not change at all:
-the arrangement this needed was already there, because every connect point already gets a
-Source per caller.
+The edge's connect point in `synqt.yaml` does not change at all: the arrangement this
+needed was already there, because the `shared: false` you set in part two already gives
+each player a Source of their own.
 
 The client does not change either. It already read `blobs` (now just the nearby ones),
 `board` (still global), `pellets` (nearby), `champions`, and `roundEndsAt`. That is the
@@ -232,7 +232,7 @@ per-player delivery touched only the edge.
 > Notice the division of labour. The singleton simulates once, so there is exactly
 > one authoritative arena no matter how many players connect. Each per-session Source
 > is a cheap filter over it, computing one player's view. That is the shape of interest
-> management everywhere: one authority, many tailored views. For a real crowd you would
+> management: one authority, many tailored views. For a real crowd you would
 > replace the linear "check every blob" scan with a spatial grid so each query touches
 > only nearby cells, but the structure, filter the authority per viewer, is already here.
 
@@ -244,7 +244,7 @@ still glides with you, the clock still counts down, the Hall of Fame still fills
 changed is on the wire: each browser now receives only the blobs and pellets inside its
 view, not the whole map. With two players far apart, neither appears in the other's
 world at all until they drift close, then they slide into view. (The `roundMs` test knob
-now lives in `web/edge/World.qml` if you want to watch a round resolve again.)
+is still in `web/edge/World.qml` if you want to watch a round resolve again.)
 
 ## Try it, then think
 
@@ -289,7 +289,6 @@ position from a client, and it shows each player only what they are entitled to 
 > the arena behind a gate, which is a courtesy. The connect point's `scope: player` is
 > the real barrier: an unapproved account, even one poking at the console, never has
 > `arena` acquired for it, so `steer`, `ping`, and the roster are all out of reach.
-> Hiding UI is never the security boundary; the scoped connect point is.
 
 ## What you learned
 
@@ -314,11 +313,10 @@ position from a client, and it shows each player only what they are entitled to 
 
 ## Netcode gets hard, fast
 
-Because a 2D blob world is cheap to simulate, this game reaches further than most
-tutorials: the edge is genuinely server-authoritative, and the client already does
-client-side prediction, entity interpolation, and interest management, the three
-techniques that separate a demo from something playable. What remains are the harder,
-sharper versions of what you built:
+Because a 2D blob world is cheap to simulate, the edge here is genuinely
+server-authoritative, and the client already does client-side prediction, entity
+interpolation, and interest management. What remains are the harder, sharper versions
+of what you built:
 
 - Input-replay reconciliation. Your prediction eases away small drift against the
   edge's copy. The stricter method tags each input with a sequence number, and on every
