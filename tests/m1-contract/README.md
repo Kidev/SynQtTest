@@ -56,6 +56,23 @@ authoritative model state, keeps only the declared roles, and drops any undeclar
 owner-only field at the boundary. There is no `<model>Changed` push and no consumer
 write path; properties are READPUSH and the model setter is owner-only.
 
+## The QML rules the build is written against
+
+`tst_qmlrules` is not an M1 criterion; it lives here because it is about how a file gets
+its type. `synqt build` mirrors every entity's QML into `generated/` and retypes a root
+object named after its own file ([`synqt/qmlrewrite.py`](../../tools/synqt/synqt/qmlrewrite.py)).
+That is a decision taken in Python about how a QML engine will behave, and Python cannot
+check it, so the three facts it rests on are checked here against a real engine:
+
+| fact | why the tooling needs it |
+|------|--------------------------|
+| a root object named after its own file, with no type of that name in scope, is refused ("instantiated recursively") | why the mirror exists at all |
+| the same file loads when an import does provide that type, because an explicit import beats the containing directory's implicit one | why a connect point's Source, rooted at its contract, is copied unchanged |
+| `import SynQt` brings QtQuick with it (`SynQt::registerModuleImports`) | why an entity's file needs one import line rather than two |
+
+If Qt ever changes one of these, the tooling is wrong in a way nothing else would name:
+the generated tree would still be written, and entities would fail to load at start-up.
+
 ## How to run
 
 ```sh
@@ -63,7 +80,7 @@ tests/m1-contract/run-m1.sh
 ```
 
 Runs the generator's Python unit tests, checks a malformed contract is rejected,
-builds the three targets, and runs the QtRO round-trip acceptance test. Or directly:
+builds the targets, and runs the QtRO round-trip acceptance test. Or directly:
 
 ```sh
 python3 -m unittest tests.test_synqtc          # from tools/synqtc/
