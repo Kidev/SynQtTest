@@ -4,8 +4,8 @@
 # Two authorities
 
 A deployed SynQt system uses two completely separate kinds of certificate, and confusing
-them is the most common way to end up with something that either does not start or is
-not as private as it looks.
+them is an easy way to end up with something that either does not start or is not as
+private as it looks.
 
 - **The public certificate.** For the browser. Issued by an authority the world already
   trusts, for a name in DNS. One of these, on the web edge, and nothing else in the
@@ -59,7 +59,7 @@ This is the decision on this page. Everything else is a command.
 
 **The CA private key never goes on a host that runs an entity, and never into CI.**
 Anyone holding `ca.key` can mint a certificate that says `web` on it, and every entity in
-your system will believe them. It is what makes every deployment input meaningful.
+your system will believe them.
 
 Practically, pick one:
 
@@ -203,8 +203,8 @@ stops being an authentication and becomes an assumption about who else is on the
 `synqt check` flags every local link for exactly that reason.
 
 Mutual TLS on loopback costs a handshake per connection, which happens once per link and
-not once per call. Take the ceremony. And when the database moves to its own host next
-week, nothing about its trust position changes, which is the real payoff.
+not once per call. Take the ceremony. When the database moves to its own host next week,
+nothing about its trust position changes.
 
 [The entity to entity links](security.md#the-entity-to-entity-links-the-mesh) has the
 full comparison.
@@ -226,8 +226,8 @@ full comparison.
   leaves everywhere and a coordinated restart. Plan it as a maintenance window rather
   than discovering it during one.
 - **Never reuse the development CA.** `synqt dev` maintains a throwaway authority under
-  `synqt/mesh/dev/` so development keeps mutual TLS with no setup. It is separate on
-  purpose and a release build will not accept it.
+  `synqt/mesh/dev/` so development keeps mutual TLS with no setup. It is separate, and a
+  release build will not accept it.
 
 Next: [Where the binaries go](tutorial-ship-hosts.md), and the shape that makes all of
 these paths resolve.

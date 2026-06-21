@@ -3,8 +3,6 @@
 
 # Where the binaries go
 
-There is one thing to understand before any of the commands on this page make sense:
-
 **A SynQt deployment is a project directory, not a binary.**
 
 Every entity resolves its runtime files relative to the directory it was started from,
@@ -14,7 +12,7 @@ in its own folder, and, for the edge, the client bundle under `build/client/`. C
 `build/edge/edge` somewhere on its own and it starts, looks for all of that, and finds
 none of it.
 
-Once that clicks, the rest of this page is bookkeeping.
+The rest of this page is bookkeeping.
 
 ## Step 1: The shape on each host
 
@@ -33,7 +31,7 @@ The edge host:
     edge.crt
     edge.key
   build/
-    web/              # the edge binary and its topology.json
+    edge/             # the edge binary and its topology.json
     client/           # the bundle it serves
   web/edge/
     .env              # the OAuth client secret
@@ -85,9 +83,8 @@ image. Two ways to get that right, and one way to get it wrong:
   compiled against one Qt and will load whatever the linker finds, and the failures from
   a near miss are worse than the failure from an absence.
 
-The desktop client is the exception, and it is genuinely an exception: it carries its own
-Qt, because [Cutting a release](tutorial-ship-release.md) runs the platform step that
-puts it there.
+The desktop client is the exception: it carries its own Qt, because
+[Cutting a release](tutorial-ship-release.md) runs the platform step that puts it there.
 
 ## Step 3: Read the start plan
 
@@ -252,7 +249,7 @@ The topology says the database is private. The network should agree.
 <details class="solution" markdown>
 <summary>Solution</summary>
 
-It fails on its topology. `build/web/topology.json` is the file the entity reads at
+It fails on its topology. `build/edge/topology.json` is the file the entity reads at
 startup to learn what it owns, what it consumes, and where its peers are, and it looks
 for it at a path relative to where it was started. From `/`, that path does not exist.
 
@@ -262,8 +259,7 @@ then the env file: four failures in a row that all mean the same thing.
 The right fix is not to make the paths absolute. It is that the unit sets
 `WorkingDirectory` to the project root, because the project root is the deployment.
 Everything an entity needs is described relative to it, in one file a person can read,
-and that is what makes a deployment inspectable: you can look at a host and see the whole
-system, rather than a binary and a hope.
+so you can look at a host and see the whole system rather than a binary on its own.
 
 If you want the binary on a path, symlink it. The link's target still runs with whatever
 working directory the unit sets.
@@ -279,7 +275,7 @@ working directory the unit sets.
 - **Log to the journal and leave it there.** The entities write to standard error;
   systemd captures it. Resist the urge to add file logging before you have a reason,
   because the reason usually turns out to be a missing metric rather than a missing file.
-- **Keep the previous release directory.** `Where the binaries go` becomes
+- **Keep the previous release directory.** The project root becomes
   `/srv/gavel-2026-08-03/` with `/srv/gavel` a symlink to it, and a rollback becomes
   moving the symlink and restarting. [Cutting a release](tutorial-ship-release.md) picks
   that up.

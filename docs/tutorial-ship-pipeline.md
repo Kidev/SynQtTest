@@ -3,7 +3,7 @@
 
 # The pipeline that says no
 
-A pipeline earns its keep by refusing things. Building on every push is easy and
+A pipeline is worth having because it refuses things. Building on every push is easy and
 almost worthless on its own: what you want is for the push that would have broken
 production to stop at the pipeline, with the reason on screen, before anyone has to
 think about rolling anything back.
@@ -45,7 +45,7 @@ entities:
       host: 10.0.0.20
 ```
 
-Two things about that file are worth more than the values in it.
+Two properties of that file matter more than the values in it.
 
 It **adds and changes, and never removes**. There is no syntax for dropping a consumer
 or an entity, because removing one is a security change and belongs in the file that
@@ -54,7 +54,7 @@ declares the list. A profile you can read in ten seconds cannot quietly widen an
 And it holds **no secrets**. The database password is not here and will not be here;
 secrets come from a per entity env file and nowhere else, which
 [Two authorities](tutorial-ship-certificates.md) covers. If you are tempted to put one
-in, the validator will refuse it, which is the point.
+in, the validator will refuse it.
 
 The full layering rules are in [configuration resolution
 order](project-layout-and-config.md#configuration-resolution-order).
@@ -79,17 +79,17 @@ is the auction's, it passes. Then break it on purpose: delete the `tls:` block f
 `synqt.production.yaml` and run it again.
 
 ```text
-error: entity "web" faces the internet with no TLS: add a tls block
-       (cert_file, key_file) or set public.tls_terminated_upstream: true
+error: web edge 'edge' has no tls section, so a release build would serve the browser
+over plaintext; give it tls.cert_file and tls.key_file, or set
+public.tls_terminated_upstream: true if a reverse proxy in front of it terminates TLS
 ```
 
 There is no third state and no default. A framework that guessed here would be
 guessing about whether your users' traffic is encrypted. Put the block back.
 
-One rule deliberately does **not** fire here: a missing mesh certificate. Certificates
-are issued from a private key that is not supposed to exist on a build machine, so that
-check happens when entities start, not when they build. That asymmetry is the shape of
-the next page.
+One rule does **not** fire here: a missing mesh certificate. Certificates are issued
+from a private key that is not supposed to exist on a build machine, so that check
+happens when entities start, not when they build. The next page is about that.
 
 ## Step 3: The other three commands
 
@@ -173,11 +173,11 @@ jobs:
             db/relational/books/schema.sql
 ```
 
-Four things in there are worth saying out loud.
+Four things in there matter.
 
 **The check runs first.** It takes seconds and it catches the failures that would
-otherwise cost you a build. Ordering a pipeline cheapest-first is not a
-micro-optimisation, it is what decides whether people wait for it.
+otherwise cost you a build. Ordering a pipeline cheapest-first is what decides whether
+people wait for it.
 
 **The toolchain is cached on the configuration, not on the lockfile of the week.**
 `project.qt_version` in `synqt.yaml` is what pins Qt and, through it, Emscripten. Key
@@ -200,10 +200,10 @@ manual and stays elsewhere.
 
 > [!QUESTION]
 > Your pipeline builds and your tests pass, so the system is safe to deploy. Someone
-> opens a pull request that adds the client to the ledger connect point's consumers:
+> opens a pull request that adds the client to the books entity's consumer list:
 >
-> ```
-> consumers = ["web", "client"]
+> ```yaml
+> consumers: [edge, app]
 > ```
 >
 > The QML compiles. The tests pass, because none of them looks at the database from
