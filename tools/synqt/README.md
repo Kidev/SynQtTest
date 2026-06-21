@@ -38,9 +38,10 @@ cd my-app
 synqt dev           # build, serve, watch, and open a browser
 ```
 
-`synqt new my-app --auth github --blueprint persistence` is the same scaffolder without
-the questions, for a script. `synqt doctor` reports what is installed and what is
-missing, and is the first thing to run when something will not build.
+`synqt new my-app --auth github` is the same scaffolder without the questions, for a
+script; `synqt add entity` adds each further entity by name. `synqt doctor` reports what
+is installed and what is missing, and is the first thing to run when something will not
+build.
 
 The full command reference is in [build system and
 CLI](https://synqt.org/build-system-and-cli/); the walkthrough is in [getting

@@ -25,8 +25,7 @@ can be audited. Contributions cannot be merged without acceptance.
 ## Every source file needs an SPDX header
 
 Add these two lines at the top of every source file you create, in the file's
-comment syntax. This is the modern, machine-readable way to mark licensing and it
-keeps license scanners happy.
+comment syntax. SPDX is machine-readable, so license scanners can read it directly.
 
 C++, QML, JavaScript, and other `//` comment files:
 

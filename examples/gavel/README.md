@@ -54,5 +54,6 @@ edge it is attached to; what an entity calls goes through the owner's name, whic
 edge reaches the ledger as `Books`.
 
 The `tests/fix1-auction` acceptance test drives these exact Source files, so this is the
-proven, runnable rendering. Every Source is minted per caller, because every rule it enforces
-reads `Caller` and only a per-caller instance binds one.
+runnable rendering. Both entities are shared, the default: one Source answers everybody,
+and each caller reaches it through a mirror carrying their own `Caller`, which is what lets
+a rejection go back to the one browser that bid too low.

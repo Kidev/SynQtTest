@@ -48,7 +48,7 @@ a Qt release, because CI builds against a stock Qt.
 
 Safari / WebKit. Two different proofs, because WebKit is Safari's engine but not Safari.
 
-`verify.mjs` drives Playwright's headless WebKit as the in-env proxy: the browser list probes
+`verify.mjs` drives Playwright's headless WebKit as the stand-in: the browser list probes
 each engine for launchability and runs WebKit through the full four-direction + reconnect
 matrix whenever its runtime is present. Where WebKit's system dependencies are missing (`npx
 playwright install-deps` needs root and targets Debian) the probe drops it with a note and the

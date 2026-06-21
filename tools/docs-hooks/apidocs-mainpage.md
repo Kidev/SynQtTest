@@ -28,10 +28,16 @@ cannot link a service only module:
   SynQt::Router, and the typed replica factory registry (SynQt::acquireReplica). Links
   into both the WebAssembly and the native desktop client.
 - SynQtConsumer: the connect point resolver and the attached handler types behind the
-  `Contract.on<Signal>` and returning slot `.then()` QML sugar.
+  `<Owner>.on<Signal>` and returning slot `.then()` QML sugar.
 - SynQtService: SynQt::EntityRuntime, SynQt::ConnectPointHost, SynQt::MeshServer,
-  SynQt::MeshClient, SynQt::WebEdge, SynQt::SessionManager, SynQt::Caller,
-  SynQt::IdentityProvider.
+  SynQt::MeshClient, SynQt::SessionManager, SynQt::Caller. Every module it links is
+  LGPLv3, which is what keeps a plain service entity LGPLv3.
+- SynQtIdentity: SynQt::OAuthBackend, SynQt::JwksVerifier, SynQt::IdentityService. Qt
+  Network Authorization is GPLv3-only, so it is a library of its own.
+- SynQtEdge: SynQt::WebEdge, SynQt::IdentityProvider, SynQt::PagesService. Qt HTTP
+  Server is GPLv3-only, so only a `type: web_edge` entity links it.
+- SynQtGateway: SynQt::ApiServer and the `Api` helper an entity's `network.inbound`
+  opens.
 - SynQtProviders: SynQt::IPersistenceProvider, SynQt::IDocumentProvider,
   SynQt::ICacheProvider, SynQt::ProviderRegistry, and the bundled implementations.
 

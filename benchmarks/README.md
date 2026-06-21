@@ -3,24 +3,23 @@
 
 # SynQt benchmarks
 
-Correctness lives in `tests/`; this tree is performance. SynQt's whole value is a live
-data path across a transport the Qt for WebAssembly docs call unsupported, so its speed and
-scaling are measured, not assumed. Each harness pins Qt 6.11.1, records the host and Qt
+Correctness lives in `tests/`; this tree is performance. SynQt's core is a live data path
+across a transport the Qt for WebAssembly docs call unsupported, so its speed and scaling
+are measured rather than assumed. Each harness pins Qt 6.11.1, records the host and Qt
 version in its output, warms up before measuring, and reports the full distribution
 (p50/p95/p99, not just the mean). Results are committed as baselines under `results/` so a
 later change that regresses one is visible in review; re-run on a fixed runner to compare.
 
-## The gate: what CI enforces, and what it deliberately does not
+## The gate: what CI enforces, and what it does not
 
 A committed number is not a guard until something reads it. [`baselines.py`](baselines.py)
-is what reads them, and it draws one line down the middle of the problem.
+is what reads them, and it separates two kinds of claim.
 
 Absolute numbers are facts about one machine. A 23-microsecond p50 describes the
 author's workstation. Held against a shared CI runner, which is a different CPU,
 virtualised, and sharing a host with strangers, it would fail constantly for reasons that
-have nothing to do with the commit under review. A gate that flaps gets switched off, and
-a gate that is off guards nothing. So absolute comparison is opt-in, and belongs on one
-runner comparing itself:
+have nothing to do with the commit under review, and a gate that flaps gets switched off.
+So absolute comparison is opt-in, and belongs on one runner comparing itself:
 
 ```sh
 benchmarks/transport/run-bench.sh                        # before
@@ -131,13 +130,11 @@ autocannon/wrk to install) so it runs anywhere the edge builds; what makes the n
 comparable across frameworks is the test types and the methodology, not the generator. The
 result is written to `results/edge-http-<host>.json` in the same shape as `transport-*.json`.
 
-> In-env note. The endpoints are verified correct here (each returns the TechEmpower-shaped
-> payload, and `/fortunes` escapes the seeded `<script>` row). The committed numeric baseline
-> must be produced on a normal host, though: this build sandbox kills any sustained parallel
-> HTTP load (node *and* a burst of `curl` alike are terminated), so `run-bench.sh` completes
-> only outside it. This is the same class of in-env limitation as the outstanding Safari and
-> interactive-WASM runs; the harness is complete and correct; only the numbers wait on a
-> permissive runner.
+> Run this one on an unrestricted host. The endpoints are verified (each returns the
+> TechEmpower-shaped payload, and `/fortunes` escapes the seeded `<script>` row), but a
+> sandbox that terminates sustained parallel HTTP load will kill the loader mid-run, so
+> `run-bench.sh` needs a host that permits it. The same applies to the Safari and
+> interactive-WASM runs.
 
 ## mesh: the service-to-service links (M3)
 
@@ -181,8 +178,8 @@ floor.
 `sessions/` measures the two `SessionManager` operations on the request path; the credential
 lookup every WebSocket upgrade performs, and the `Caller.hasScope` check every scoped slot
 performs; as the edge fills with live sessions. It stands up a real `SynQt::SessionManager`,
-fills it to N sessions, and reports per-operation nanoseconds (the honest unit for ns-scale
-work, from a large batch) swept over N, plus the full-table `snapshot()` cost per call:
+fills it to N sessions, and reports per-operation nanoseconds (the right unit for ns-scale
+work, measured from a large batch) swept over N, plus the full-table `snapshot()` cost per call:
 
 ```sh
 ./benchmarks/sessions/run-bench.sh
@@ -224,8 +221,8 @@ table size (token mint + hash insert), and one operation remains O(N) by design:
 consumers, over the real QtRO-over-QtWebSockets path (one `QRemoteObjectHost`, N consumer nodes on
 loopback, the framework's `WebSocketTransport`). The
 [arena world page](../docs/tutorial-multiplayer-world.md) warns the
-naive shape is O(N^2) (N sessions each published a slice of the whole N-entity world), and that an
-`instance: per_session` split with interest management cuts each slice to the k nearest entities.
+naive shape is O(N^2) (N sessions each published a slice of the whole N-entity world), and that a
+per-caller Source (`shared: false`) with interest management cuts each slice to the k nearest entities.
 This sweeps N over three modes and reports the owner-side publish CPU (p50/p99) and the
 propagation latency to every consumer:
 
@@ -268,7 +265,7 @@ slice at the k = 16 nearest holds the per-session payload constant, so total wor
 publish CPU grows *linearly* (0.16 -> 0.49 -> 1.24 -> 2.37 ms). At N = 100 that is a 5.3x cheaper
 publish and 6.25x less payload (1 600 vs 10 000 rows/tick), and it keeps the tick inside a frame
 budget the naive path (12.4 ms) is already eating half of. This is where the arena saturates on a
-single edge, and the number that justifies the `per_session` + interest-management design.
+single edge, and it is the number that justifies the per-caller Source plus interest management.
 `shared` is cheapest of all (one model, 1.58 ms at N = 100) but cannot filter per player, so it is
 only viable when every client legitimately needs the whole world. Propagation latency is reported
 alongside (and tracks the same ordering; interest lowest, naive highest, at every N >= 25); its
@@ -298,10 +295,10 @@ publish CPU is mostly the owner building 100 slices, on the main thread, by desi
 the number behind the plain claim in the deployment docs: threading buys the cost of
 *delivering* what an owner publishes, and buys nothing at all on the cost of computing it.
 
-**Propagation latency is flat across the sweep, and this harness cannot tell you whether
-that is true.** Every consumer here runs in this process, on the publisher's own thread,
-which is deliberate (it is what lets a tick be measured on one clock rather than across
-two) and which makes the main thread the end-to-end bottleneck by construction. Freeing it
+**Propagation latency is flat across the sweep, and that flatness is an artifact of the
+harness.** Every consumer here runs in this process, on the publisher's own thread, which
+is what lets a tick be measured on one clock rather than across two, and which makes the
+main thread the end-to-end bottleneck by construction. Freeing it
 of socket work therefore shows up in the CPU column and nowhere else. In a deployment the
 consumers are browsers on other machines and the thread being freed is the edge's, so the
 end-to-end half of this lever is not measured anywhere in this tree. The CPU column is what
@@ -392,10 +389,9 @@ the single- vs multi-threaded frame cost is directly comparable.
 ./benchmarks/client/run-bench.sh --blobs 2000 --ramp 15
 ```
 
-It needs a real display and the WASM kits, so it runs on a workstation rather than the build
-sandbox; the harness is complete and validated (bundle sizing, the scene, and the browser driver all
-exercised in-env against a served page), and only the committed numeric baseline waits on a host
-with a display.
+It needs a real display and the WASM kits, so it runs on a workstation rather than a headless
+runner. Bundle sizing, the scene, and the browser driver have all been exercised against a
+served page; only the committed numeric baseline waits on a host with a display.
 
 ## capstone: the arena end to end under load
 
@@ -405,15 +401,15 @@ teleported), one per-session Source per player, and N headless player nodes conn
 QtRO-over-QtWebSockets path. Swept over player count, it reports server tick stability (how well the
 fixed-Hz loop holds its cadence), the owner-side publish CPU per tick, the snapshot rate actually
 delivered to a player, resident memory, and the interest-managed payload each player receives, so
-the N where per-session payload stops being flat (the honest single-edge ceiling) is explicit.
+the N where per-session payload stops being flat (the real single-edge ceiling) is explicit.
 
 ```sh
 ./benchmarks/capstone/run-bench.sh
 ./benchmarks/capstone/run-bench.sh --sizes 10,50,100,250,500 --hz 30 --seconds 8 --interest 16
 ```
 
-It sustains a fixed-rate loop and many live connections, so it belongs on a normal host, not the
-build sandbox (which terminates sustained load); the committed baseline was measured on one.
+It sustains a fixed-rate loop and many live connections, so it belongs on a host that permits
+sustained load; the committed baseline was measured on one.
 
 The snapshot rate counts snapshots a player was handed, by the replica's own change signal.
 Subtracting the published tick instead would have been wrong in the direction that matters:
@@ -457,9 +453,9 @@ length, and says why the harness needs the WebAssembly kit and so belongs on a w
 Every harness above measures SynQt against itself, which catches regressions and answers
 nothing about whether it is fast. [`vs-node/`](vs-node/README.md) puts it beside Node.js on
 the workload SynQt exists for: one publisher, N live subscribers, everyone sees every
-change. Three columns, because either Node alone is arguable; bare Node built-ins are the
-floor SynQt has to beat and nobody ships them, and Socket.IO is what people deploy and
-flatters us.
+change. Three columns, because either Node column alone is arguable: bare Node built-ins are
+the floor SynQt has to beat and nobody ships them, and Socket.IO is what people deploy and is
+the easier comparison.
 
 ```sh
 ./benchmarks/vs-node/run-bench.sh                       # the three live columns, and a table

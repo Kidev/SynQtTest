@@ -94,10 +94,9 @@ header is refused, logout ends the family, and an unknown secret is refused with
 its owner out. The far side of a window measured in days is reached by moving a row's
 timestamps with SQL, not by adding millisecond knobs to the config.
 
-`tst_devicestore.cpp` is the client half. The test that matters most is the one that would
-still pass if the feature were broken: with no store available, nothing is written anywhere,
-asserted against the real config, data and cache directories, because there is no file
-fallback and never will be. It also covers the round trip, that erasing what is not there
+`tst_devicestore.cpp` is the client half. The one that matters most asserts a negative: with
+no store available, nothing is written anywhere, checked against the real config, data and
+cache directories, because there is no file fallback and never will be. It also covers the round trip, that erasing what is not there
 succeeds, that a failed write leaves nothing behind (otherwise a keyring that cannot write
 would stage a theft the edge acts on), that the 2 s deadline holds, and end to end that a
 second launch is still signed in and a logout stops the third.

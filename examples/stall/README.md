@@ -42,7 +42,7 @@ sends the fresh seed even when the page body itself is unchanged (a `notModified
 `tests/fix3-stall` brings the example up on the native host kit and pins:
 
 1. `synqt check` passes on this project (the happy path).
-2. Adding the client as a consumer of the `inventory` connect point fails `synqt
+2. Adding the client as a consumer of the stock entity's connect point fails `synqt
    check`: a connect point the browser consumes must be owned by a web edge; the stock entity
    is not, so the browser can never reach the durable stock.
 3. An under-scoped fetch of `/members` returns `forbidden` with no markup, no hash, and
@@ -56,10 +56,9 @@ sends the fresh seed even when the page body itself is unchanged (a `notModified
 
 ## A note on the connect-point Sources
 
-`web/edge/Catalog.qml` owns the browser-facing `offers` model and fills it from the stock entity's
-`itemStocked` signal with `setOffers`, which keeps only the declared roles, so the internal
-`sku` the stock entity keys on never crosses to the browser. `db/relational/stock/Inventory.qml` owns the
+`web/edge/Edge.qml` owns the browser-facing `offers` model and fills it from the stock
+entity's `itemStocked` signal, keeping only the declared roles, so the internal `sku` the
+stock entity keys on never crosses to the browser. `db/relational/stock/Stock.qml` owns the
 durable stock and authorizes the calling entity itself: only the web edge
-(`Caller.entity === "edge"`) may `restock`. The `catalog` connect
-point is `shared` (one live list for every browser); the `inventory` connect point is
-one Source per calling entity, over mutual TLS, reachable only by the edge.
+(`Caller.entity === "edge"`) may `restock`. The edge is shared, so one live list of offers
+serves every browser; the stock entity is reachable only by the edge, over mutual TLS.

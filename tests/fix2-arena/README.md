@@ -5,7 +5,7 @@
 
 Proves the [multiplayer tutorial](../../docs/tutorial-multiplayer.md)'s hands-on checks end
 to end on the tutorial's own architecture: a `pragma Singleton` `World` (registered as a QML
-singleton type) simulates the one authoritative arena, and a per-caller `Arena` Source
+singleton type) simulates the one authoritative arena, and a per-caller `Edge` Source
 over it carries each player's view. Native host kit; the edge runs in one process, driven by
 native `SynClient`s acting as browsers.
 
@@ -21,8 +21,8 @@ cert generated at configure time, then `ctest`).
   `scope: player` arena acquired for it, so `steer`, `ping`, and the roster are all out of
   reach. The gate is the connect point, not the UI.
 
-The third hands-on check (client-as-consumer of the database `scores` fails `synqt check`) is
-in `tools/synqt/tests/test_examples.py`.
+The third hands-on check (client-as-consumer of the records entity's connect point fails
+`synqt check`) is in `tools/synqt/tests/test_examples.py`.
 
 Check 2 asserts the *runtime* half: this fixture sets `arena.scope` on the
 `WebEdgeConnectPoint` itself, which is what a hand-written edge does. The other half is that
@@ -32,6 +32,6 @@ That half is pinned in `tools/synqt/tests/test_edge_policy.py`, and the two toge
 whole check.
 
 This fixture also exercises two framework details the tutorials rely on: a generated Source
-now accepts non-visual QML children (the publish `Timer` inside `web/Arena.qml`), and the
+now accepts non-visual QML children (the publish `Timer` inside `web/Edge.qml`), and the
 shared `World` is reached by name because it is a registered QML singleton type (not a
 context object, whose QML functions are not callable cross-document).

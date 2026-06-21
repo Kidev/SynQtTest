@@ -63,7 +63,7 @@ configure time (project CA + `a`/`b`/`c` entity certs) into `build/m4-topology/c
 ## Notes / scope
 
 - Config is read as a resolved `Topology` (the machine form; `topologyFromJson` parses
-  the JSON the CLI will emit from `synqt.yaml` in M10). The test constructs it directly.
+  the JSON the CLI emits from `synqt.yaml`). The test constructs it directly.
 - One `ConnectPointHost` (own mesh endpoint) per connect point gives per-connect-point
   access control for free; a peer connects to a specific connect point's endpoint, and
   that endpoint enforces exactly its consumers.
