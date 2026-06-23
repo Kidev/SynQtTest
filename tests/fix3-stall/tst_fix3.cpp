@@ -19,6 +19,7 @@
 //   4. a route the client never compiled in is reachable through the edge's pushed table
 //   5. the seed is real and fresh per parameter, across a notModified reply
 
+#include "moduleimports.h"
 #include "sessionmanager.h"
 #include "webedge.h"
 #include "webedgeconfig.h"
@@ -113,6 +114,11 @@ private slots:
     void initTestCase()
     {
         QVERIFY2(QSslSocket::supportsSsl(), "TLS backend unavailable");
+        // The example entities this suite loads are the shipped ones, and a shipped
+        // entity writes one import line rather than two: `import SynQt` brings QtQuick
+        // with it. The generated main registers that; so does this, because the engine
+        // below is standing in for that main.
+        SynQt::registerModuleImports();
 
         WebEdgeConfig config;
         config.bundleDir = QStringLiteral(FIX3_SRCDIR "/bundle");

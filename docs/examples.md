@@ -65,7 +65,6 @@ of it holding one number however many browsers are watching, and every slot stil
 `Caller` to authorize.
 
 ```qml
-import QtQuick
 import SynQt
 
 Edge {
@@ -84,7 +83,6 @@ replicas. No broadcast code is needed.
 ### Client, `client/app/Main.qml`
 
 ```qml
-import QtQuick
 import QtQuick.Controls
 import SynQt
 
@@ -195,7 +193,6 @@ This optional hook turns a provider identity into a SynQt scope after login. It
 runs only on the edge.
 
 ```qml
-import QtQuick
 import SynQt
 
 IdentityMapping {
@@ -218,7 +215,6 @@ app, and each slot still arrives with its own `Client` (the browser-side name fo
 reach a browser however the file is written.
 
 ```qml
-import QtQuick
 import SynQt
 
 Edge {
@@ -272,7 +268,6 @@ Edge {
 ### Client, `client/app/Main.qml`
 
 ```qml
-import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import SynQt
@@ -472,7 +467,6 @@ browser.
 ### The database entity, `db/relational/store/Store.qml`
 
 ```qml
-import QtQuick
 import SynQt
 
 Store {
@@ -512,7 +506,6 @@ CREATE TABLE IF NOT EXISTS items (
 ### The web edge, `web/edge/Edge.qml`
 
 ```qml
-import QtQuick
 import SynQt
 
 Edge {
@@ -701,7 +694,6 @@ The seed runs on the edge, after the route's scope check, and turns the slug int
 headline the page paints first, so it never flashes empty:
 
 ```qml
-import QtQuick
 import SynQt
 
 PageSeed {

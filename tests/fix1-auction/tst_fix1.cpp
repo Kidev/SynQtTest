@@ -14,6 +14,7 @@
 
 #include "entityruntime.h"
 #include "meshclient.h"
+#include "moduleimports.h"
 #include "sessionmanager.h"
 #include "topology.h"
 #include "webedge.h"
@@ -160,6 +161,11 @@ private slots:
     void initTestCase()
     {
         QVERIFY2(QSslSocket::supportsSsl(), "TLS backend unavailable");
+        // The example entities this suite loads are the shipped ones, and a shipped
+        // entity writes one import line rather than two: `import SynQt` brings QtQuick
+        // with it. The generated main registers that; so does this, because the engine
+        // below is standing in for that main.
+        SynQt::registerModuleImports();
         synqtRegisterEdgeSources();
         // The edge reaches the books entity through the generated consumer facade, which is
         // what fills in the session it is acting for; a raw dynamic Replica would not.

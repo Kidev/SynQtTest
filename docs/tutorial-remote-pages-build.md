@@ -118,7 +118,6 @@ anything. The page seed fixes that: it runs on the edge, per request, and hands 
 data it paints with immediately. Create `web/edge/campaign-seed.qml`:
 
 ```qml
-import QtQuick
 import SynQt
 
 PageSeed {

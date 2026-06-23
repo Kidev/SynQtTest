@@ -175,7 +175,6 @@ configuration.
 on the edge, after a successful login.
 
 ```qml
-import QtQuick
 import SynQt
 
 IdentityMapping {
