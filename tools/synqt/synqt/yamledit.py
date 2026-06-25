@@ -7,7 +7,7 @@ Loading a file with `yaml.safe_load`, editing the object and dumping it back is 
 obvious way to do this and the wrong one: the dump is a new document. Comments are gone,
 the key order is whatever the dumper felt like, blank lines that grouped related entries
 have closed up, and a hand-written `consumers: [client]` has become two lines. The author
-wrote that file; a scaffold command, and later the visual editor, have no business
+wrote that file; a scaffold command, and later the designer, have no business
 reformatting it to make one edit.
 
 So every function here works on the text. It locates the lines the edit belongs to, splices
