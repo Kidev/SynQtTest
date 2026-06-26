@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux
 // SPDX-License-Identifier: Apache-2.0
 
+import SynQt
 import QtQuick.Controls
 import QtQuick.Layouts
-import SynQt
 
 // The storefront home: the product grid, bound to the edge's live `catalog` offers, and a
 // button that opens a campaign page. The grid is compiled into the client bundle; the

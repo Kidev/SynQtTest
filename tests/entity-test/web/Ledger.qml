@@ -4,7 +4,6 @@
 // The Source under test: an ordinary owner implementation, written exactly as an
 // application would write it, with no awareness that a harness will drive it. That is the
 // point of the suite, so nothing here may be adjusted to make a test pass.
-import QtQuick
 import SynQt
 
 Ledger {

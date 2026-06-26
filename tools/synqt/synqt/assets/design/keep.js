@@ -112,11 +112,16 @@ function inStore(mode, work) {
 // Storing is best-effort on purpose. A browser in private mode, or one whose quota is full,
 // refuses, and the right answer to that is to carry on drawing rather than to interrupt
 // somebody mid-thought with a storage error they cannot act on.
-export async function keepDesign(design) {
+export async function keepDesign(design, seed) {
     try {
         await inStore("readwrite", (store) => store.put({
             version: 1,
             design,
+            // Which example this drawing started life as, if it started as one. An example is a
+            // preset rather than a page: somebody who opens one, moves things around and
+            // reloads is looking for what they left, and without this the link in the address
+            // bar handed them the pristine example back on every visit.
+            seed: seed || "",
         }, ONLY));
     } catch (error) {
         return false;
@@ -124,10 +129,12 @@ export async function keepDesign(design) {
     return true;
 }
 
+// What this browser is holding: the design, and the example it grew out of where it grew out
+// of one. Null when there is nothing stored, which is what a first visit finds.
 export async function keptDesign() {
     try {
         const held = await inStore("readonly", (store) => store.get(ONLY));
-        return held && held.design ? held.design : null;
+        return held && held.design ? {design: held.design, seed: held.seed || ""} : null;
     } catch (error) {
         return null;
     }

@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux
 // SPDX-License-Identifier: Apache-2.0
 
-import QtQuick
 import SynQt
 
 // The authoritative Source on the database entity. It authorizes the CALLING ENTITY, not

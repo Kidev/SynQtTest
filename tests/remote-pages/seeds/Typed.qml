@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux
 // SPDX-License-Identifier: Apache-2.0
 
-import QtQuick
 import SynQt
 
 // A hook an author got wrong the way the framework most expects: seedFor is declared, but a

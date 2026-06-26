@@ -4,8 +4,8 @@
 // The consumer surface as an app writes it: a live property binding through the facade, a
 // returning-slot `.then(...)` promise, and a `Widget.on<Signal>` attached handler with no
 // target. The test drives the owner and reads these back.
-import QtQml
 import SynQt
+import QtQml
 
 QtObject {
     id: root

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux
 // SPDX-License-Identifier: Apache-2.0
 
+import SynQt
 import QtQuick.Controls
 import QtQuick.Layouts
-import SynQt
 
 // The client: a camera onto the arena the edge owns (docs/tutorial-multiplayer.md through
 // -rounds.md). It does client-side prediction (your own blob tracks your cursor with no
