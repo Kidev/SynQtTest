@@ -19,7 +19,7 @@ Here is `web/edge/World.qml` again, now with the round timer, the Hall of Fame, 
 two `nearby` queries. Replace the file with it:
 
 ```qml
-pragma Singleton                      // one shared instance for the whole edge
+pragma Shared                         // one shared instance for the whole edge
 import SynQt
 
 Item {
@@ -165,7 +165,7 @@ Item {
 
 The simulation and the liveness sweep are the ones you already wrote; what is added is
 the round timer, the Hall of Fame, and the two `nearby` queries that compute one player's
-view. The `pragma Singleton` line is what makes `web/edge/World.qml` one instance for the
+view. The `pragma Shared` line is what makes `web/edge/World.qml` one instance for the
 whole edge; every Source reaches it just by name.
 
 ## One private view per player

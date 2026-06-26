@@ -52,6 +52,13 @@ _LITERAL_KINDS = ("string", "int", "real", "bool")
 #: What a view offers every delegate whatever its model holds, so never a contract role.
 _VIEW_ROLES = ("index", "model", "modelData")
 
+#: What the framework itself puts on every consumer facade, so never a contract member.
+#: `ready` is ConsumerBase's own (true once the replica has finished its handshake, false
+#: again on a disconnect), and it is the documented way to wait for a point to come live.
+#: Read as a use, it reported every project written that way as reaching for a member its
+#: contract does not declare, and `synqt check` refused it.
+_FACADE_MEMBERS = ("ready",)
+
 
 class InferError(Exception):
     """An inference error surfaced to the CLI or the editor (no traceback)."""
@@ -799,6 +806,8 @@ def _read_reference(reading: "_Reading", tokens: Sequence[qmlscan.Token], index:
         # The accessor handed somewhere whole: it names no member of the contract.
         return position - index
     end, member = _read_used_member(reading, tokens, position + 2, member_token, index)
+    if member.name in _FACADE_MEMBERS:
+        return end - index      # the framework's own, not the owner's
     uses.append(Use(owner, owner, _settled(member)))
     return end - index
 

@@ -223,15 +223,18 @@ created and rooted at the type the entity exports. It is the entity and the surf
 it exports at once: the connect point's `server` file defaults to it, and on a shared
 entity (the default) there is one of it for the whole process.
 
-State that has to outlive any one caller goes in a `pragma Singleton` file beside it,
+State that has to outlive any one caller goes in a `pragma Shared` file beside it,
 named whatever suits it (the arena's `World.qml`). This matters on an entity with
 `shared: false`, where `<Name>.qml` is minted per caller and anything the callers
-share cannot live there. A singleton is discovered by the `pragma Singleton` line
-itself, so adding one needs no declaration anywhere; it is also created when the
-entity starts rather than when its first caller arrives, so an entity that subscribes
-to a mesh signal or starts a loop there misses nothing.
+share cannot live there. `pragma Shared` is SynQt's word for QML's own `pragma
+Singleton`, and `synqt build` writes the line back to `pragma Singleton` in the copy
+under `generated/` the engine loads, in the same pass that makes a self-named root
+loadable. A shared file is discovered by that line itself, so adding one needs no
+declaration anywhere; it is also created when the entity starts rather than when its
+first caller arrives, so an entity that subscribes to a mesh signal or starts a loop
+there misses nothing.
 
-A singleton is the entity, not a caller, so `Caller` is not in scope in it and `synqt
+A shared file is the entity, not a caller, so `Caller` is not in scope in it and `synqt
 check` says so: an authorization line there would read like a rule and run as a
 ReferenceError. Those belong in the Source, where a caller actually arrives.
 
@@ -921,8 +924,8 @@ routes:
 Every QML file under the client entity's directory is put into the client's QML
 module for you: `Main.qml`, the views the routes name, and everything those views
 reach. A `Home.qml` that instantiates a sibling `Card.qml`, or reads a `Theme.qml`
-that declares `pragma Singleton`, needs no declaration anywhere; a singleton is
-registered as one because the file says so. Build output and vendored trees under
+that declares `pragma Shared`, needs no declaration anywhere; a shared file is
+registered as a singleton because the file says so. Build output and vendored trees under
 the entity are left out: `build/`, `generated/`, `CMakeFiles/`, `node_modules/`,
 and anything whose name starts with a dot, file or directory.
 
