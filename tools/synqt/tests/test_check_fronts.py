@@ -109,7 +109,7 @@ def test_a_front_with_nothing_behind_it_is_a_warning():
         front(config)["behind"] = {}
 
     reported = findings(nobody_home)
-    assert any(message.startswith("warning:") and "hands nobody anywhere" in message
+    assert any(message.startswith("warn:") and "hands nobody anywhere" in message
                for message in reported)
 
 
@@ -234,7 +234,7 @@ def test_a_gate_every_caller_already_satisfies_is_a_warning():
     # nobody. A warning rather than an error: it is dead, not dangerous, and somebody may
     # be mid-way through raising the point's own scope.
     reported = gate_findings()
-    assert any(message.startswith("warning:") and "the gate refuses nobody" in message
+    assert any(message.startswith("warn:") and "the gate refuses nobody" in message
                for message in reported)
 
 

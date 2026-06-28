@@ -558,6 +558,45 @@ export function seatFor(front, entityName) {
     return seat ? seat.at : null;
 }
 
+// The mark on something the rules have caught, over the corner of whatever it is about.
+//
+// Drawn rather than said only in the colour of a rim: a rim a shade warmer than the one beside
+// it is a difference nobody scans a canvas for, and what is wanted is a thing to point at.
+// Hovering it opens that thing's own card, which is where the finding is written out; the card
+// was always there and nothing on the drawing asked to be hovered for it.
+//
+// `at` is where its middle goes and `size` how big it is, because the same mark rides the rim
+// of a disc, the back corner of a wedge and the corner of a contract badge, and those are
+// three different sizes of thing.
+function alertMark(at, size) {
+    const group = element("g", {class: "alert", transform: `translate(${at.x},${at.y})`});
+    group.append(element("circle", {class: "alert__disc", r: size}));
+    group.append(element("path", {class: "alert__bang",
+                                  d: `M 0,${-size * 0.49} V ${size * 0.12}`
+                                     + ` M 0,${size * 0.4} V ${size * 0.49}`}));
+    return group;
+}
+
+// Where that mark sits on a node: the top right of a disc, or the top of a wedge's back edge.
+function alertAt(front) {
+    return front ? {x: FRONT_BACK - 4, y: -FRONT_HALF + 2}
+                 : {x: NODE_RADIUS * 0.72, y: -NODE_RADIUS * 0.72};
+}
+
+// The one word that says which end of a hovered link this entity is. Drawn on every node and
+// hidden, then shown by the stylesheet when the page marks the node: the highlight runs off
+// pointer moves and must never rebuild the drawing, so what it can turn on has to already be
+// there. Above the disc, where nothing else is written.
+function roleLabels(group, front) {
+    const drop = front ? -FRONT_HALF - 8 : -NODE_RADIUS - 8;
+    for (const role of ["owner", "consumer"]) {
+        const label = element("text", {class: `node__role node__role--${role}`, y: drop,
+                                       "text-anchor": "middle"});
+        label.textContent = role;
+        group.append(label);
+    }
+}
+
 // The two lines under any node: what the entity is called, and the file somebody opens next.
 // A front is drawn taller than a disc, so its lines start lower and the shape above them
 // keeps its own outline to itself.
@@ -638,6 +677,10 @@ function node(entity, {selected, level, files, taken, front}) {
     }
     group.append(glyph(entity, front));
     nameNode(group, entity, files, front);
+    roleLabels(group, front);
+    if (level) {
+        group.append(alertMark(alertAt(front), 6.5));
+    }
     if (front) {
         // A wedge has no ring to seat contracts on: its two sides are its two jobs. The
         // point faces the browser and the point it owns leaves from there; the flat side
@@ -818,6 +861,9 @@ function contractBadge(link, at, level, selected) {
                                   height: 13, rx: 2}));
     group.append(element("path", {class: "link__doc-lines",
                                   d: "M -2.5,-3 H 2.5 M -2.5,0 H 2.5 M -2.5,3 H 2.5"}));
+    if (level) {
+        group.append(alertMark({x: 6, y: -7}, 5));
+    }
     return group;
 }
 
@@ -990,6 +1036,16 @@ function memberMark(kind) {
     return mark;
 }
 
+// The same mark on its own, for a list row in the panel. One drawing for the canvas and the
+// panel, so a reader learns four shapes once: the disc that is one value, the stacked rows
+// that are many, the filled head leaving the owner and the hollow one coming back into it.
+export function memberMarkSvg(kind) {
+    const svg = element("svg", {class: `mark mark--${kind}`, viewBox: "-4.5 -4.5 9 9",
+                                "aria-hidden": "true", focusable: "false"});
+    svg.append(memberMark(MEMBER_KINDS[kind] ? kind : "prop"));
+    return svg;
+}
+
 // What this link actually carries, written along it.
 //
 // Left aligned in one column over a background of the canvas colour, because these rows land
@@ -1096,6 +1152,13 @@ function line(link, from, to, options) {
     const edge = ends(from, to, options.offset || 0, badgeAt, options.arrives);
     const path = curve(edge);
     group.append(element("path", {class: "link__line", d: path}));
+
+    // The same curve again as a dashed stroke that runs, shown only while the link is hovered.
+    // Which way round a link is, is its whole meaning, and until now the drawing said it with
+    // an arrowhead nine pixels long at the far end of a curve crossing the canvas. A dash
+    // travelling from owner to consumer says it along the whole line and needs no aiming at.
+    // Stopped for anybody who asked their system for less motion.
+    group.append(element("path", {class: "link__flow", d: path}));
 
     // What answers a click: the same curve again, drawn wide and transparent. A stroke has no
     // area for anything measuring a bounding box, which is why this used to be a rectangle
