@@ -10,6 +10,7 @@
 # a Qt framework as a Python project.
 
 tools/docs-hooks/doxygen-awesome/** linguist-vendored
+tools/synqt/synqt/assets/design/vendor/** linguist-vendored
 
 # The documentation site: its Markdown, its theme overrides, its CSS and its build
 # hooks are the site, not the framework.

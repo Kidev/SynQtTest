@@ -71,6 +71,12 @@ _CONTENT_TYPES = {
 
 # The editor loads nothing from anywhere else, so it is served under a policy that allows
 # nothing else: no inline script, no framing, and no destination for a form.
+#
+# `style-src 'self'` with no `unsafe-inline` is why the file pane's editor lives in a shadow
+# root. CodeMirror builds its own stylesheet at run time; against a document that is a <style>
+# element with text in it, which this refuses, and against a shadow root it is a constructed
+# CSSStyleSheet, which no policy has an opinion about. Relaxing this instead would have been
+# one line and the wrong one.
 _CSP = ("default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
         "font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; "
         "frame-ancestors 'none'")
