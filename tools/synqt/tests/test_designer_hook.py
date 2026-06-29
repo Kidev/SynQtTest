@@ -58,11 +58,15 @@ def test_the_hook_publishes_the_whole_directory(tmp_path):
     """Named file by file, the copy would drift the first time the editor gains a module."""
     _hook().on_post_build({"site_dir": str(tmp_path)})
     site = tmp_path / "designer"
-    published = {str(path.relative_to(site)) for path in site.rglob("*") if path.is_file()}
+    # As a URL says it, with forward slashes, on every host. Compared as `str` this passed
+    # on Linux and failed on Windows, where the same two sets agree and every name in them
+    # is spelled `vendor\\codemirror-state.js`.
+    published = {path.relative_to(site).as_posix() for path in site.rglob("*")
+                 if path.is_file()}
     # Everything under it, not only the top of it: the file pane is a vendored CodeMirror in
     # `vendor/`, and a copy that stopped at the top published a page importing ten modules it
     # had not brought.
-    assert published == {str(path.relative_to(ASSETS)) for path in ASSETS.rglob("*")
+    assert published == {path.relative_to(ASSETS).as_posix() for path in ASSETS.rglob("*")
                          if path.is_file() and path.suffix != ".md"}
     assert any(name.startswith("vendor/") for name in published)
 
