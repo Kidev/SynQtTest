@@ -339,3 +339,38 @@ def test_a_clean_route_table_leaves_the_check_passing():
     ok, messages = check.check_project(root)
     assert ok, messages
     assert not any("route" in m.lower() for m in messages), messages
+
+
+def _clients(*entities):
+    return {"entities": list(entities), "router": {"fallback": "/"}}
+
+
+def test_one_client_may_use_the_top_level_shorthand():
+    config = _clients({"name": "app", "type": "client"})
+    config["routes"] = [{"path": "/", "view": "Home.qml"}]
+    assert check.lint_client_routes(config) == []
+
+
+def test_two_clients_may_not_both_claim_the_shorthand():
+    config = _clients({"name": "app", "type": "client"},
+                      {"name": "gate", "type": "client"})
+    config["routes"] = [{"path": "/", "view": "Home.qml"}]
+    findings = check.lint_client_routes(config)
+    assert any("app" in f and "gate" in f for f in findings)
+
+
+def test_two_clients_are_fine_when_each_declares_its_own_table():
+    config = _clients({"name": "app", "type": "client",
+                       "routes": [{"path": "/", "view": "Home.qml"}]},
+                      {"name": "gate", "type": "client",
+                       "routes": [{"path": "/", "view": "Sign.qml"}]})
+    config["routes"] = [{"path": "/", "view": "Home.qml"}]
+    assert check.lint_client_routes(config) == []
+
+
+def test_two_clients_are_fine_when_only_one_falls_back():
+    config = _clients({"name": "app", "type": "client"},
+                      {"name": "gate", "type": "client",
+                       "routes": [{"path": "/", "view": "Sign.qml"}]})
+    config["routes"] = [{"path": "/", "view": "Home.qml"}]
+    assert check.lint_client_routes(config) == []
