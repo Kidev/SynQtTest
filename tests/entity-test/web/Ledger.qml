@@ -23,6 +23,9 @@ Ledger {
             return;
         }
         ledger.highBid = amount;
+        // What an entity says about itself. A message and a map, never a sentence with the
+        // numbers glued into it: what reads the record filters and searches it.
+        Log.info("bid accepted", { amount: amount, bidder: bidder });
     }
 
     // A slot that hands the work to another entity, which is what an edge Source normally

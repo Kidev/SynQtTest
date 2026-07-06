@@ -51,7 +51,7 @@ import SynQt
 ALWAYS_RESERVED = frozenset({
     "App", "Caller", "Client", "EntityTest", "Graphics", "IdentityMapping", "PageSeed",
     "Router", "Server", "Session",
-})
+}) | frozenset(appmodel.UNIVERSAL_HELPERS)
 
 
 class AddContractError(Exception):
@@ -65,7 +65,8 @@ def reserved_for(entity_type: Optional[str] = None,
     The always-reserved set, plus the helpers this entity actually has in scope: the ONE
     its type installs (`Db` in a relational entity, `Cache` in a cache entity, and so on,
     from `appmodel.TYPE_HELPERS`), and the ones its `network:` block grants (`Http` when it
-    may call out, `Api` when it serves an inbound surface). `EntityRuntime` installs
+    may call out, `Api` when it serves an inbound surface). `Log` is in the always-reserved
+    set rather than this one, because every entity has it (`appmodel.UNIVERSAL_HELPERS`). `EntityRuntime` installs
     exactly these, so `Cache` is a name in scope in a cache entity and a name like any
     other everywhere else. Reserving every helper globally, which is what this used to do,
     made all of those words unusable in every entity in the project to prevent a collision

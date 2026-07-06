@@ -13,9 +13,11 @@
 #include "idocumentprovider.h"
 #include "ipersistenceprovider.h"
 #include "jobs.h"
+#include "log.h"
 #include "persistencefactory.h"
 #include "providerconfig.h"
 #include "sessionmanager.h"
+#include "tracer.h"
 
 #include <QtQml/qqmlcomponent.h>
 #include <QtQml/qqmlcontext.h>
@@ -64,7 +66,12 @@ EntityTest::EntityTest(QObject *parent)
     m_sessions = new SessionManager{QStringLiteral("anonymous"), 60, this};
 }
 
-EntityTest::~EntityTest() = default;
+EntityTest::~EntityTest()
+{
+    // The sink points at a member of this object, so it has to go before this object does.
+    Tracer::instance()->setSink(Tracer::Sink{});
+    Tracer::instance()->setEnabled(false);
+}
 
 QUrl EntityTest::source() const
 {
@@ -239,6 +246,33 @@ void EntityTest::buildHelpers()
     m_cacheHelper = new Cache{m_cache.get(), this};
     m_docs = new Docs{m_document.get(), this};
     m_jobs = new Jobs{1000, this};
+    m_log = new Log{this};
+
+    // The real pipeline, switched on for the entity under test. `Log.info(...)` in an
+    // entity's QML is a fact about how it behaves, and a harness that quietly threw those
+    // away would make the one thing an author writes themselves the one thing they cannot
+    // test. Delivered on the writer thread, so the list is guarded.
+    Tracer::instance()->setEntity(QStringLiteral("test"));
+    Tracer::instance()->setEnabled(true);
+    Tracer::instance()->setBatch(1, 20);
+    Tracer::instance()->setSink([this](const QList<TraceEvent> &batch) {
+        QMutexLocker locker{&m_recordedMutex};
+        for (const TraceEvent &event : batch) {
+            QVariantMap value{event.toVariant()};
+            // The words, beside the numbers the wire carries. A test asserting
+            // `category === 5` is a test nobody can read.
+            value.insert(QStringLiteral("severityName"), severityName(event.severity));
+            value.insert(QStringLiteral("categoryName"), categoryName(event.category));
+            m_recorded.append(value);
+        }
+    });
+}
+
+QVariantList EntityTest::recorded() const
+{
+    Tracer::instance()->flush();
+    QMutexLocker locker{&m_recordedMutex};
+    return m_recorded;
 }
 
 bool EntityTest::load()
@@ -263,6 +297,12 @@ bool EntityTest::load()
     }
 
     buildHelpers();
+    {
+        // Drained per load, so one test never reads what an earlier one said.
+        Tracer::instance()->flush();
+        QMutexLocker locker{&m_recordedMutex};
+        m_recorded.clear();
+    }
 
     // Reset the state, not the wiring: a fresh Source over a database still holding the
     // previous test's rows would pass or fail depending on test order.
@@ -297,6 +337,7 @@ bool EntityTest::load()
     m_context->setContextProperty(QStringLiteral("Cache"), m_cacheHelper);
     m_context->setContextProperty(QStringLiteral("Docs"), m_docs);
     m_context->setContextProperty(QStringLiteral("Jobs"), m_jobs);
+    m_context->setContextProperty(QStringLiteral("Log"), m_log);
     m_context->setContextProperty(QStringLiteral("Caller"), nullptr);
     m_context->setContextProperty(QStringLiteral("Client"), nullptr);
 
