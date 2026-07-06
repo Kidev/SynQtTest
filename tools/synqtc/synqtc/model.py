@@ -90,6 +90,10 @@ class Slot:
     line: int = 0
     col: int = 0
     scope: List[str] = field(default_factory=list)
+    #: Whether the monitoring record of a call to this slot carries its argument values.
+    #: Off unless the contract writes ``capture``; see :meth:`synqtc.parser.Parser._parse_capture`
+    #: for why it is opt in and per member.
+    capture: bool = False
 
 
 Member = Union[Prop, Model, Signal, Slot]

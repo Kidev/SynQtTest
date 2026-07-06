@@ -118,8 +118,9 @@ class Parser:
         self._path = path
         self._pos = 0
 
-    def _peek(self) -> Token:
-        return self._tokens[self._pos]
+    def _peek(self, ahead: int = 0) -> Token:
+        index = min(self._pos + ahead, len(self._tokens) - 1)
+        return self._tokens[index]
 
     def _next(self) -> Token:
         token = self._tokens[self._pos]
@@ -191,6 +192,27 @@ class Parser:
             member = self._parse_slot(keyword)
         member.scope = scope
         return member
+
+    def _parse_capture(self) -> bool:
+        """``capture`` after ``slot``, asking for the call's argument values in the record.
+
+        Off unless it is written, and written per member rather than per contract or per
+        entity, because the question it answers is about one member: is what a caller
+        passes here worth keeping a copy of? A monitor that captured everything by default
+        would become a second, queryable copy of every value the system has ever handled,
+        which is a larger thing to protect than the system it was watching.
+
+        Not a reserved word. A slot may still be called `capture`, which is settled by
+        looking one token further: a name is followed by its parameter list, a modifier by
+        the slot's return type or name.
+        """
+        token = self._peek()
+        if token.kind != "ident" or token.value != "capture":
+            return False
+        if self._peek(1).kind == "(":
+            return False
+        self._next()
+        return True
 
     def _parse_gate(self) -> List[str]:
         """``<admin>`` or ``<admin, auditor>`` before a member, or nothing.
@@ -264,6 +286,7 @@ class Parser:
         return Signal(name=name.value, params=params, line=keyword.line, col=keyword.col)
 
     def _parse_slot(self, keyword: Token) -> Slot:
+        capture = self._parse_capture()
         first = self._parse_type("a slot name or return type")
         # 'slot NAME(' -> void return; 'slot TYPE NAME(' -> returning slot. A bound after
         # the first word settles it early: only a type can carry one.
@@ -288,6 +311,7 @@ class Parser:
             return_type=return_type,
             line=keyword.line,
             col=keyword.col,
+            capture=capture,
         )
 
     def _parse_record(self) -> Record:
