@@ -68,10 +68,10 @@ def entity_modules(entity: Dict[str, Any], target: str = "wasm",
     # SynQtContract): an entity that owns a connect point links it, and one that only
     # consumes does not. The edge always owns at least the framework's Pages point, and it
     # runs a QGuiApplication.
-    if entity_type == "web_edge" or (config is not None
-                                     and appmodel.owned_by(config, entity.get("name"))):
+    if entity_type in ("web_edge", "monitor") or (config is not None
+                                                  and appmodel.owned_by(config, entity.get("name"))):
         modules.append("Qt Gui")
-    if entity_type == "web_edge":
+    if entity_type in ("web_edge", "monitor"):
         modules.append("Qt HTTP Server")
     # The GPLv3-only modules come from the runtime library this entity links, so the file
     # cannot claim one the build does not link, or miss one it does. The auth entity
@@ -100,7 +100,8 @@ def entity_third_party(entity: Dict[str, Any],
     provider = (entity.get("provider") or {}).get("name", "")
     # jwt-cpp verifies an OIDC ID token's signature, and it is linked by the same library
     # that carries the OAuth engine: the edge, and the auth entity when identity is promoted.
-    if any(library in ("SynQtIdentity", "SynQtEdge")
+    # SynQtMonitor is SynQtEdge plus a history, so it carries the same login stack.
+    if any(library in ("SynQtIdentity", "SynQtEdge", "SynQtMonitor")
            for library in appmodel.service_libraries(config or {}, entity)):
         libs += ["jwt-cpp", "picojson"]
     if provider == "mysql":
