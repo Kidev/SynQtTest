@@ -18,7 +18,8 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
-from synqt import addcontract, appgen, appmodel, newproject, presets, yamledit
+from synqt import (addcontract, appgen, appmodel, monitorscaffold, newproject,
+                   presets, yamledit)
 
 # Family -> the providers bundled for it (default first). This is the list the C++ family
 # factories accept, and the only place it is written down: `synqt add entity` offers these
@@ -45,6 +46,7 @@ TYPES: Dict[str, Optional[str]] = {
     "document": "document",
     "api": None,   # QHttpServer inbound (opt-in) + Http outbound; no data provider
     "jobs": None,      # timers + bounded queue; no data provider
+    "monitor": None,   # the operations console: a history, an operator gate, no data provider
     "service": None,   # a bare entity: no engine, no browser-facing side, just its QML
 }
 
@@ -247,6 +249,10 @@ def scaffold(project_dir: os.PathLike[str] | str, name: str,
     # Built before the name is checked, because what the block grants is part of what the
     # name may collide with: an entity that declares `network.outbound` has `Http` in scope,
     # and one that does not may be called `http` like any other word.
+    if entity_type == "monitor":
+        # A monitor is not one entity but three things that only work together, so it has a
+        # scaffold of its own rather than a branch in this one.
+        return monitorscaffold.scaffold(project_dir, name)
     block = entity_block(name, entity_type, provider)
     try:
         addcontract.check_qml_name(f"{name[:1].upper()}{name[1:]}",

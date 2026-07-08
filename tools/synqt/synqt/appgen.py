@@ -114,6 +114,8 @@ def generate(project_dir: os.PathLike[str] | str, config: Dict[str, Any], *,
             # qrc URL actually matches where qmlcachegen puts the view.
             uri = appmodel.qml_uri_for(config, entity)
             source = maingen.render_client_main(config, uri, entity)
+        elif appmodel.entity_type(entity) == "monitor":
+            source = maingen.render_monitor_main(config, entity, singletons)
         elif appmodel.is_edge(entity):
             source = maingen.render_edge_main(config, entity, singletons)
         else:

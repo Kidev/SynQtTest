@@ -11,6 +11,8 @@
 #include <QString>
 #include <QStringList>
 
+#include <functional>
+
 namespace SynQt {
 
 /// How the browser presents its session credential at the wss upgrade.
@@ -81,6 +83,23 @@ struct WebEdgeConfig
     /// entry keyed by `defaultScope` is the single-bundle case, and is what a project
     /// writing no `bundles:` emits, so there is no dormant second code path in here.
     QMap<QString, QString> bundles;
+
+    /// A password gate this edge serves itself, for an entity that authenticates its own
+    /// people rather than delegating to an identity provider.
+    ///
+    /// The monitor is the one user of it, and the reason it exists rather than being
+    /// another OAuth provider: an operator is not a user of the application, and a
+    /// project's own login provider is often the thing an operator is signing in to
+    /// investigate. So the monitor holds its own credentials and elevates a session to
+    /// `signInScope` when one matches.
+    ///
+    /// An empty `signInPath` means no such route, which is every ordinary web edge.
+    QString signInPath;
+    QString signInScope;
+    /// Returns whether this name and password are one of ours. Never told anything else,
+    /// and never asked to say why not: one message for every failure, or a caller learns
+    /// which names exist by watching which ones fail differently.
+    std::function<bool(const QString &name, const QString &password)> signIn;
 
     /// The single-bundle spelling: one directory served to everyone.
     ///
