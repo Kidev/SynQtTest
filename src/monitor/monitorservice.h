@@ -5,6 +5,7 @@
 #define SYNQT_MONITORSERVICE_H
 
 #include "eventstore.h"
+#include "ieventexporter.h"
 #include "operatorstore.h"
 
 #include <QHash>
@@ -49,6 +50,15 @@ public:
     MonitorService(EventStore *store, OperatorStore *operators, Retention retention,
                    QObject *parent = nullptr);
 
+    /// Also send every batch here, once it has been stored. Not owned: the exporters are
+    /// built beside the service and outlive it, and an exporter is a place events also go
+    /// rather than a thing the service is responsible for.
+    ///
+    /// Added after the store on purpose. SynQt's own history is what the console reads and
+    /// what an operator has when nothing else is running, so it is written first and an
+    /// exporter can never be the reason a batch was lost.
+    void addExporter(IEventExporter *exporter);
+
     /// One batch from one entity, with the entity name the transport verified.
     Q_INVOKABLE void take(const QVariantList &events, const QString &from);
 
@@ -91,6 +101,7 @@ private:
     Retention m_retention;
     QTimer *m_sweep{nullptr};
     QHash<QString, Reporter> m_reporters;
+    QList<IEventExporter *> m_exporters;
     qint64 m_received{0};
     qint64 m_stored{0};
     qint64 m_dropped{0};
