@@ -103,6 +103,16 @@ Console {
         Monitor.arrived.connect(root.refresh);
         root.refresh();
     }
+
+    // Undone explicitly, because nothing else will. `Monitor` is the process-wide service
+    // and this Source is one operator's, so a connection into it outlives the object it
+    // calls into: every console that has ever connected stays wired to the singleton, and
+    // every batch that arrives afterwards runs a handler whose `root` is gone. The symptom
+    // is a TypeError on each arriving batch once somebody closes their tab, once per
+    // session there has ever been.
+    Component.onDestruction: {
+        Monitor.arrived.disconnect(root.refresh);
+    }
 }
 """
 
