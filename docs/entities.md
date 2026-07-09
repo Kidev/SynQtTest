@@ -338,7 +338,8 @@ and `Log.info("saved " + count + " rows")` makes both a substring hunt where
 
 The framework already records what it can see, which is links coming up, callers being
 refused and calls crossing. What it cannot see is why an entity did what it did, and that is
-usually the half an operator is looking for.
+usually the half an operator is looking for. Where all of it goes, and who may read it, is
+[monitoring](monitoring.md).
 
 Which entity said it is stamped by the runtime, past anything QML can reach, so an entity
 cannot claim to be another one. It costs nothing when nobody is listening: the level check

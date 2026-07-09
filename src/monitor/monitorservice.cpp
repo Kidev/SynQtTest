@@ -16,16 +16,6 @@ namespace {
 /// noticed while it still matters.
 constexpr qint64 kLivenessMs{120000};
 
-Severity severityFromName(const QString &name)
-{
-    for (int level{0}; level <= static_cast<int>(Severity::Fatal); ++level) {
-        if (severityName(static_cast<Severity>(level)) == name) {
-            return static_cast<Severity>(level);
-        }
-    }
-    return Severity::Trace;
-}
-
 /// One stored event in the shape the console's model declares. The words rather than the
 /// numbers, because what crosses here is read by a person and a console that carried its
 /// own copy of the vocabulary would be a second place for it to drift.
@@ -151,7 +141,13 @@ QVariantList MonitorService::ask(const QString &text, const QString &entity,
     if (!entity.trimmed().isEmpty()) {
         request.entities = {entity.trimmed()};
     }
-    request.minimumSeverity = severityFromName(minimumSeverity);
+    // A word the console did not send, or one it misspelled, means everything rather than
+    // nothing: an operator who typed a filter wrong should see too much, not an empty
+    // console they read as "nothing happened".
+    Severity minimum{Severity::Trace};
+    if (severityFromName(minimumSeverity, &minimum)) {
+        request.minimumSeverity = minimum;
+    }
     request.limit = (limit > 0) ? limit : 200;
     return toRows(m_store->query(request));
 }

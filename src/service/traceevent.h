@@ -63,6 +63,12 @@ struct TraceEvent
 QString severityName(Severity severity);
 QString categoryName(Category category);
 
+/// The reverse, for a word that came from a configuration file. False when it is not one of
+/// them, so a misspelled level is reported rather than read as the quietest thing it could
+/// have meant.
+bool severityFromName(const QString &name, Severity *severity);
+bool categoryFromName(const QString &name, Category *category);
+
 } // namespace SynQt
 
 #endif // SYNQT_TRACEEVENT_H
