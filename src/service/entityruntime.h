@@ -115,6 +115,9 @@ private:
     QHash<QString, QObject *> m_accessors;
     /// The monitoring client, when this entity reports to a monitor. Null otherwise.
     IngestClient *m_ingest{nullptr};
+    /// Whether this runtime is the one that installed the tracer's sink, so the
+    /// destructor clears that sink and never one somebody else owns.
+    bool m_installedSink{false};
     QHash<QString, QObject *> m_consumedReplicas;
     /// The node currently carrying each consumed connect point, so a link that comes back
     /// up replaces what it had rather than adding to it. Keyed like m_consumedReplicas.
