@@ -1111,6 +1111,38 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(disconnectedSpy.count() >= 1, 3000);
     }
 
+    void aKeepAliveConnectionThatFetchedThePageIsNotClosedUnderIt()
+    {
+        // The other half of the same deadline, and the half that was wrong. A browser
+        // fetches the page, the loader and the bundle over one keep-alive connection, and
+        // that is the connection it upgrades on, so the window used to run against ordinary
+        // traffic: past it the edge sent an RST and recorded a refusal nobody made. Four of
+        // them turned up in a monitor-console run from a browser that was only loading the
+        // page. The deadline now applies to a socket that arrives and stays silent, which
+        // is what it was for.
+        QQmlEngine engine;
+        WebEdge edge{makeConfig(false), &engine};
+        QVERIFY2(edge.start(), qPrintable(edge.errorString()));
+
+        QSignalSpy rejectedSpy{&edge, &WebEdge::upgradeRejected};
+
+        QNetworkReply *first{httpGet(edge.httpOrigin() + QStringLiteral("/"))};
+        QVERIFY(first != nullptr);
+        first->deleteLater();
+
+        // Longer than the window (800ms in this suite), spent the way a real visitor spends
+        // it: connection open, nothing being asked of it yet.
+        QTest::qWait(800 + 400);
+
+        // The same connection still serves, and nothing was refused.
+        QNetworkReply *second{httpGet(edge.httpOrigin() + QStringLiteral("/"))};
+        QVERIFY(second != nullptr);
+        QCOMPARE(second->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(), 200);
+        second->deleteLater();
+
+        QCOMPARE(rejectedSpy.count(), 0);
+    }
+
     void oversizedFrameRejected()
     {
         QQmlEngine engine;

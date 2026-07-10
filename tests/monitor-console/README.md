@@ -40,28 +40,32 @@ seven defects, four of them outside monitoring:
 | The scaffolded console's attached handler named the owner instead of the contract, so the QML would not load at all | `monitorscaffold.console_qml` |
 | Every console session stayed connected to the process-wide service after its Source was gone | `monitorentity.CONSOLE_SOURCE_QML` |
 | A scaffolded monitor took the port the edge already had | `monitorscaffold.free_port`, plus a `synqt check` rule |
-| **Open.** An edge can abort an idle keep-alive HTTP connection and record it as a refused upgrade | `WebEdge::trackPendingUpgrade`; see below |
+| An edge aborted an idle keep-alive HTTP connection and recorded it as a refused upgrade | `WebEdge::trackPendingUpgrade`; see below |
 
-## The one it found and did not fix
+## The last one, and what it took to close it
 
-`WebEdge` arms a handshake-deadline timer on every accepted socket and cancels it only when
-a WebSocket upgrade arrives. An ordinary HTTP connection therefore has
-`security.handshake_timeout_ms` to live whatever it is doing: past that the socket is
-aborted and `upgradeRejected("handshake timeout")` is emitted. A browser that keeps a
-connection alive between fetches, or a single response that takes longer than the deadline,
-is cut off by the server it is talking to, and the operations record gains a refusal nobody
-made.
+`WebEdge` armed the handshake deadline on every accepted socket and cancelled it only when
+a WebSocket upgrade arrived. An ordinary HTTP connection therefore had
+`security.handshake_timeout_ms` to live whatever it was doing: past that the socket was
+aborted and `upgradeRejected("handshake timeout")` emitted. A browser keeping a connection
+alive between fetches, or a single response slower than the deadline, was cut off by the
+server it was talking to, and the operations record gained a refusal nobody made. An early
+run of this suite recorded four of them per session from a browser that was only loading
+the console.
 
-It was seen here: an early run of this suite recorded four
-`upgrade refused: handshake timeout` events per session from a browser that was only
-loading the console. It is timing-dependent, so a given run may show none.
+The deadline now ends at the first byte the peer sends, which leaves it bounding the thing
+it was for: a socket that connects and stays silent.
+`tests/m5-webedge`'s `aKeepAliveConnectionThatFetchedThePageIsNotClosedUnderIt` is the
+regression guard, and it fails without the fix.
 
-Four fixes were tried and every one of them pushed
-[`tests/memory`](../memory)'s `theEdgeLetsGoOfABrowserThatComesAndGoes` from comfortably
-inside its 64-bytes-per-cycle budget to 660-1020 bytes per browser connect/disconnect:
-cancelling the timer from the after-request handler, restarting it there, stopping it
-without deleting it, and moving the check onto the socket with a `readyRead` watch that
-touches the request path not at all. The last of those adds one signal connection and no
-objects, which is not an explanation for 800 bytes, so the cause is not understood. The fix
-is written down here rather than shipped on a guess, and closing it means understanding
-what that budget is actually measuring first.
+Getting there meant fixing the instrument first. Every attempted fix appeared to push
+[`tests/memory`](../memory)'s `theEdgeLetsGoOfABrowserThatComesAndGoes` from inside its
+64-bytes-per-cycle budget to 660-1020 bytes per connection, which no version of a single
+signal connection explains. It was not the fix. That suite compared the heap after N cycles
+against the heap before them and required the difference to be near zero, and the heap
+under that workload is not a straight line: it drops about 228 KB in one move partway
+through a long run and ends 200 KB below where it started. The old check failed a build
+that retained nothing per connection and would have passed one that retained an object per
+connection. It measures the slope between two equal windows now, and
+`theBudgetCanTellALeakFromABusyProcess` leaks a known amount on purpose to prove the budget
+can still come back negative.
