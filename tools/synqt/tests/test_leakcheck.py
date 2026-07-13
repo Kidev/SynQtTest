@@ -69,6 +69,66 @@ SUMMARY: AddressSanitizer: 128 byte(s) leaked in 1 allocation(s).
 """
 
 
+# A leaked graph whose members all point at each other. LeakSanitizer walks out from every
+# unreachable block and tags whatever it reaches as indirect, so when the graph has no entry
+# nobody points into, every block is somebody's child and nothing is reported as direct. A
+# QObject tree is this shape by construction: the parent holds its children, and every child
+# holds a pointer back to its parent.
+ALL_INDIRECT_NO_ROOT = """
+=================================================================
+==1==ERROR: LeakSanitizer: detected memory leaks
+
+Indirect leak of 4096 byte(s) in 8 object(s) allocated from:
+    #0 0x1 in operator new(unsigned long) (/usr/lib/libasan.so.8+0x1)
+    #1 0x2 in SynQt::WebEdge::start() {repo}/src/edge/webedge.cpp:979
+    #2 0x3 in main {repo}/tests/m5-webedge/tst_m5.cpp:120
+
+SUMMARY: AddressSanitizer: 4096 byte(s) leaked in 8 allocation(s).
+"""
+
+
+def test_a_process_that_leaked_whole_is_named_not_counted_as_zero(tmp_path, capsys):
+    """A cycle has no direct record, and the gate used to read that as nothing lost.
+
+    LeakSanitizer calls a block direct only when no other leaked block points at it. Give
+    it a graph whose members all point at each other and every block is somebody's child,
+    so it reports no direct record at all; a two-node cycle in ten lines of C reproduces
+    it. Reading only direct records, a process in that shape arrived with nothing to
+    contribute and passed through as clean whatever it had lost. Five of this tree's
+    suites really were in that shape, m5 among them, losing 2.6 MB across 32868
+    allocations while the report printed "0 records, 0 bytes" and said nothing else.
+
+    It stays uncharged, because in a graph lost whole the allocation site is not the
+    culprit. It does not stay invisible.
+    """
+    leakcheck = _leakcheck()
+    logs = _report(tmp_path, ALL_INDIRECT_NO_ROOT.replace("{repo}", str(REPO)))
+    assert leakcheck.sanitize(logs, REPO) == 0
+    printed = capsys.readouterr().out
+    assert "named no root" in printed
+    assert "4096 bytes" in printed
+    # Named by the suite, not by the pid the log file is named after.
+    assert "tests/m5-webedge/tst_m5.cpp" in printed
+    # Named, but not charged: the site is where the block was born, not what dropped it.
+    assert "framework (src/), which is what this gate is for: 0 records" in printed
+
+
+def test_a_child_of_a_named_root_is_not_mistaken_for_a_rootless_process(tmp_path, capsys):
+    """The other half: where a root does exist, the split LeakSanitizer drew is worth keeping.
+
+    An indirect record under a real direct root names a child, not a culprit. It must not
+    trip the rootless report either, or every ordinary process would be listed there.
+    """
+    leakcheck = _leakcheck()
+    body = (UPSTREAM_UNDER_A_DISPATCH.replace("{repo}", str(REPO)).rstrip()
+            + ALL_INDIRECT_NO_ROOT.replace("{repo}", str(REPO)))
+    logs = _report(tmp_path, body)
+    assert leakcheck.sanitize(logs, REPO) == 0
+    printed = capsys.readouterr().out
+    assert "named no root" not in printed
+    assert "held by a leaked root, allocated by us (evidence, not a verdict): 1 records" in printed
+
+
 def test_a_library_reacting_to_us_is_not_charged_to_us(tmp_path, capsys):
     """Emitting a signal is not allocating.
 
