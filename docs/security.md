@@ -620,7 +620,10 @@ browser sends. A recorded call carries the shape of the call and not its argumen
 member asks with `capture`, which `synqt check` refuses on a member carrying an identity.
 And the console is reached by first reaching the machine: the monitor binds loopback, a
 non-loopback host has to be acknowledged in `synqt.yaml`, and the console bundle is not
-addressable at all without an operator session.
+addressable at all without an operator session. That last gate is the bundle map, so
+`synqt check` reads it rather than trusting it: a `console: true` client mapped below
+`operator`, on the monitor or on an application edge, is refused, and so is a monitor whose
+default scope resolves to a client instead of a static sign-in page.
 
 ## Security checklist (use before every deploy)
 

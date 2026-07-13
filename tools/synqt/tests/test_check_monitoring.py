@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux
 # SPDX-License-Identifier: Apache-2.0
 
-"""`capture` validation: what a monitoring record is allowed to keep a copy of."""
+"""What the monitoring rules refuse: which values a record may keep, and who may be
+handed the console that reads it."""
 
 from synqt import check
 
@@ -77,3 +78,60 @@ def test_a_gated_member_is_read_past_its_gate():
     # question, and a rule that stopped at the gate would miss every gated member.
     config = _config("<admin> slot capture signIn(string sub)\n")
     assert len(check.lint_capture(config)) == 1
+
+
+# Who is handed the console. The gate is the bundle map, so it is validated where the map
+# is: a console served below `operator` is every request the system has handled, delivered
+# to whoever asked for the page.
+
+
+def _served(bundles=None, console="ops-console", clients=("app",)):
+    entities = [{"name": "web", "type": "web_edge"},
+                {"name": "ops", "type": "monitor",
+                 "public": {"host": "127.0.0.1", "port": 8443}}]
+    entities += [{"name": name, "type": "client"} for name in clients]
+    if console:
+        entities.append({"name": console, "type": "client", "console": True,
+                         "edge": "ops"})
+    if bundles is not None:
+        entities[1]["bundles"] = bundles
+    return {"entities": entities, "monitoring": {"entity": "ops"}}
+
+
+def test_the_scaffolded_gate_is_accepted():
+    config = _served({"anonymous": "signin/", "operator": "ops-console"})
+    assert check._console_delivery_messages(config) == []
+
+
+def test_the_console_served_to_anonymous_is_refused():
+    config = _served({"anonymous": "ops-console"})
+    findings = check._console_delivery_messages(config)
+    assert any(message.startswith("error:") and "'ops-console'" in message
+               and "'anonymous'" in message for message in findings), findings
+
+
+def test_the_console_served_by_the_application_edge_is_refused_too():
+    """The same leak through the other door: nothing about the console makes it the
+    monitor's to serve, and an edge that maps it is handing the operations record out on
+    the port the public already knows."""
+    config = _served({"anonymous": "signin/", "operator": "ops-console"})
+    edge = next(entity for entity in config["entities"] if entity["name"] == "web")
+    edge["bundles"] = {"anonymous": "app", "user": "ops-console"}
+    findings = check._console_delivery_messages(config)
+    assert any("entity 'web'" in message and "'ops-console'" in message
+               for message in findings), findings
+
+
+def test_a_monitor_with_no_gate_at_all_is_refused():
+    """No block is not a neutral state on a monitor. It resolves to the project's first
+    client, which the generated main then bakes as what that port serves."""
+    findings = check._console_delivery_messages(_served(bundles=None))
+    assert any(message.startswith("error:") and "no bundles: block" in message
+               for message in findings), findings
+
+
+def test_a_web_edge_with_no_gate_is_left_alone():
+    """The single-bundle case every project without the key is in, and it is not this."""
+    config = _served({"anonymous": "signin/", "operator": "ops-console"})
+    assert not any("entity 'web'" in message
+                   for message in check._console_delivery_messages(config))
