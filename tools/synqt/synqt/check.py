@@ -1149,6 +1149,10 @@ def _public_port_messages(entities: Dict[str, Any]) -> List[str]:
     adding a monitor fails to bind and the entity that lost the race is simply missing.
     Said here, where the whole topology is in view, rather than left to a bind error naming
     one process.
+
+    The default counts. This used to skip any entity that had not written `public.port`,
+    which reads as caution and is the opposite: two entities that have both left it out are
+    the collision, and they were the one pair this could not see.
     """
     seen: Dict[Tuple[str, int], str] = {}
     messages: List[str] = []
@@ -1157,9 +1161,7 @@ def _public_port_messages(entities: Dict[str, Any]) -> List[str]:
         if not appmodel.serves_browser(entity):
             continue
         public = appmodel.public_settings(entity)
-        port = int(public.get("port") or 0)
-        if port == 0:
-            continue
+        port = appmodel.public_port(entity)
         host = str(public.get("host") or "127.0.0.1")
         taken = seen.get((host, port))
         if taken is not None:
