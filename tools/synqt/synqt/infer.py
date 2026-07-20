@@ -403,6 +403,7 @@ def to_document(edges: Sequence[Edge], config: Dict[str, Any]) -> Dict[str, Any]
     return {
         "version": designdoc.VERSION,
         "project": designdoc.project_name(config, ""),
+        "scopes": designdoc.scopes_of(config),
         "entities": designdoc.entities_of(config),
         "links": [_link_of(edge, config) for edge in edges],
     }
