@@ -56,6 +56,11 @@ The whole live arena lives in the edge's memory, which is all a fast game needs.
 the permanent leaderboard is durable, so it gets a database, reached by the edge and
 never by the browser, exactly as in [the Hall of Fame](tutorial-hall-of-fame.md).
 
+**[Open it in the designer](/designer/#example=arena)** to see the finished shape
+before you build it: the entities, the links, and beside each line the contract that
+crosses it. Nothing is installed, and pulling it apart there changes nothing on your
+disk.
+
 ## What you will learn
 
 - How an owner runs a simulation rather than storing values: a fixed tick that

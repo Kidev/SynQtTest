@@ -44,6 +44,10 @@ flowchart LR
   style dbhost fill:#def,stroke:#39c,color:#1a1a2e
 ```
 
+The system being deployed is [the auction](tutorial.md), unchanged.
+**[Open it in the designer](/designer/#example=gavel)** if you want the shape of it in front
+of you while you read about where each piece is going to run.
+
 ## What you will learn
 
 - How to ask the production question before you have a production: what
