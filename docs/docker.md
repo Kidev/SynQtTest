@@ -146,16 +146,29 @@ every later change to the app. It is also the slow one, and the reason the first
 a while.
 
 **`build`** installs `synqt` and compiles every entity with `--profile docker` applied. The
-published `synqt` carries the framework's own C++ and CMake sources, which is what lets this
-stage work with nothing but a Dockerfile. To build against a checkout or a local wheel
-instead, put it inside the project and name it in the environment:
+synqt it installs is the checkout the CLI itself is running out of, handed to the build as
+four named contexts (`cmake/`, `src/`, `tools/synqtc/` and `tools/synqt/`, which is what
+installing the CLI needs beside it) and read fresh on every build, so an image is never
+built from a copy of the framework that has gone stale. `synqt docker init` writes the path
+into the compose file and `synqt docker up` passes the live one through, so a checkout that
+moves needs no regeneration.
+
+To build against a different one, point `SYNQT_SRC` at its top directory:
+
+```cli
+SYNQT_SRC=~/src/SynQt synqt docker up
+```
+
+Or replace the install outright with a name, a wheel or a git URL:
 
 ```cli
 SYNQT_PIP_SPEC=./vendor/synqt synqt docker up
 ```
 
-The environment is where it goes rather than `--build-arg`, because `up --build` takes no
-build arguments; the generated compose file reads this variable and passes it through.
+The environment is where both go rather than `--build-arg`, because `up --build` takes no
+build arguments; the generated compose file reads these variables and passes them through.
+A CLI installed from a wheel rather than run out of a checkout has no sources to hand over,
+and its generated Dockerfile installs the published distribution instead.
 
 **`runtime`** is what actually runs: the built artifacts, the Qt shared libraries and QML
 modules they load, and the CLI (so the certificate service has it). No compilers, no Qt
