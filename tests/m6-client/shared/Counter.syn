@@ -7,4 +7,10 @@ contract Counter {
     prop int value          // edge owned; clients read, edge writes
     slot increment()        // a request; the edge performs the change
     slot decrement()
+    // Elevating the caller, which is how a live connection's scope changes in an ordinary
+    // app (Caller.setScope inside a slot). Here so the browser proof can watch scope and
+    // identity reach a client that is already connected, which is the step no native test
+    // can speak for: the session channel is a Replica, and a Replica arriving is exactly
+    // what single-threaded WebAssembly is fussy about.
+    slot signIn()
 }

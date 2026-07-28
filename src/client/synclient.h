@@ -140,6 +140,16 @@ private:
     /// routeTableChanged pushes feed back through the router's public seams.
     void bindPagesConnectPoint();
 
+    /// Acquire the framework's own SessionState connect point on the node just built and
+    /// feed what it publishes into Session.
+    ///
+    /// The edge holds the whole truth about a session and the browser holds only an opaque
+    /// cookie, so `Session.scope` and `Session.identity` have to be told; nothing else in
+    /// the client can work them out. Re-acquired on every connect rather than rebound,
+    /// because the replica belongs to the node teardown() retires.
+    void bindSessionState();
+    void applySessionState();
+
     SynClientConfig m_config;
     ServerAccessor *m_server;
     Session *m_session;
@@ -147,6 +157,9 @@ private:
     ClientUpdate *m_update;
     RemotePageLoader *m_pageLoader{nullptr};
     QObject *m_pagesFacade{nullptr};
+    /// The framework's own session channel for the current connection, parented to the
+    /// node and therefore gone with it on every reconnect.
+    QObject *m_sessionState{nullptr};
     QQmlEngine *m_engine;
     QNetworkAccessManager *m_network{nullptr};
 
