@@ -78,7 +78,7 @@ and "are we connected."
 |--------|------|-------------|
 | `Session.state` | string | the connection/authorization state. One of the values in the table below. |
 | `Session.scope` | string | the one scope name the session holds. With hierarchical scopes (the default) a name higher in `order` satisfies a lower one; with set-based scopes a check succeeds only on the name itself. Prefer `hasScope` for checks. |
-| `Session.hasScope(name)` | bool | whether the session holds `name`. With hierarchical scopes a higher scope satisfies a lower one (`hasScope("user")` is true for a moderator). |
+| `Session.hasScope(name)` | bool | whether the session holds `name`. With hierarchical scopes a higher scope satisfies a lower one (`hasScope("user")` is true for a moderator). Safe to bind: a binding that calls it re-evaluates when the scope moves. |
 | `Session.identity` | object \| null | the normalized identity when authenticated, `null` when anonymous. Fields below. |
 | `Session.isAuthenticated` | bool | convenience for `Session.identity !== null`. |
 | `Session.login(provider?)` | action | start the edge login flow. See below. |
@@ -142,6 +142,22 @@ connection, which is what `Caller.setScope` in a slot does. While the link is do
 they hold their last value rather than falling back to anonymous, so a reconnect
 does not flash a signed-in visitor through a sign-in screen; a session that has
 really ended comes back anonymous on the next connection.
+
+`Session.hasScope` is meant to be used in a binding, and is built so that it can be:
+
+```qml
+Rectangle {
+    // Lifts by itself the moment the session is elevated.
+    visible: !Session.hasScope("player")
+}
+```
+
+QML works out what a binding depends on from the properties it reads, so a binding
+that only *calls* a method has no dependencies and is evaluated once and never
+again. `hasScope` is therefore a property whose value is the check, not a plain
+method: reading it is what registers the dependency on the scope, and the call
+spelling is unchanged. `Caller.hasScope` on the service side is an ordinary method,
+because a `Caller` is one call's snapshot and none of it changes under a binding.
 
 !!! note "Client-side scope checks are UX only"
     Hiding a button with `Session.hasScope(...)` is a convenience, never the
