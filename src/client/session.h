@@ -18,8 +18,6 @@ QT_END_NAMESPACE
 
 namespace SynQt {
 
-class ScopeCheck;
-
 /// Read-only session state plus the two actions that change it (see the
 /// [runtime API reference](https://synqt.org/runtime-api/)).
 /// It never exposes a secret: the raw session id and any token live at the edge, not in
@@ -90,8 +88,7 @@ private:
     QString m_state{QStringLiteral("offline")};
     QVariant m_scope;
     QVariant m_identity; ///< null until authenticated (M8)
-    ScopeCheck *m_check{nullptr};
-    QJSValue m_checkFunction;
+    QJSValue m_checkFunction; ///< `hasScope`, built in the constructor; see the property
 };
 
 } // namespace SynQt

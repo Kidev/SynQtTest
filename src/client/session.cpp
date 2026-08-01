@@ -40,15 +40,16 @@ Session::Session(SynClientConfig config, QJSEngine *engine, QObject *parent)
     , m_scope{m_config.defaultScope}
 {
     if (!engine) {
-        return;  // a C++-only Session (the routing tests build one); nothing to wire
+        return;  // no QML to answer, so no function to build; C++ callers are unaffected
     }
     // Built once, here, rather than on first read: the first read happens inside a
-    // binding evaluation, and compiling a script from in there is a re-entry into the
-    // engine that nothing about this needs.
-    m_check = new ScopeCheck{this, this};
+    // binding evaluation, and compiling a script from in there would be a re-entry into
+    // the engine that nothing about this needs. The check itself is parented to this
+    // Session, so the closure below cannot outlive what it calls.
+    ScopeCheck *check{new ScopeCheck{this, this}};
     const QJSValue factory{engine->evaluate(QStringLiteral(
         "(function (check) { return function (name) { return check.held(name); }; })"))};
-    m_checkFunction = factory.call({engine->newQObject(m_check)});
+    m_checkFunction = factory.call({engine->newQObject(check)});
 }
 
 QString Session::state() const
