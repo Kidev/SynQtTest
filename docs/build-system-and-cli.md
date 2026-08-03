@@ -173,7 +173,7 @@ fine: the runtime builds exactly one helper per entity, and reserving all five e
 would ban five perfectly good words across the whole project to prevent a collision that
 exists in one entity. `synqt check` holds the same
 line from the other end: every connect point must have its Source file, and that file must
-be rooted at the contract, which is the owner capitalized plus `Contract`.
+be rooted at the contract, which is the owner capitalized.
 
 `synqt design` opens the same project as a graph: entities as nodes, connect points as
 the links between them, and a panel for what each one carries. It is the visual half of
