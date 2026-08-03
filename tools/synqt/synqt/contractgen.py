@@ -209,10 +209,20 @@ def implemented_by_owner(project_dir: os.PathLike[str] | str, config: Dict[str, 
 
 
 def resolved_source(project_dir: os.PathLike[str] | str, config: Dict[str, Any],
-                    point: Dict[str, Any]) -> str:
-    """The ``.syn`` text for `point`, with every name-only export written out."""
+                    point: Dict[str, Any], *, inherit: bool = True) -> str:
+    """The ``.syn`` text for `point`, with every name-only export written out.
+
+    `inherit` is what :func:`contract_source` means by it, and it is off for a reader that
+    is going to write the block back out. The build wants the point's own ``scope:`` filled
+    onto every member, because the generated contract is the whole answer to what gates
+    what. A reader that shows an author their file, and writes their edits back to it, wants
+    what they wrote: with it on, opening a project in the design editor and applying any
+    change turned one ``scope: user`` on the point into a ``<user>`` in front of every
+    member of it.
+    """
     return contract_source(appmodel.contract_of(point), point,
-                           implemented_by_owner(project_dir, config, point))
+                           implemented_by_owner(project_dir, config, point),
+                           inherit=inherit)
 
 
 def write_contracts(project_dir: os.PathLike[str] | str,

@@ -45,7 +45,7 @@ column it cannot receive.
 
 | Entity | Type | File |
 | --- | --- | --- |
-| `app` | client | `client/app/Main.qml` |
+| `app` | client | `client/app/Main.qml`, `User.qml`, `Admin.qml` |
 | `edge` | web_edge | `web/edge/Edge.qml` |
 | `store` | relational | `db/relational/store/Store.qml`, `schema.sql` |
 

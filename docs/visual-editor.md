@@ -108,8 +108,9 @@ coloured the way the same contract is coloured in the file pane below, a shade b
 the four kinds it is is the small mark at the start of the row. Hover anywhere on a row, the
 mark or the prototype, and it says the rest: the kind, the full declaration with the parameter
 names the row has no room for, what a model's rows carry, what a call answers with, and which
-callers reach it. A member held above the point's own scope carries a second mark, and the same
-tooltip says which scope and what it is held back from.
+callers reach it. A member held above the point's own scope says so on the row, in the notation
+the `export:` block gates it in: `erase(int) <admin>`, after the declaration and in the warning
+colour, so which scope is a thing to read rather than a thing to go and ask for.
 
 Hovering anything on the canvas lights it, in a colour of its own rather than the one selection
 uses, so moving the pointer across a busy drawing never costs sight of what you are working on.
