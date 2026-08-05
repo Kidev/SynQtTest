@@ -538,7 +538,7 @@ for the published CLI and its installer, and `[CONTRIB]` for the contributor boo
   leak shows itself: a soak pass that runs each suite at two repeat counts and compares the
   peak resident set, and an AddressSanitizer pass that charges every leak LeakSanitizer
   reports to whoever allocated it and fails when a record belongs to `src/`. The cheap half
-  of that story is not here: `tests/memory` is an ordinary ctest suite and runs on every
+  of that story is not here: [`tests/memory`](https://github.com/Kidev/SynQt/tree/main/tests/memory) is an ordinary ctest suite and runs on every
   push, and it is the gate that matters, because it measures the leak class this framework
   actually has (memory still reachable at exit, which a leak checker never reports).
 - [`benchmarks.yml`](https://github.com/Kidev/SynQt/blob/main/.github/workflows/benchmarks.yml) runs the performance harnesses on dispatch and on a change under
