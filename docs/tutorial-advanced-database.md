@@ -55,7 +55,7 @@ exception unwinding through that would take the entity down over a failed `SELEC
 ## Step 2: Scaffold it
 
 ```cli
-synqt add provider SqlServer --family persistence
+synqt add provider SqlServer --family relational
 ```
 
 That writes `providers/custom/sqlserverprovider.cpp`: the class, the registration, and
@@ -64,8 +64,9 @@ as it stands, so you can select it immediately and watch it fail honestly rather
 quietly. The rest of this page fills it in.
 
 The file is compiled into any entity whose config selects `custom:SqlServer`, and that
-selection is the only wiring there is. There is no CMake to edit, and you should not try:
-the root `CMakeLists.txt` is regenerated from your topology on every build.
+selection is the only wiring there is, and there is no CMake to edit: the build writes
+`generated/synqt.cmake` from your topology on every build, and your root `CMakeLists.txt`
+only includes it.
 
 ## Step 3: Open the connection, or refuse to
 

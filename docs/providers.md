@@ -307,7 +307,7 @@ implement the family interface yourself.
 > [An identity service of your own](tutorial-advanced-identity.md) covers the one
 > customization that is not a provider.
 
-`synqt add provider MyEngine --family persistence` writes the whole shape below into
+`synqt add provider MyEngine --family relational` writes the whole shape below into
 `providers/custom/myengineprovider.cpp`; the three steps are what it wrote and why.
 
 1. Implement the family interface (for example `IPersistenceProvider`) in a small
@@ -326,8 +326,9 @@ implement the family interface yourself.
 3. Select it: `provider.name: custom:MyEngine`, with the rest of the `provider` section
    carrying settings your provider reads from its `ProviderConfig`. That selection is
    also what compiles `providers/custom/` into the entity, so the registration above
-   runs. There is no CMake to edit, and editing it would not last: the build regenerates
-   the project's `CMakeLists.txt` from the topology every time.
+   runs. There is no CMake to edit: the build writes `generated/synqt.cmake` from the
+   topology every time, and the project's own root `CMakeLists.txt` does nothing but
+   include it.
 
 `custom:` is a namespace. Only a name carrying it is looked up among
 your registrations, so a custom provider can never shadow a bundled one: `sqlite`
