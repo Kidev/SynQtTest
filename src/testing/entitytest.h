@@ -114,7 +114,8 @@ public:
     Q_INVOKABLE QVariant cacheValue(const QString &key);
 
     /// What the entity recorded while this test ran, oldest first, one map per event
-    /// carrying `severity`, `category`, `message` and `attributes`.
+    /// carrying `severity` and `category` as the numbers the wire uses, `severityName`
+    /// and `categoryName` as the words to assert on, plus `message` and `attributes`.
     ///
     /// A `Log.info(...)` in an entity's QML is a fact about how it behaves, so it is
     /// testable like any other. The events come from the real pipeline, which the harness
