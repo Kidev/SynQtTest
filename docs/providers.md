@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # Providers (backing entities with first party or third party engines)
 
 An entity already hides its backend behind a typed connect point: consumers call

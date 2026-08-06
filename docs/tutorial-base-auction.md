@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # The base case
 
 Goal: one item up for auction, with a current high bid that everyone sees update
