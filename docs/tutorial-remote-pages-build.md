@@ -61,7 +61,8 @@ as the pages actually need; it is a trust boundary, covered in
 
 ## Step 3: Write the campaign page on the edge
 
-A delivered page lives under `<edge>/pages/`. For an edge named `web`, that is `web/edge/pages/`.
+A delivered page lives under `<edge>/pages/`. For an edge named `edge`, that is
+`web/edge/pages/`.
 Create `web/edge/pages/Campaign.qml`:
 
 ```qml

@@ -51,7 +51,7 @@ client's QML branches on where a page came from.
 ## Where the files live
 
 A remote page lives under the web edge entity's directory, in a `pages/` subdirectory. For
-an edge entity named `web`, that is `web/edge/pages/`. The `remote:` value is the file's path
+an edge entity named `edge`, that is `web/edge/pages/`. The `remote:` value is the file's path
 relative to that directory, so `remote: Campaign.qml` names `web/edge/pages/Campaign.qml`.
 
 This directory is edge code, not client code. It is never compiled into the bundle and
