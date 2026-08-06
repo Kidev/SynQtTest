@@ -88,8 +88,8 @@ entity:
 ```text
 build/
   client/                 # the WebAssembly bundle, precompressed, plus its licenses
-  web/                    # the edge binary, its topology.json, its licenses
-  database/               # the database binary, its topology.json, its licenses
+  edge/                   # the edge binary, its topology.json, its licenses
+  store/                  # the database binary, its topology.json, its licenses
   process-manifest.json   # the start plan (see below)
 ```
 
@@ -133,7 +133,7 @@ the paths the entities use are the paths it spells.
 **Service binaries do not carry Qt.** `synqt build` does not run a deployment step for
 them, so a service host needs the pinned Qt kit present, either baked into a container
 image or installed at the same path the build used. (The desktop *client* is the
-exception: see step 8.) A container image built from the same base as your build machine
+exception: see step 9.) A container image built from the same base as your build machine
 is the least surprising way to get this right.
 
 ## 5. Place the secrets
@@ -184,10 +184,10 @@ orchestrator's secret mechanism covers the rest.
 It answers the three questions a supervisor has. `start_order` is owners before
 consumers, so an entity's owner is up before it tries to acquire a replica (a consumer
 retries, so the order is not a hard requirement, but starting out of order turns a clean
-boot into a wait). `bind` says which single entity faces
-the public interface: exactly one, the web edge. And each entry names the material that
-entity expects, which is what to check before you conclude a start failure is a code
-problem.
+boot into a wait). `bind` says which entities face the public interface and which stay
+on loopback; the ones that face it are the web edges, and everything else is `loopback`.
+And each entry names the material that entity expects, which is what to check before you
+conclude a start failure is a code problem.
 
 For a quick run on one host:
 
@@ -204,8 +204,8 @@ provider out of a running deployment.
 
 ## 7. The public edge
 
-Exactly one entity is reachable from the internet, and the database is not it. Two things
-have to be true of the edge, and validation enforces the first:
+The web edge is what the internet reaches, and the database is not. Two things have to be
+true of it, and validation enforces the first:
 
 - **TLS is terminated somewhere and the configuration says where.** Either the edge
   carries `tls.cert_file` and `tls.key_file` and terminates it itself, or it declares
