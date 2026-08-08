@@ -6,7 +6,7 @@
 # Build it on its own:      doxygen Doxyfile        (output in build/apidocs/html)
 # Build it with the site:   mkdocs build            (output under the site's /api/)
 #
-# The MkDocs hook in tools/docs-hooks/doxygen_hook.py overrides OUTPUT_DIRECTORY so the
+# The MkDocs hook in tools/docs-hooks/doxygen.py overrides OUTPUT_DIRECTORY so the
 # generated HTML lands inside the documentation site. Everything else comes from here.
 
 PROJECT_NAME           = "SynQt"
