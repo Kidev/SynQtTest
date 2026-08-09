@@ -38,7 +38,7 @@ flowchart LR
   subgraph private["private network"]
     dbhost["<span style='color:#1a1a2e'>database<br/>(Hall of Fame)</span>"]
   end
-  edgehost -->|"Ledger, mesh mTLS"| dbhost
+  edgehost -->|"Books, mesh mTLS"| dbhost
   style ci fill:#efe,stroke:#6b6,color:#1a1a2e
   style edgehost fill:#fde,stroke:#c39,color:#1a1a2e
   style dbhost fill:#def,stroke:#39c,color:#1a1a2e
