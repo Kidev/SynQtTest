@@ -64,17 +64,21 @@ Then create the project:
 synqt new chat --auth github
 ```
 
-`--auth github` primes the sign-in flow, which this tutorial needs: the room is behind a
-scope, and a scope comes from signing in. It writes the `identity:` block, the mapping hook
-at `web/edge/identity/map.qml`, and a `.env.example`. Register an OAuth app with GitHub, put
-its client id in `synqt.yaml` and its secret in `.env`, and see
-[authentication](authentication.md) if any of that is unfamiliar.
+`--auth github` marks the edge as the entity that signs people in. This tutorial needs
+that: the room is behind a scope, and a scope comes from signing in.
 
 ```cli
 cd chat
+synqt add auth github
 synqt add entity store --type relational
 synqt dev
 ```
+
+`synqt add auth` is what writes the flow: the `identity:` block, the mapping hook at
+`web/edge/identity/map.qml`, and the `.env.example` entry. It then prints the three things
+only you can do. Register an OAuth app with GitHub, put its client id in `synqt.yaml` and
+its secret in `web/edge/.env`, and see [authentication](authentication.md) if any of that
+is unfamiliar.
 
 > [!IMPORTANT]
 > Keep `synqt dev` running in this terminal for the whole tutorial. It watches your files,

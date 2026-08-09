@@ -70,11 +70,14 @@ project from the answers:
 
 [`synqt new`](build-system-and-cli.md#scaffolding-a-project-synqt-new-and-synqt-create) is the
 same scaffolder without the questions, and the one to use in a script. The name and the
-provider are flags on it; each starting entity is a `synqt add entity` after it:
+provider are flags on it; each starting entity is a `synqt add entity` after it, and
+`--auth` names the provider rather than configuring it, so `synqt add auth` is what writes
+the login flow:
 
 ```cli
 synqt new my-app --auth github
 cd my-app
+synqt add auth github
 synqt add entity orders --type relational
 ```
 
