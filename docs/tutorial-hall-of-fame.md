@@ -191,8 +191,8 @@ survived the restart, because they live in the database, not in the edge's memor
 > to let the browser read it straight from there. Change the books entity's connect point
 > so the client is a consumer too:
 >
-> ```
-> consumers = ["edge", "app"]
+> ```yaml
+>     consumers: [edge, app]
 > ```
 >
 > Then run `synqt check`. Predict what it will say.
@@ -200,9 +200,16 @@ survived the restart, because they live in the database, not in the edge's memor
 <details class="solution" markdown>
 <summary>Solution</summary>
 
-`synqt check` rejects it. A connect point that the browser consumes must be owned
-by the web edge, and the database is not a web edge. The browser can physically
-reach only the edge, never an internal entity like the database.
+`synqt check` rejects it:
+
+```
+error: client 'app' consumes 'books', owned by 'books', which is not a web_edge entity
+(the browser can only reach a web edge)
+```
+
+A connect point that the browser consumes must be owned by a web edge, and the database
+is not one. The browser can physically reach only the edge, never an internal entity
+like the database.
 
 This is the segmentation that protects your data. The database is never exposed to
 the internet and is reachable only by the entities you list (here, just the edge).
@@ -210,7 +217,7 @@ Even the edge's calls to it are authenticated as coming from the edge, which is 
 `Books.qml` needs no check of its own. There are two trust
 boundaries between an internet visitor and your stored data: the edge authorizes the
 person, and the database authorizes the edge. Put the `consumers` line back to
-`["edge"]`. The full reasoning is in [security](security.md).
+`[edge]`. The full reasoning is in [security](security.md).
 
 </details>
 
