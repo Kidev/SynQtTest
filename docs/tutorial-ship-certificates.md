@@ -174,13 +174,16 @@ synqt serve --profile production
 ```
 
 ```text
-error: entity "books" is configured for transport: mtls but has no certificate
-       at synqt/mesh/books.crt
-       issue one with: synqt mesh cert books
+error: entity 'books' is on a mutual-TLS link with no certificate in synqt/mesh/;
+run 'synqt mesh cert books' (synqt dev issues development certificates itself)
+synqt: refusing to continue with an invalid configuration (run 'synqt check' for the
+full report).
 ```
 
-Put it back. That message carries the design: the failure names the entity, the file and
-the command, and it happens before anything listens on a port.
+Put it back. That message carries the design: the failure names the entity, the directory
+and the command, and it happens before anything listens on a port. Plain `synqt check`
+reports the same thing as a warning, because a development run has its own certificates;
+it is `synqt serve` starting a deployment that makes it an error.
 
 ## Try it, then think
 

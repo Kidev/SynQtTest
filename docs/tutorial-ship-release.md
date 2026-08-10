@@ -134,12 +134,14 @@ the Linux portable layout copies and how it is verified.
 
 ## Step 5: The obligation you cannot skip
 
-Read the last lines of your release build. Under open source Qt they say something like:
+Read the last lines of your release build. Under open source Qt they say:
 
 ```text
-note: this client is built with open source Qt and is conveyed to every visitor,
-      so its source must be offered under GPLv3. A commercial Qt license is the
-      alternative. See docs/licensing.md.
+Note: built with open-source Qt, your client is GPLv3 and is served to every visitor,
+so you must publish its source. Use a commercial Qt license to keep it closed.
+See https://synqt.org/licensing/.
+Note: distributing the edge binary triggers GPLv3 (Qt HTTP Server / Network
+Authorization). See https://synqt.org/licensing/.
 ```
 
 That is not boilerplate. A browser client is **conveyed**: every visitor receives a copy
