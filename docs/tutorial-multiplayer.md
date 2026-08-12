@@ -107,7 +107,9 @@ synqt dev
 
 `synqt new` asks nothing and scaffolds the defaults: a client, a web edge, no
 authentication and no other entities. You add GitHub sign in yourself in part two and the
-database in part four. ([`synqt create`](build-system-and-cli.md#scaffolding-a-project-synqt-new-and-synqt-create) is the twin that asks these as questions instead.)
+database in part four.
+([`synqt create`](build-system-and-cli.md#scaffolding-a-project-synqt-new-and-synqt-create)
+is the twin that asks these as questions instead.)
 
 ## Start from an empty arena
 
