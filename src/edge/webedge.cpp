@@ -497,6 +497,12 @@ QStringList WebEdge::expandedAllowedOrigins() const
     return result;
 }
 
+void WebEdge::cachePolicy()
+{
+    m_csp = computeCsp();
+    m_allowedOrigins = expandedAllowedOrigins();
+}
+
 QByteArray WebEdge::computeCsp() const
 {
     // Compute rather than emit raw: append the sync endpoint's explicit wss origin to
@@ -701,7 +707,7 @@ QByteArray WebEdge::sessionIdFromCookie(const QByteArray &cookieHeader) const
 void WebEdge::stampResponse(const QHttpServerRequest &request, QHttpServerResponse &response)
 {
     QHttpHeaders headers{response.headers()};
-    headers.append(QByteArrayLiteral("Content-Security-Policy"), computeCsp());
+    headers.append(QByteArrayLiteral("Content-Security-Policy"), m_csp);
     if (m_config.crossOriginIsolation) {
         headers.append(QByteArrayLiteral("Cross-Origin-Opener-Policy"),
                        QByteArrayLiteral("same-origin"));
@@ -1106,6 +1112,8 @@ bool WebEdge::start()
         return false;
     }
     m_port = m_transportServer->serverPort();
+    // Now that the port is known, both of them are answerable, and neither changes again.
+    cachePolicy();
     if (m_identity) {
         // The port is known now, so the callback redirect_uri is well-formed.
         m_identity->setEdgeOrigin(httpOrigin());
@@ -1200,7 +1208,7 @@ QHttpServerResponse WebEdge::credentialResponse(const QHttpServerRequest &reques
     // one client origin's answer to another.
     const QString origin{QString::fromUtf8(request.value("Origin"))};
     QHttpHeaders headers{response.headers()};
-    if (!origin.isEmpty() && expandedAllowedOrigins().contains(origin)) {
+    if (!origin.isEmpty() && m_allowedOrigins.contains(origin)) {
         headers.append(QByteArrayLiteral("Access-Control-Allow-Origin"), origin.toUtf8());
         headers.append(QByteArrayLiteral("Access-Control-Allow-Credentials"),
                        QByteArrayLiteral("true"));
@@ -1319,7 +1327,7 @@ QHttpServerWebSocketUpgradeResponse WebEdge::verifyUpgrade(const QHttpServerRequ
 
     // 1. Origin check: the primary defense against cross-site WebSocket hijacking.
     const QString origin{QString::fromUtf8(request.value("Origin"))};
-    if (!expandedAllowedOrigins().contains(origin)) {
+    if (!m_allowedOrigins.contains(origin)) {
         emit upgradeRejected(QStringLiteral("origin not allowed: %1").arg(origin));
         return QHttpServerWebSocketUpgradeResponse::deny(
             403, QByteArrayLiteral("origin not allowed"));
