@@ -40,10 +40,16 @@ class ApiRequest : public QObject
     /// The parsed JSON body for an `application/json` request, the raw string otherwise,
     /// and undefined when there is no body.
     Q_PROPERTY(QVariant body READ body CONSTANT)
+    /// Who is calling, as an address. The peer that connected, or what a proxy on
+    /// `network.inbound.trusted_proxies` said is behind it. This is the resolved answer and
+    /// the forwarding header in `headers` is not: that one is whatever the last hop sent,
+    /// and on a surface that trusts nobody it is whatever the client typed.
+    Q_PROPERTY(QString client READ client CONSTANT)
 
 public:
     ApiRequest(QString method, QString path, QVariantMap params, QVariantMap query,
-               QVariantMap headers, QVariant body, QObject *parent = nullptr);
+               QVariantMap headers, QVariant body, QString client,
+               QObject *parent = nullptr);
 
     QString method() const;
     QString path() const;
@@ -51,6 +57,7 @@ public:
     QVariantMap query() const;
     QVariantMap headers() const;
     QVariant body() const;
+    QString client() const;
 
     /// Answer with a body and a status (200 by default). A map or a list is sent as JSON;
     /// anything else as text.
@@ -77,6 +84,7 @@ private:
     QVariantMap m_query;
     QVariantMap m_headers;
     QVariant m_body;
+    QString m_client;
     bool m_answered{false};
 };
 

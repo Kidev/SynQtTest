@@ -33,7 +33,7 @@ QVariant fromQml(const QVariant &value)
 } // namespace
 
 ApiRequest::ApiRequest(QString method, QString path, QVariantMap params, QVariantMap query,
-                       QVariantMap headers, QVariant body, QObject *parent)
+                       QVariantMap headers, QVariant body, QString client, QObject *parent)
     : QObject{parent}
     , m_method{std::move(method)}
     , m_path{std::move(path)}
@@ -41,7 +41,13 @@ ApiRequest::ApiRequest(QString method, QString path, QVariantMap params, QVarian
     , m_query{std::move(query)}
     , m_headers{std::move(headers)}
     , m_body{std::move(body)}
+    , m_client{std::move(client)}
 {
+}
+
+QString ApiRequest::client() const
+{
+    return m_client;
 }
 
 QString ApiRequest::method() const

@@ -12,24 +12,30 @@
 
 namespace SynQt {
 
-/// Which address is the visitor, when the peer might be a load balancer.
+/// Which address is the caller, when the peer might be a load balancer.
 ///
-/// Every per-IP limit on the edge is only as good as its notion of "IP". Facing the
-/// internet directly that is the peer address and nothing else can be believed. Behind a
-/// balancer the peer is the same address for every visitor at once, so those limits would
-/// either collapse onto it or stop limiting anything, and the visitor's real address is in
-/// a header that any client can also write.
+/// Every per-IP limit is only as good as its notion of "IP". Facing the internet directly
+/// that is the peer address and nothing else can be believed. Behind a balancer the peer
+/// is the same address for every caller at once, so those limits would either collapse
+/// onto it or stop limiting anything, and the caller's real address is in a header that
+/// any client can also write.
 ///
 /// So the rule is two-sided and neither half is optional:
 ///
 /// 1. The forwarding header is read only when the DIRECT PEER is one the deployment named
-///    in `public.trusted_proxies`. From anyone else it is a field the client filled in.
+///    in its trusted-proxy list. From anyone else it is a field the client filled in.
 /// 2. Within it, only the rightmost entry that is not itself a named hop is taken.
 ///    Entries to the left of that are whatever the client sent, because a balancer
 ///    appends what it saw rather than replacing what was there.
 ///
 /// The default (an empty list) trusts nothing and answers the peer address, which is the
 /// behaviour of every SynQt edge that predates this class.
+///
+/// Two surfaces configure it, because they are two listeners and a deployment may put a
+/// proxy in front of one and not the other: the browser side reads `public.trusted_proxies`
+/// and the inbound API surface reads `network.inbound.trusted_proxies`. Neither inherits
+/// the other's list. It lives in the service library rather than the edge one so both can
+/// have it without an API entity linking Qt HTTP Server twice over.
 class ClientAddress
 {
 public:

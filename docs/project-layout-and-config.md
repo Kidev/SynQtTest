@@ -445,7 +445,11 @@ entities:
         key_header: X-API-Key            # default
         allowed_origins: []              # browser callers; default none
         max_body_bytes: 1048576          # default
-        rate_per_minute: 600             # per peer address; default
+        rate_per_minute: 600             # per caller address; default
+        # trusted_proxies: [10.0.0.1, 10.0.0.0/24]
+        #   The peers whose `X-Forwarded-For` this surface believes. Empty (the default)
+        #   means the peer that connected is the caller, which is true of a port reached
+        #   directly and false of every request at once behind a proxy.
         reply_timeout_ms: 15000          # default; 0 means the default, not no deadline
 ```
 
@@ -469,15 +473,26 @@ singleton declares its routes on (see [the gateway](entities.md#gateway-the-api-
 Everything a caller can influence is checked before a handler exists: the rate limit,
 the API key, the origin, then the body size.
 
-`rate_per_minute` counts the peer address, which is the caller's own on a gateway machine
-callers reach directly and the balancer's on one behind a proxy. Behind a proxy it is
-therefore one budget shared by everybody. That is generous rather than dangerous, since the
-API key is what admits a caller and this is only there to keep an unauthenticated one from
-spending the entity's time, but it means the number to set is a whole deployment's rate and
-not one client's. A gateway that has to ration per client behind a balancer wants the
-balancer's own rate limiting, which sees the forwarded address. The web edge is the one that
-resolves it, because `security.trusted_proxies` is a browser-facing setting and a machine
-caller has no browser.
+`rate_per_minute` counts one address, and `trusted_proxies` is what decides which address
+that is. With nobody named it is the peer that connected, which is correct for a port
+callers reach directly and one budget shared by everybody as soon as a proxy sits in
+front, because every request then arrives from the proxy. Naming the proxy makes it the address the proxy
+put in `X-Forwarded-For` instead, so each caller gets its own budget again. Nothing is
+trusted implicitly: the header is read only from a peer on this list, and within it only
+the rightmost entry that is not itself a listed hop, because everything to the left of that
+is whatever the client sent. An entry that is not an address or a CIDR range is refused by
+`synqt check` rather than dropped at startup: a host name there would leave the surface
+counting the proxy as every caller with nothing said about it.
+
+The list is per surface. An edge's browser side reads `public.trusted_proxies` and an API
+surface reads this one, and neither is taken to mean the other, because they are two
+listeners on two ports and a deployment can put a balancer in front of one while the other
+stays on an internal network. An entity that has both and configures only the browser one
+gets a warning, since that is more often an oversight than a decision.
+
+A handler reads the resolved address as
+[`request.client`](runtime-api.md#api-the-inbound-http-surface), which is the same address
+the rate limit counts.
 
 `max_body_bytes` is the transport's limit and not a check made after the fact: a body
 past it is refused while it is still arriving, so an oversized request is never read
@@ -509,6 +524,9 @@ Validation of the block:
 - A web edge may not declare `inbound`. It already serves the public through its own
   `public:` and `tls:` blocks, and two listeners in one entity would be two policies to
   keep in step.
+- Every `trusted_proxies` entry has to be an address or a CIDR range. A host name is
+  refused rather than resolved: the runtime reads this list as addresses, so a name
+  there would be dropped and the surface would count its proxy as every caller.
 
 An entity with `inbound` links Qt HTTP Server, which is GPLv3 only, so its artifact is
 GPLv3 and its generated `THIRD-PARTY-LICENSES` says so. An outbound only entity links
