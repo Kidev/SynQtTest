@@ -13,6 +13,8 @@
 #include <QUuid>
 #include <QVariant>
 
+#include <algorithm>
+
 namespace SynQt {
 
 namespace {
@@ -155,7 +157,9 @@ bool EventStore::applySchema()
         // works without it; search falls back to LIKE, which is slower and still correct,
         // so this is reported and not fatal.
         m_errorString = query.lastError().text();
+        return true;
     }
+    m_hasFts = true;
     return true;
 }
 
@@ -186,7 +190,7 @@ bool EventStore::append(const QList<TraceEvent> &events)
         "INSERT INTO events (ts, severity, category, entity, traceId, spanId, parentSpanId,"
         " durationUs, ok, untrusted, message, attributes)"
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
-    const bool hasFts{m_db.tables().contains(QStringLiteral("events_fts"))};
+    const bool hasFts{m_hasFts};
     QSqlQuery index{m_db};
     if (hasFts) {
         index.prepare(QStringLiteral(
@@ -269,7 +273,7 @@ QList<TraceEvent> EventStore::query(const EventQuery &request) const
         values.append(request.traceId);
     }
     if (!request.search.isEmpty()) {
-        if (m_db.tables().contains(QStringLiteral("events_fts"))) {
+        if (m_hasFts) {
             conditions.append(QStringLiteral(
                 "id IN (SELECT rowid FROM events_fts WHERE events_fts MATCH ?)"));
             values.append(request.search);
@@ -288,7 +292,7 @@ QList<TraceEvent> EventStore::query(const EventQuery &request) const
         sql += QStringLiteral(" WHERE ") + conditions.join(QStringLiteral(" AND "));
     }
     sql += QStringLiteral(" ORDER BY ts DESC, id DESC LIMIT ?");
-    values.append(qMax(1, request.limit));
+    values.append(std::clamp(request.limit, 1, EventQuery::MaxRows));
 
     QSqlQuery select{m_db};
     select.prepare(sql);
@@ -334,7 +338,7 @@ bool EventStore::retire(int maxAgeDays, qint64 maxBytes)
     if (!m_open) {
         return false;
     }
-    const bool hasFts{m_db.tables().contains(QStringLiteral("events_fts"))};
+    const bool hasFts{m_hasFts};
     if (maxAgeDays > 0) {
         const qint64 cutoff{QDateTime::currentMSecsSinceEpoch()
                             - (static_cast<qint64>(maxAgeDays) * 86400000LL)};
