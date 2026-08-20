@@ -4,8 +4,7 @@
 #include "claimstore.h"
 
 #include "constanttime.h"
-
-#include <QCryptographicHash>
+#include "secrets.h"
 
 namespace SynQt {
 
@@ -36,11 +35,9 @@ QByteArray ClaimStore::take(const QString &code, const QString &verifier, qint64
     if (nowMs - claim.createdMs > ttlMs) {
         return {};
     }
-    const QByteArray digest{QCryptographicHash::hash(verifier.toUtf8(),
-                                                     QCryptographicHash::Sha256)
-                                .toBase64(QByteArray::Base64UrlEncoding
-                                          | QByteArray::OmitTrailingEquals)};
-    if (!constantTimeEquals(digest, claim.challenge.toUtf8())) {
+    // The same function the client used to derive what it registered, so the two ends of
+    // this exchange cannot drift apart (SynQt::challengeFor).
+    if (!constantTimeEquals(challengeFor(verifier.toUtf8()), claim.challenge.toUtf8())) {
         return {};
     }
     return claim.sessionId;
