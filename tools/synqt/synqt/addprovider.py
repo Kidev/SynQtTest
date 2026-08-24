@@ -80,6 +80,8 @@ _OPERATIONS = {
         "    }\n\n"
         "    void expire(const QString &key, int ttlSeconds) override\n"
         "    {\n"
+        "        // TODO: set or replace the TTL on an existing key (ttlSeconds <= 0 means\n"
+        "        // no expiry, as on set(), and never \"drop the key now\").\n"
         "        Q_UNUSED(key);\n"
         "        Q_UNUSED(ttlSeconds);\n"
         "    }\n"),

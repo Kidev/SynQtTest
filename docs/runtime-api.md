@@ -602,7 +602,7 @@ That is what keeps one Source working across `memory` and `mongodb`.
 | `Cache.set(key, value, ttlSeconds?)` | - | store `value`. `ttlSeconds` omitted or `0` means no expiry. |
 | `Cache.del(key)` | - | drop the key. |
 | `Cache.incr(key, by?)` | int | add `by` (default `1`) atomically and return the new value. The rate-limit counter primitive. |
-| `Cache.expire(key, ttlSeconds)` | - | set or replace the TTL on an existing key. |
+| `Cache.expire(key, ttlSeconds)` | - | set or replace the TTL on an existing key. `0` or less clears it, exactly as on `set`; it never means "drop the key now". A key whose TTL has already passed is not an existing key, so this drops it rather than reviving it. |
 
 The cache is bounded and evicts. Anything that has to survive a restart or an
 eviction belongs in a relational entity, not here.

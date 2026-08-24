@@ -25,6 +25,9 @@ public:
     virtual void set(const QString &key, const QVariant &value, int ttlSeconds) = 0;
     virtual void del(const QString &key) = 0;
     virtual qint64 incr(const QString &key, qint64 by) = 0;      ///< returns the new value
+    /// Set or replace the TTL on an existing key. `ttlSeconds <= 0` means no expiry, the
+    /// same as it does on set(), so a provider must not read a non-positive TTL as an
+    /// instruction to drop the key.
     virtual void expire(const QString &key, int ttlSeconds) = 0;
 
     virtual QString name() const = 0;
