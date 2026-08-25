@@ -379,6 +379,12 @@ graduated path described in [providers](providers.md):
 
 Notes:
 
+- `name` is the entity, everywhere: it is the directory its files live in, the build
+  target, the accessor other entities reach it through (capitalized, so `store`
+  becomes `Store`), and the subject of its mesh certificate. So it is held to a shape:
+  it starts with a letter and is made of letters, digits, underscores and hyphens, up
+  to 64 characters. `synqt check` refuses anything else rather than letting a space or
+  a dot turn into a build failure somewhere a long way from the line that caused it.
 - `type` is the one field that says what an entity is: `client`, `web_edge`, or one
   of the entity types on the [entities](entities.md) page (`relational`, `document`,
   `cache`, `api`, `jobs`, `service`). It decides the folder the entity lives in, the
@@ -1465,6 +1471,12 @@ fast. Non negotiable checks:
 - A connect point that lists its own `owner` among its `consumers` is rejected. The
   owner holds the Source and does not acquire a replica of what it already has, and
   the entry only makes the consumer list look wider than it is.
+- An entity `name` outside the shape described [above](#entities-the-topology) is rejected: a letter,
+  then letters, digits, underscores and hyphens, up to 64 characters. The name is a
+  directory, a build target, an accessor and a certificate subject all at once, so a space
+  or a dot in it fails somewhere a long way from the line that put it there. `synqt mesh
+  cert` holds the name typed at its prompt to the same rule, because that one reaches
+  openssl and the mesh directory.
 - A name declared twice, whether an entity or a connect point, is rejected. Both are
   keyed by name, so the second declaration replaces the first rather than colliding
   with it, and a consumer list narrowed on the first would disappear without a word.
