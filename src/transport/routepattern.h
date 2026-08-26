@@ -44,6 +44,20 @@ public:
     /// parameters is left untouched when this returns false.
     bool matches(const QString &path, QVariantMap *parameters) const;
 
+    /// The segments of \a path, or false when the path is not one this pattern family
+    /// can match at all (not absolute, or carrying an empty segment).
+    ///
+    /// Separate from matches() because a routing table asks every pattern in turn about
+    /// the same path, and the answer to "what are its segments" is the same for all of
+    /// them: the API gateway, the client router and the remote-page table each walked a
+    /// list of patterns handing the whole path to every one, so a table of twenty routes
+    /// split and allocated the same path twenty times per request. Split once, then ask
+    /// each pattern.
+    static bool splitPath(const QString &path, QStringList *segments);
+
+    /// As matches(), for a path already through splitPath().
+    bool matches(const QStringList &segments, QVariantMap *parameters) const;
+
     /// Split "/path?a=1" into "/path" plus the decoded query pairs.
     static QString splitQuery(const QString &pathWithQuery, QVariantMap *query);
 

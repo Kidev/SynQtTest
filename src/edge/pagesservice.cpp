@@ -48,10 +48,10 @@ const QList<PagesService::Candidate> &PagesService::candidates() const
     // Keyed on the count because the table only ever grows: PageStore::addPage() is the
     // one thing that writes it, and a hot reload rewrites a page's bytes rather than its
     // route. So a size that has not moved is a table that has not moved.
-    const QStringList declared{m_store->declaredRoutes()};
-    if (m_compiledRoutes == declared.size()) {
+    if (m_compiledRoutes == m_store->routeCount()) {
         return m_candidates;
     }
+    const QStringList declared{m_store->declaredRoutes()};
     m_candidates.clear();
     m_candidates.reserve(declared.size());
     for (const QString &route : declared) {
@@ -88,12 +88,16 @@ PageResponse PagesService::fetchPageFor(const QString &requestPath,
     // table does not contain does not exist, whatever the caller sent.
     QString matched{};
     QVariantMap parameters{};
-    for (const Candidate &candidate : candidates()) {
-        QVariantMap captured{};
-        if (candidate.pattern.matches(path, &captured)) {
-            matched = candidate.route;
-            parameters = captured;
-            break;
+    QStringList segments;
+    // One split for the table; see Api::dispatch. This runs on every page fetch.
+    if (RoutePattern::splitPath(path, &segments)) {
+        for (const Candidate &candidate : candidates()) {
+            QVariantMap captured{};
+            if (candidate.pattern.matches(segments, &captured)) {
+                matched = candidate.route;
+                parameters = captured;
+                break;
+            }
         }
     }
     if (matched.isEmpty()) {

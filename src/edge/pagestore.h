@@ -55,6 +55,12 @@ public:
     /// Every declared route, for matching a request path against the table.
     QStringList declaredRoutes() const;
 
+    /// How many there are. Separate from declaredRoutes() because the answer is wanted far
+    /// more often than the list is: PagesService asks it on every page fetch to find out
+    /// whether the table it compiled is still the table, and building a QStringList of
+    /// every route to read its size was a per-request allocation for a number.
+    qsizetype routeCount() const;
+
     /// Watch the page files and re-hash on change. Development only.
     void setWatching(bool watching);
 

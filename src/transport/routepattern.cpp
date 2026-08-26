@@ -7,6 +7,8 @@
 #include <QUrl>
 #include <QUrlQuery>
 
+#include <utility>
+
 namespace SynQt {
 
 namespace {
@@ -77,11 +79,8 @@ bool RoutePattern::hasParameters() const
     return m_segments.size() > m_literalSegments;
 }
 
-bool RoutePattern::matches(const QString &path, QVariantMap *parameters) const
+bool RoutePattern::splitPath(const QString &path, QStringList *segments)
 {
-    if (!m_valid) {
-        return false;
-    }
     if (!path.startsWith(QLatin1Char('/'))) {
         return false;
     }
@@ -101,6 +100,27 @@ bool RoutePattern::matches(const QString &path, QVariantMap *parameters) const
             // a leading empty element here); this never matches.
             return false;
         }
+    }
+    *segments = std::move(actual);
+    return true;
+}
+
+bool RoutePattern::matches(const QString &path, QVariantMap *parameters) const
+{
+    if (!m_valid) {
+        return false;
+    }
+    QStringList actual;
+    if (!splitPath(path, &actual)) {
+        return false;
+    }
+    return matches(actual, parameters);
+}
+
+bool RoutePattern::matches(const QStringList &actual, QVariantMap *parameters) const
+{
+    if (!m_valid) {
+        return false;
     }
     if (actual.size() != m_segments.size()) {
         return false;

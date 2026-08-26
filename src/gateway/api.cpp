@@ -91,12 +91,20 @@ void Api::add(const QString &method, const QString &path, const QJSValue &handle
 
 bool Api::dispatch(ApiRequest *request) const
 {
+    // Split once for the whole table rather than once per route. Every pattern is asked
+    // about the same path, so handing each of them the string meant a table of N routes
+    // splitting and allocating the same path N times on every request. A path this cannot
+    // split is one no pattern can match, so there is nothing left to ask.
+    QStringList segments;
+    if (!RoutePattern::splitPath(request->path(), &segments)) {
+        return false;
+    }
     for (const Route &route : m_routes) {
         if (route.method != request->method()) {
             continue;
         }
         QVariantMap parameters;
-        if (!route.pattern.matches(request->path(), &parameters)) {
+        if (!route.pattern.matches(segments, &parameters)) {
             continue;
         }
 
