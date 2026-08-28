@@ -15,7 +15,7 @@ namespace SynQt {
 /// something.
 ///
 /// SynQt's own store is the answer to "where do the events go" for a deployment that wants
-/// no second thing to operate. It is deliberately not the only answer: a team already
+/// no second thing to operate. It is not the only answer: a team already
 /// running an OpenTelemetry collector, Grafana, Loki or a hosted backend should be able to
 /// point SynQt at it and keep the dashboards they have. That is all an exporter is.
 ///

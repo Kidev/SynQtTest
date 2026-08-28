@@ -13,9 +13,9 @@ namespace SynQt {
 ///
 /// Two flags carry the whole security position, and neither is a default:
 ///
-///  - `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`. The `ThisDeviceOnly` half is the
-///    load-bearing one: it keeps the item out of iCloud Keychain and out of an encrypted
-///    backup restored onto another machine. Without it, "a credential for this device"
+///  - `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`. The `ThisDeviceOnly` half keeps
+///    the item out of iCloud Keychain and out of an encrypted backup restored onto another
+///    machine. Without it, "a credential for this device"
 ///    quietly becomes "a credential on every device signed into that Apple ID", which is the
 ///    one thing a device credential must not be.
 ///  - `kSecUseDataProtectionKeychain`, which is what gives the item a real per-application

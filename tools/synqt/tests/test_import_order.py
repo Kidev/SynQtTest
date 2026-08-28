@@ -5,11 +5,11 @@
 
 The framework's module re-exports QtQuick (src/consumer/moduleimports.h), so `import SynQt`
 is the line a SynQt file cannot do without and the only one most files need. Where a second
-import is genuinely wanted -- Controls for a window, Layouts for a form -- it goes below,
+import is genuinely wanted (Controls for a window, Layouts for a form) it goes below,
 which puts the explicitly imported module last and therefore in charge of any type name the
 two happen to share.
 
-This is a house rule rather than a load-bearing one, which is exactly why it needs a test:
+This is a house rule with no runtime effect, which is exactly why it needs a test:
 nothing breaks when a file drifts, so nothing else would ever say so.
 """
 

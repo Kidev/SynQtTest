@@ -25,9 +25,9 @@ struct RateWindow
 ///
 /// This exists because the obvious way to bound a table keyed by caller address is to empty
 /// it when it grows too large, and that turns the cap into a reset anybody can pull. Every
-/// gate here rations by address, so an attacker who can present addresses -- an IPv6 /64 is
+/// gate here rations by address, so an attacker who can present addresses (an IPv6 /64 is
 /// a practically unlimited supply of them, and so is a forwarding header on a deployment
-/// that trusts one -- fills the table with entries they will never use again, the table is
+/// that trusts one) fills the table with entries they will never use again, the table is
 /// emptied, and the count against the address they are actually guessing from goes back to
 /// zero. Repeat, and the gate is gone.
 ///
@@ -59,8 +59,8 @@ inline bool pruneRateWindows(QHash<QString, RateWindow> &windows, qint64 now,
 /// Rounded up, and never zero. Both halves matter and neither is obvious enough to be
 /// rewritten at each gate: rounding down would let a client retry inside the window it was
 /// just refused for, and `Retry-After: 0` reads as "try again now", which is a gate telling a
-/// well-behaved client to hammer it. The two gates that answer 429 -- the entity password gate
-/// on the edge and the desktop device-credential route -- had this arithmetic written out
+/// well-behaved client to hammer it. The two gates that answer 429 (the entity password gate
+/// on the edge and the desktop device-credential route) had this arithmetic written out
 /// separately and identically, which is one place for it to be corrected and another to be
 /// forgotten.
 inline qint64 retryAfterSeconds(qint64 remainingMs)

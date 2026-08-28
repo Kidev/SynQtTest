@@ -92,7 +92,7 @@ synqt dev
 > [!IMPORTANT]
 > Keep `synqt dev` running in this terminal for the whole tutorial. It watches your
 > files and reloads the browser when you save, and it reloads a delivered page without
-> rebuilding the client, which is the point of half of what follows.
+> rebuilding the client, which half of what follows relies on.
 
 ## The three parts
 

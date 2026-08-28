@@ -272,7 +272,7 @@ function forgetInHash(key) {
 
 // The other half of the pair: an example opened from the bar is written into the address,
 // so the link in it is the link that hands somebody the thing on screen, and a reload comes
-// back to it. replaceState for the same reason forgetInHash uses it -- opening an example is
+// back to it. replaceState for the same reason forgetInHash uses it: opening an example is
 // not a navigation, and it should not fill the back button with them.
 function keepInHash(key, value) {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
@@ -431,7 +431,7 @@ function redraw() {
     // The handles a link is pulled from are the one exception, because they are not a mark on
     // the drawing: they are the target. They appear on whichever entity the pointer is nearest
     // and only answer the pointer while they do, so a redraw between the last move and the
-    // next press took them away under a stationary pointer -- and a press where a handle had
+    // next press took them away under a stationary pointer, and a press where a handle had
     // just been landed on the canvas behind it and panned the view. Anything that redraws
     // (selecting a node, typing into a file, the panel changing a setting) did it.
     if (state.pointer && !drag) {
@@ -1903,8 +1903,8 @@ function remember() {
     renderHistory();
 }
 
-// A document arriving from somewhere other than an edit -- the project read off disk, an
-// example opened, a design restored from this browser -- is where the history starts. There
+// A document arriving from somewhere other than an edit (the project read off disk, an
+// example opened, a design restored from this browser) is where the history starts. There
 // is nothing before it to go back to, and offering to would go back to a blank canvas.
 function forgetHistory() {
     history.past.length = 0;
@@ -2505,8 +2505,8 @@ function onDown(event) {
         // seat: the reverse worked and looked like nothing.
         page.canvas.classList.add("is-linking");
         // Drawn from the handle that was grabbed rather than from the middle of the disc, so
-        // a link pulled off the left of an entity leaves to the left. That is the whole point
-        // of there being a handle on each side.
+        // a link pulled off the left of an entity leaves to the left. That is why there is a
+        // handle on each side.
         drag = {
             mode: "link",
             from,
@@ -3325,7 +3325,7 @@ async function goOffline(reason) {
     page.apply.hidden = true;
     // What was being drawn last time comes back first. An example named in the address is a
     // *preset*: it is where a drawing starts, not a page that replaces one. So a design already
-    // in this browser wins even then, as long as it grew out of the same example -- somebody
+    // in this browser wins even then, as long as it grew out of the same example: somebody
     // who opened one, moved things around and reloaded is looking for what they left, and the
     // link in the address bar used to hand them the pristine example back every time. A link
     // to a *different* example is a request to look at that one, and seeds afresh.
@@ -3411,8 +3411,8 @@ function wire() {
         say("Cleared. Drag an entity out of the rail to begin.");
     });
     // Leaving is asked about once, and the browser is the one that asks. Every way out of
-    // this page fires this -- the mark in the corner, a reload, the back button, the tab
-    // being closed -- so a question of our own on top of it meant the mark in the corner
+    // this page fires this (the mark in the corner, a reload, the back button, the tab
+    // being closed), so a question of our own on top of it meant the mark in the corner
     // asked twice: our box, and then the browser's. What this decides is whether to ask at
     // all; the words are the browser's, and an empty canvas has nothing to lose, so a page
     // somebody opened, looked at and closed goes without an argument.

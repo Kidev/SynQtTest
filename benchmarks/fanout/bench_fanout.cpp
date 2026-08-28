@@ -14,7 +14,7 @@
 //                            whole world): there is no way to give each player a filtered view.
 //   * per_session_naive: one Source per session, each publishing the FULL N-entity world.
 //                            Total work per tick is N sessions * N rows = O(N^2).
-//   * per_session_interest-- one Source per session, each publishing only its k nearest entities.
+//   * per_session_interest: one Source per session, each publishing only its k nearest entities.
 //                            Total work per tick is N * k = O(N*k), flat per session.
 //
 // For each (N, mode) it reports two distributions (p50/p95/p99, the honest summary):

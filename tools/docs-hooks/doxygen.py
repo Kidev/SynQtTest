@@ -333,8 +333,8 @@ def _one_branch_per_page(entries):
     them to open, and only one of them can win. Doxygen keeps whichever was written last,
     which is the deepest, so opening a class from the class list sent the tree four levels
     down `Files > src > service > caller.h` with Classes left collapsed. The tree was
-    following the page, just never to where the reader was, which is the whole point of
-    it following at all.
+    following the page, just never to where the reader was, which is the only reason to
+    have it follow at all.
 
     So prefer the branch that lists this kind of page (`_LISTED_UNDER`), measured by how
     many of the entries above the page belong to that branch: the class list path passes

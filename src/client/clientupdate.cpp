@@ -79,7 +79,7 @@ void ClientUpdate::reloadPage()
     synqt_reload_page();
 #endif
     // A native desktop client has no shell cache and no page to reload, so this is
-    // deliberately a no-op there: it updates through its own installer instead.
+    // a no-op there: it updates through its own installer instead.
 }
 
 ClientUpdateAttached::ClientUpdateAttached(QObject *parent)

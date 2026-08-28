@@ -14,7 +14,7 @@ namespace SynQt {
 ///
 /// The monitor holds every entity's record, which makes it the one place in a system where
 /// a single sign-in reveals what everything has been doing. So it has an identity system of
-/// its own, deliberately separate from the application's: an operator is not a user of the
+/// its own, separate from the application's: an operator is not a user of the
 /// application, and a project's own login provider is often the thing an operator is
 /// signing in to investigate.
 ///

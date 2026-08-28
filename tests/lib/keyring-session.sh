@@ -46,9 +46,9 @@ export XDG_CONFIG_HOME="$root/config"
 export XDG_CACHE_HOME="$root/cache"
 mkdir -p "$XDG_DATA_HOME" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME"
 
-# The trailing newline is load-bearing. The daemon reads the password as a line, so an empty
+# The trailing newline is required. The daemon reads the password as a line, so an empty
 # write with no newline leaves it waiting on stdin, and the run ends with a keyring service
-# answering on the bus and no collection in it -- which is worse than no service at all,
+# answering on the bus and no collection in it, which is worse than no service at all,
 # because then the store reports itself available and fails every write.
 dbus-run-session -- bash -c '
     set -u

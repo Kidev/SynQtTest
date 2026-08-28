@@ -72,6 +72,6 @@ def instructions(entry: str, env_file: Optional[str] = None) -> str:
         "",
         "Several operators go in the same variable, separated by spaces. The password is",
         "not stored anywhere and cannot be recovered; mint a new credential to change it.",
-        "This line is not a password and cannot be signed in with, but it is worth as much",
+        "This line holds no password and cannot be signed in with, but it is worth as much",
         "as the console it opens, so keep it out of the repository.",
     ])

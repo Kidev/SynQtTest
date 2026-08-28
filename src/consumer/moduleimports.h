@@ -21,8 +21,8 @@ namespace SynQt {
 /// effect is that "the types from the other module are made available in the
 /// same type namespace as this module is imported into" (Module Definition
 /// qmldir Files). SynQt registers its types imperatively rather than through a
-/// qmldir, so the declaration is made here instead. Note the deliberate absence
-/// of a version: `auto` would ask for QtQuick at SynQt's own version, 1.0,
+/// qmldir, so the declaration is made here instead. Note the absence of a
+/// version: `auto` would ask for QtQuick at SynQt's own version, 1.0,
 /// which does not exist and fails the import outright.
 ///
 /// It does not shadow anything. A file that still writes `import QtQuick`

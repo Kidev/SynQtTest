@@ -37,9 +37,9 @@ class IPersistenceProvider;
 ///     file is good for a month".
 ///
 /// The secret is never stored, here or anywhere on the edge: what a row holds is a SHA-256
-/// of it. A single hash and not a password KDF, deliberately, because there is no
-/// low-entropy secret to stretch (the credential is 256 random bits) and a KDF would only
-/// add latency to every relaunch.
+/// of it. A single hash rather than a password KDF, because there is no low-entropy secret
+/// to stretch (the credential is 256 random bits) and a KDF would only add latency to every
+/// relaunch.
 class DeviceRegistry : public QObject
 {
     Q_OBJECT

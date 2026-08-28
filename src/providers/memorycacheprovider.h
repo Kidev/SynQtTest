@@ -42,8 +42,8 @@ private:
     ///
     /// That is what makes a hit O(1). It used to be a QList<QString> with
     /// `removeOne(key)` on every get and every set, which is a linear scan comparing
-    /// strings: at the default bound of a thousand entries, a cache doing its job -- a full
-    /// working set, every access a hit -- spent a thousand string comparisons per access on
+    /// strings: at the default bound of a thousand entries, a cache doing its job (a full
+    /// working set, every access a hit) spent a thousand string comparisons per access on
     /// bookkeeping, and `incr` spent two thousand, since it reads and writes. A cache is the
     /// thing an entity reaches for when it wants something to be fast.
     using Recency = std::list<QString>;

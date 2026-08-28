@@ -54,10 +54,10 @@ echo "== [4/4] Native: assert the box falls under gravity and rests on the plane
 # same one on a developer's machine as on a runner; the previous arrangement ran the two
 # differently, which is the arrangement that let CI break without anyone's desktop noticing.
 #
-# LIBGL_ALWAYS_SOFTWARE is load-bearing, not belt-and-braces: without it, an offscreen run
+# LIBGL_ALWAYS_SOFTWARE is required: without it, an offscreen run
 # on a machine with no display hangs indefinitely rather than falling back (measured).
 phys_log="$REPO_ROOT/build/q3dphys-desktop/native-run.log"
-# tee, because the evidence is the point. The pipeline used to end in `grep | head -1`, which
+# tee, so the evidence is kept. The pipeline used to end in `grep | head -1`, which
 # discards every line that is not the one being looked for, including the reason there is no
 # such line. `head -1` is still what stops the run: the scene never exits on its own (its timer
 # stops, the event loop does not), so closing the pipe after the line we came for is what ends

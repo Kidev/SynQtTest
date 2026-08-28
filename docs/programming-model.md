@@ -223,8 +223,8 @@ The configurable parts that matter:
 
 `scope:` on the point is all or nothing: below it a visitor acquires no part of the point,
 which is what you want when everything it carries is for the same audience. An owner that
-serves a public page and an admin surface is not that owner. Write the scope on the member
-instead:
+serves a public page and an admin surface needs something finer. Write the scope on the
+member instead:
 
 ```yaml
 connect_points:
@@ -248,7 +248,7 @@ exactly one scope, and a member reachable by two names them both, `<admin,audito
 **The gate is on what crosses, not on what is declared.** The member is still part of the
 contract, so a consumer's `Server.storefront` has an `auditLog` model either way. What
 changes is that for a caller without the scope it is never seeded, never followed, and
-never sent: the rows do not arrive and get hidden, they do not arrive. A gated `slot` is
+never sent. The rows are not delivered and then hidden; they are never delivered. A gated `slot` is
 refused before the owner's QML sees the call, and a gated `signal` is not delivered.
 
 The gate follows the session rather than the connection. A visitor who signs in mid-session
@@ -416,7 +416,7 @@ function add(text) {
 }
 ```
 
-`Server` is therefore just the well known name for "the edge a browser client
+`Server` is therefore the well known name for "the edge a browser client
 talks to." The general form is `<EntityName>.<member>`, addressing the owner by
 its configured name, capitalized into a QML type like accessor: entity `store`
 appears as `Store`, entity `edge` as `Edge`. There is no second name under it,

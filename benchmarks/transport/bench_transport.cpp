@@ -4,8 +4,8 @@
 // The client-to-edge transport baseline: QtRemoteObjects over QtWebSockets (the M0 path,
 // the top project risk, so the first and most important benchmark). It stands up the real
 // path in one process; a QWebSocketServer feeding a QRemoteObjectHost, and a client
-// QWebSocket wrapped in the framework's WebSocketTransport feeding a QRemoteObjectNode --
-// warms up, then measures each QtRO direction and reports the full distribution
+// QWebSocket wrapped in the framework's WebSocketTransport feeding a QRemoteObjectNode.
+// It warms up, then measures each QtRO direction and reports the full distribution
 // (p50/p95/p99, not just the mean), writing a JSON baseline a later run compares against.
 //
 // It measures wall-clock latency including the local event-loop turn, which is the honest

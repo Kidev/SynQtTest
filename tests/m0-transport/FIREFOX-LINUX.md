@@ -328,8 +328,8 @@ reproduction above, on Qt 6.11.1 with Emscripten 4.0.7: on a stock kit the watch
 fires in either Chromium or Firefox, on a patched kit it fires in both, and the full M0 gate
 stays green, reconnect included.
 
-**Doing the same thing from application code does not work**, which is worth stating plainly
-because it is the obvious thing to try instead of patching Qt, and it was tried twice. The
+**Doing the same thing from application code does not work**, and it is the obvious thing
+to try instead of patching Qt, so it was tried twice. The
 first attempt, above, pumped `sendPostedEvents(nullptr, QEvent::MetaCall)` every 16 ms and
 broke reconnect on Firefox; the natural theory was that the event-type filter was at fault,
 since draining one type out of a queue holding several reorders them. It is not the filter.

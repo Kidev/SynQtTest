@@ -156,7 +156,7 @@ async function main() {
         // Give the simulation a generous window to advance under rAF.
         await sleep(8000);
 
-        // Cross-origin isolation is the whole point of the multi-threaded kit: verify it took.
+        // The multi-threaded kit needs cross-origin isolation: verify it took.
         const isolation = await page.evaluate(() => ({
             isolated: globalThis.crossOriginIsolated === true,
             hasSAB: typeof SharedArrayBuffer !== "undefined",

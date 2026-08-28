@@ -859,7 +859,7 @@ def _mirror_impl(contract: Contract, records, path) -> str:
     shared Source pushes is copied outward as it changes, so every mirror shows the same
     values; everything a caller asks for is forwarded back with that caller bound, so the
     shared Source's slots still see a Caller and can still refuse one. A signal the shared
-    Source raises reaches every mirror (it is the whole point of sharing), while
+    Source raises reaches every mirror (which is what sharing is for), while
     `Caller.emit<Signal>` runs on the one mirror the caller acquired and reaches them
     alone.
     """

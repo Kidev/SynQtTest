@@ -369,7 +369,7 @@ async function runStarvedCase(browserType, name) {
     }
 }
 
-// The whole point of the fallback, in the one place it can be measured: an engine that
+// The fallback, in the one place it can be measured: an engine that
 // hands out no WebGL context at all.
 //
 // Without it the client does not merely fail to draw. Qt Quick cannot create its scene
@@ -492,7 +492,7 @@ async function main() {
             const result = await run(browserType, caseName);
             results.push(result);
             console.log(`    ${result.pass ? "PASS" : "FAIL"} ${result.name}` +
-                        (result.error ? ` -- ${result.error}` : ""));
+                        (result.error ? `: ${result.error}` : ""));
             if (!result.pass) {
                 dumpEvidence("tabA", result.logsA);
                 dumpEvidence("tabB", result.logsB);

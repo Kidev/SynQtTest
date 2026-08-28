@@ -14,9 +14,9 @@ namespace SynQt {
 /// Where a native client keeps the device credential that lets a visitor stay signed in
 /// between launches: the OS secure store, and nowhere else.
 ///
-/// Shaped like the provider families deliberately: one narrow interface, one implementation
-/// per platform, errors reported through the interface and never thrown across it. What is
-/// not here is as load-bearing as what is. **There is no file backend**, not behind a flag,
+/// Shaped like the provider families: one narrow interface, one implementation per platform,
+/// errors reported through the interface and never thrown across it. What is missing matters
+/// as much as what is here. **There is no file backend**, not behind a flag,
 /// not in development, not "just for CI". A machine with no store persists nothing and its
 /// visitor signs in once per launch, which is the behaviour of every project that never
 /// asked for any of this. The moment a file backend exists, every honest sentence about

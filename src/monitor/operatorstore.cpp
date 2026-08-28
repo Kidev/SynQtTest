@@ -122,7 +122,7 @@ bool OperatorStore::verify(const QString &name, const QString &password) const
     // The whole list is read, and the first match is remembered rather than returned from.
     // Returning early on a name that is not there is what made the gate answer an unknown
     // operator in microseconds and a known one in a PBKDF2, which tells whoever is guessing
-    // which names exist -- the one thing the single "no" the sign-in route answers with is
+    // which names exist: the one thing the single "no" the sign-in route answers with is
     // there to withhold.
     const Credential *found{nullptr};
     for (const Credential &credential : m_credentials) {
@@ -135,7 +135,7 @@ bool OperatorStore::verify(const QString &name, const QString &password) const
     // in the store rather than the first one, which is the difference between a claim and a
     // fact: operators are minted one at a time and need not share a round count, so working
     // an unknown name against whichever happened to be listed first could answer it faster
-    // than any real name -- and "that name came back too quickly" is the whole of what a
+    // than any real name, and "that name came back too quickly" is the whole of what a
     // guesser enumerating names is looking for. Against the most expensive one, no unknown
     // name is ever cheaper than a known one. What remains visible is that two known names
     // derived with different round counts cost differently, which is a property of the

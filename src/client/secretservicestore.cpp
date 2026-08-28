@@ -118,7 +118,7 @@ bool SecretServiceStore::store(const QString &account, const QByteArray &secret,
 bool SecretServiceStore::load(const QString &account, QByteArray *secret, QString *error)
 {
     GError *failure{nullptr};
-    // SECRET_SEARCH_LOAD_SECRETS and deliberately not SECRET_SEARCH_UNLOCK. With UNLOCK a
+    // SECRET_SEARCH_LOAD_SECRETS and not SECRET_SEARCH_UNLOCK. With UNLOCK a
     // locked collection is unlocked, which means a password dialog, which at startup means
     // an app that hangs on a machine with nobody in front of it. Without it a locked item
     // comes back with no secret and the client signs in normally.

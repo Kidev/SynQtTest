@@ -14,8 +14,8 @@ namespace SynQt {
 
 namespace {
 
-// The absolute expiry for a relative TTL, or 0 for "never". The widening is deliberate:
-// the multiplication must happen in 64 bits, not in int.
+// The absolute expiry for a relative TTL, or 0 for "never". The widening is required:
+// the multiplication must happen in 64 bits rather than in int.
 qint64 expiryFor(int ttlSeconds)
 {
     if (ttlSeconds <= 0) {

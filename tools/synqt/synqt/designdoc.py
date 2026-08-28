@@ -9,7 +9,7 @@ Everything in it comes from ``synqt.yaml``, which holds the topology and, on eac
 point, what crosses it. One exception: where a node sits on the canvas is a drawing, not a
 fact about the system, so it lives beside the project in ``.synqt/design.json`` and never
 in the configuration. A project nobody has opened in the editor still lays out, from
-the one rule worth stating by default: the browser on the left, the edge it reaches in the
+the one rule it lays out by default: the browser on the left, the edge it reaches in the
 middle, and everything it must not reach on the right.
 
 The document is deliberately narrower than the configuration. It models the topology and
@@ -185,7 +185,7 @@ def _entity(entity: Dict[str, Any]) -> Dict[str, Any]:
                     if scope and name},
         # The two a monitor's console client carries: `console` is what makes the monitor
         # deliver this client instead of the application's, and `edge` is which monitor
-        # delivers it. Same reason as `bundles` -- the editor writes both, so it has to read
+        # delivers it. Same reason as `bundles`: the editor writes both, so it has to read
         # both, or opening a project turns its console back into an ordinary client.
         "console": bool(entity.get("console")),
         "edge": str(entity.get("edge") or ""),
@@ -306,7 +306,7 @@ def _link(point: Dict[str, Any], root: Path, seats: Dict[str, Dict[str, Any]],
     # the routing off the project.
     #
     # Present only when there is one. The editor reads the *presence* of the key as "this is a
-    # front" -- an empty block is a switch somebody has just turned on with nothing wired yet --
+    # front" (an empty block is a switch somebody has just turned on with nothing wired yet),
     # so handing every ordinary point an empty one made every point in the project a front, and
     # `synqt check` refused the lot.
     behind = appmodel.behind(point)
@@ -344,7 +344,7 @@ def scopes_of(config: Dict[str, Any]) -> List[str]:
     tutorial gates its whole connect point on `player`, which is not one of the four a
     scaffolded project starts with. Without this the editor drew that project against a
     vocabulary it does not use, and a design exported from it wrote a synqt.yaml whose
-    `scopes.order` had no `player` in it -- a project `synqt check` refuses.
+    `scopes.order` had no `player` in it, a project `synqt check` refuses.
     """
     declared = config.get("scopes")
     order = declared.get("order") if isinstance(declared, dict) else None

@@ -46,8 +46,8 @@ struct WebEdgeConnectPoint
     /// browser acquires relays to that entity and holds nothing itself. Empty on an
     /// ordinary point, which the edge answers from its own QML.
     ///
-    /// The consequence worth stating: an entity behind a front is reached by callers of one
-    /// scope and no other, so it authorizes on `Caller` and never asks about scope. Nothing
+    /// What follows from that: an entity behind a front is reached by callers of one scope
+    /// and no other, so it authorizes on `Caller` and never asks about scope. Nothing
     /// enforces that at run time because nothing has to; no link to it is opened for anyone
     /// else.
     QMap<QString, QString> behind;
@@ -199,7 +199,7 @@ struct WebEdgeConfig
     int keepAliveTimeoutSeconds{15};
 
     /// Requests per second per peer address, or zero to leave Qt's rate limiting off, which
-    /// is the default and is deliberate. Qt counts the address it is connected to and knows
+    /// is the default. Qt counts the address it is connected to and knows
     /// nothing of `X-Forwarded-For`, so behind a balancer every visitor shares one bucket
     /// and a limit meant for one client throttles the whole site. `synqt check` refuses the
     /// combination rather than letting a deployment find out in production.

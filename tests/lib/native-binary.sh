@@ -6,7 +6,7 @@
 #
 # Sourced, not executed: `. "$REPO_ROOT/tests/lib/native-binary.sh"`.
 #
-# Two things here are deliberate.
+# Two things here need explaining.
 #
 # The executable's name is asked for without a suffix, because only Windows adds one (.exe). A
 # test that hard-codes the bare name reports MISSING on Windows for a binary that linked fine.
@@ -20,7 +20,7 @@
 # Echo the path of a built executable, accounting for the .exe suffix on Windows. Echoes nothing
 # when neither exists, so callers can test for an empty result.
 #
-# The .exe variant is tried FIRST, and that order is load-bearing on Windows. Git-for-Windows
+# The .exe variant is tried FIRST, and that order matters on Windows. Git-for-Windows
 # bash is Cygwin/MSYS2, whose stat() transparently resolves a bare name to its `.exe` sibling
 # (the "exe magic"), so `[ -f "$1" ]` is TRUE for a target that only exists as `$1.exe`, and
 # this function would then echo the bare, extension-less path. That path works in bash (od, test)

@@ -181,7 +181,7 @@ private:
 /// the compiler: about 3.5 KB with GCC on Linux, several times that with MSVC. So the same
 /// sixty-four levels that fit comfortably in the eight megabytes Linux and macOS give the
 /// main thread overflowed the one megabyte Windows gives it, and the first Windows run of
-/// this test is where that showed up -- as a stack overflow, in CI, on a ceiling written to
+/// this test is where that showed up: as a stack overflow, in CI, on a ceiling written to
 /// prevent exactly that.
 ///
 /// Running the edge on the roomiest stack on offer is what let a bound nobody had measured
@@ -219,8 +219,8 @@ public:
 protected:
     void run() override
     {
-        // Created here rather than handed in, so the whole request path -- routing, the
-        // callback handler and the nested exchange loops under it -- runs on this stack
+        // Created here rather than handed in, so the whole request path (routing, the
+        // callback handler and the nested exchange loops under it) runs on this stack
         // instead of merely reaching it.
         QQmlEngine engine;
         WebEdge edge{m_config, &engine};
@@ -1015,8 +1015,8 @@ private slots:
     /// hold; run against a small one it stops rather than crashes, which is the whole claim.
     void concurrentCallbacksAreBoundedWithIdentityInProcess()
     {
-        // Above both ceilings in identityprovider.cpp -- the count (kMaxConcurrentWaits,
-        // 64) and the quarter of the thread's stack the nesting may spend -- so some of
+        // Above both ceilings in identityprovider.cpp, the count (kMaxConcurrentWaits,
+        // 64) and the quarter of the thread's stack the nesting may spend, so some of
         // these have to be refused rather than nested, whichever of the two decides.
         constexpr int kInFlight{80};
         constexpr int kStallMs{3000};
@@ -1066,7 +1066,7 @@ private slots:
             states.append(state);
         }
 
-        // Fired without waiting for any of them, which is the whole point: they have to be
+        // Fired without waiting for any of them: they have to be
         // in flight together for the nesting to happen at all.
         QElapsedTimer clock;
         QList<qint64> answeredAtMs;
@@ -1114,7 +1114,7 @@ private slots:
     /// `exp` mattered because the check used to run only when the claim was present, so a
     /// token with none was a sign-in that never expired: a copy taken today would still
     /// open a session years from now. `sub` mattered because everything downstream keys on
-    /// it -- the scope mapping reads it and a device credential is enrolled against it --
+    /// it (the scope mapping reads it and a device credential is enrolled against it),
     /// so a token with none signed the visitor in as the empty subject, and every visitor
     /// arriving that way was the same one.
     void anIdTokenMissingARequiredClaimIsRefused()
@@ -1157,7 +1157,7 @@ private slots:
     ///
     /// Logout is reached by a GET, because that is what `Session.logout()` does on both
     /// clients: the browser navigates to the route and the desktop client fetches it. That
-    /// makes it a state change any page can cause, and the cookie is no defense --
+    /// makes it a state change any page can cause, and the cookie is no defense:
     /// SameSite=Lax is sent on exactly this, a top-level navigation, and in `split_origin`
     /// the cookie is SameSite=None and is sent on everything. What it costs the visitor is
     /// not only the session: signing out is also the one thing that ends a device
@@ -1526,7 +1526,7 @@ private slots:
     // work if each held its own. It is that every Source on the auth entity bridges to the
     // SAME engine, so the record is one record however many Sources are in front of it.
     //
-    // The first of these three is the load-bearing one. Against the old code the other two
+    // The first of these three is the one that matters. Against the old code the other two
     // pass for the wrong reason: the edge refused every cross-replica callback outright, so
     // a test that only ever asserts a refusal is green whether the gate works or is stuck
     // shut. Only an accept that must succeed can tell those apart.
@@ -1670,7 +1670,7 @@ private slots:
 
     void aDesktopClaimWithTheWrongVerifierIsRefusedAndSpent()
     {
-        // Both halves, because the second is the surprising one and is deliberate: the
+        // Both halves, because the second is the surprising one: the
         // code is taken out before the verifier is checked, so a wrong guess spends it.
         // A code read out of a browser history must not be something a guesser can sit and
         // try verifiers against.

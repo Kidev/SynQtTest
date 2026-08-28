@@ -15,7 +15,7 @@ that implements it. Later layers override earlier ones, key by key:
 4. ``SYNQT_<SECTION>_<KEY>`` environment variables, for CI and containers.
 5. CLI flags, which the CLI applies itself after this module has run.
 
-Two properties are worth stating outright, because both are load-bearing:
+Two properties govern how a layer behaves:
 
 *A profile changes and adds; it never removes.* Merging a list by deleting from it would
 be an invisible way to drop an entity, a consumer, or a connect point, and dropping a

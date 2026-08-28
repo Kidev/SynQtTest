@@ -167,7 +167,7 @@
   /* Everything the two choices decide, applied at once: which asset the button fetches,
    * what the button and the facts row say, and which of the two shell commands is the one
    * on screen. One function, because the choices are not independent of each other on the
-   * page -- picking Windows in the panel and being left looking at the `curl` line was the
+   * page: picking Windows in the panel and being left looking at the `curl` line was the
    * whole reason the old "On Windows instead?" link existed. */
   function apply() {
     var one = targetNamed(target);

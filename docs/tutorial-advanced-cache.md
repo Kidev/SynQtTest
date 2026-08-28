@@ -433,7 +433,7 @@ entities:
 ```
 
 Any entity QML that was calling the bundled in-memory cache through the `Cache` helper
-keeps calling it. That is the point of the family: `Cache.get("session:42")` does not know
+keeps calling it. That is what the family buys: `Cache.get("session:42")` does not know
 what answered.
 
 ## Try it, then think

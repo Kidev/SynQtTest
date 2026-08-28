@@ -7,7 +7,7 @@ Two commands rather than one flag. ``synqt new`` is the scriptable one: every an
 a flag, it reads nothing from the terminal, and it behaves identically in a shell, in a
 Makefile and in CI. ``synqt create`` asks the same questions out loud and then calls it.
 
-Splitting them is deliberate. A single command that prompts when it has a terminal and
+They are split for a reason. A single command that prompts when it has a terminal and
 silently picks defaults when it does not is two behaviors wearing one name: the CI run
 takes a path nobody watched it take, and the difference only shows up in the generated
 project. Here the name says which you get, and `create` refuses to run without a

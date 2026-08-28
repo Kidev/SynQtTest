@@ -10,7 +10,7 @@ tab open on it.
 
 ## Check 1: the campaign is not in the bundle
 
-The point of a remote page is that it never ships to a visitor who does not open it. You can
+A remote page never ships to a visitor who does not open it. You can
 see that at both ends: in what `synqt build` puts in the bundle, and in what crosses the
 wire.
 

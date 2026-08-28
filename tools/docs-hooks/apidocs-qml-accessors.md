@@ -79,7 +79,7 @@ is an accessor.
 | `Server.<member>` | per the contract | Each `prop`, `model`, `signal` and `slot` the owner's `export:` block declares. Properties and models are read-only mirrors of the owner's Source; slots are callable, and every call is a request the owner may refuse. |
 | `Server.ready` | bool | SynQt::ConsumerBase::ready: true once the bound Replica has completed its QtRO handshake. |
 
-There is no fixed member list beyond that, which is the point of the class:
+There is no fixed member list beyond that, because of what the class is:
 SynQt::ServerAccessor is a `QQmlPropertyMap` holding one consumer facade per owner this
 client reaches, keyed by that owner's name, and `Server` is the entry belonging to the
 edge.

@@ -33,7 +33,7 @@ struct Outcome
 
 /// Run one store call with a deadline, on a thread of its own.
 ///
-/// The awkward shape is the point. On a timeout the worker is detached rather than joined,
+/// The shape is awkward for a reason. On a timeout the worker is detached rather than joined,
 /// because it is stuck inside a platform API with no cancellation, and the two things it
 /// could still touch (the store and the outcome) are both shared with it so neither can be
 /// freed underneath it. Nothing reads the outcome after a timeout, so there is no race for
@@ -186,8 +186,8 @@ bool DeviceCredential::save(const Held &held)
         return false;
     }
     if (!outcome->ok) {
-        // Worth saying: the visitor asked to stay signed in and will not be. It is not fatal,
-        // and in particular it is never a reason to fail the sign-in that just succeeded.
+        // The visitor asked to stay signed in and will not be. It is not fatal, and in
+        // particular it is never a reason to fail the sign-in that just succeeded.
         qWarning("SynQt: could not store the sign-in for the next launch (%s).",
                  qUtf8Printable(outcome->error));
         // A store that reads but cannot write is the one shape of failure that is worse than

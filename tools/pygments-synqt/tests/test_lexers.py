@@ -121,7 +121,7 @@ def contract_tokens(source, lexer=None):
 
 
 def test_a_member_line_is_four_things_and_not_one():
-    # The whole point of the lexer: the kind, the type, the width and the name are told
+    # What the lexer is for: the kind, the type, the width and the name are told
     # apart. Read as one token they are one color, which is what a plain YAML lexer does
     # to an export block and what this exists to stop.
     found = contract_tokens("prop string[80] itemName\n")

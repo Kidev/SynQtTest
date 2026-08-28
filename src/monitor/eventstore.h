@@ -37,8 +37,8 @@ struct EventQuery
 
     /// The ceiling the store clamps `limit` to.
     ///
-    /// This number arrives from a console, over a connect point, as a plain `int` -- the
-    /// contract vocabulary sizes strings and lists and has nothing to say about integers --
+    /// This number arrives from a console, over a connect point, as a plain `int` (the
+    /// contract vocabulary sizes strings and lists and has nothing to say about integers),
     /// and every row it asks for is built into a QVariantList and serialized back over the
     /// link. So the largest answer this store can be made to produce is decided here rather
     /// than by whoever typed the number: at two thousand rows a console is already showing

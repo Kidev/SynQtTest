@@ -30,7 +30,8 @@ not with an empty entity per node.
 build, each one opening the way this one does. Over a real project it is not offered, since
 the project on disk is what that page is editing.
 
-It is a starting point, not a page: once it is open it is an ordinary project. Move things,
+It opens as a starting point rather than as a fixed page: from then on it is an ordinary
+project. Move things,
 add things, edit the files, and what you left is what comes back the next time you follow the
 same link. Clear starts over.
 
@@ -64,11 +65,11 @@ one file is the entity: what it exports and the state behind it. An entity that 
 per caller and still needs something shared between them writes a `pragma Shared` file of its
 own beside it, under a name it chooses.
 
-The monitor is the row where one node is worth four things. It is not one entity: it is the
-entity that keeps the history, a console client, the sign-in page an anonymous visitor is
-handed instead of that console, and the `monitoring.entity` line that makes every other
-entity report at all. Three of those are files, and the console's is three hundred lines of
-QML, so drawing one here writes all of them: the copy on this site carries the same
+The monitor is the row where one node is worth four things: the entity that keeps the
+history, a console client, the sign-in page an anonymous visitor is handed instead of that
+console, and the `monitoring.entity` line that makes every other entity report at all.
+Three of those are files, and the console's is three hundred lines of QML, so drawing one
+here writes all of them: the copy on this site carries the same
 templates [`synqt add entity ops --type monitor`](monitoring.md) uses, and the project you
 export runs without being finished by hand.
 
@@ -251,7 +252,7 @@ carries nothing. Tick the new member on the point and it crosses.
 
 Reach for something another entity owns, and the connect point that would have to carry it
 is drawn for you, with the entity that owns it, you on its consumer list, and the member you
-reached for -- because code that is already written is somebody having said so:
+reached for, because code that is already written is somebody having said so:
 
 ```qml
 // in client/app/Main.qml

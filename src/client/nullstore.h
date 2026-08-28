@@ -10,10 +10,10 @@ namespace SynQt {
 
 /// The store for a machine that has none: it reports itself unavailable and holds nothing.
 ///
-/// This is not a degraded mode to be improved on later. It is the answer for the browser
+/// This is the answer rather than a degraded mode to be improved on later: for the browser
 /// (which has no OS store and needs none, since it keeps the session cookie itself), for a
-/// platform with no supported store, and for a Linux session with no keyring, and on every
-/// one of those the credential simply lives for the life of the process. The temptation it
+/// platform with no supported store, and for a Linux session with no keyring. On every one
+/// of those the credential lives for the life of the process. The temptation it
 /// exists to refuse is a file written "just for now": what makes the device credential safe
 /// to hand out at all is that a copy of it cannot be taken without taking the OS store's
 /// protection with it.

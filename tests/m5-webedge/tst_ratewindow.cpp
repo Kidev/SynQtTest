@@ -7,8 +7,8 @@
 // device-credential route, and the API server. Each keeps a table keyed by address, and each
 // therefore has to answer the question this file is about: what happens when the table gets
 // too big? The obvious answer is to empty it, and the obvious answer turns the ceiling into
-// a reset primitive. An attacker who can present addresses -- an IPv6 /64 is a practically
-// unlimited supply, and so is a forwarding header on a deployment that trusts one -- fills
+// a reset primitive. An attacker who can present addresses (an IPv6 /64 is a practically
+// unlimited supply, and so is a forwarding header on a deployment that trusts one) fills
 // the table with entries they will never use again, the table is emptied, and their count
 // against the address they are actually guessing from goes back to zero.
 //

@@ -18,8 +18,8 @@ somebody pasted it into the repository.
 
 ## Running it
 
-```console
-$ bash tests/monitor-console/run-monitor-console.sh
+```sh
+bash tests/monitor-console/run-monitor-console.sh
 ```
 
 Phases 1 and 2 (scaffold, build the monitor and the reporting edge) need only the host kit.

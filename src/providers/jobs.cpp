@@ -55,8 +55,8 @@ bool Jobs::enqueue(const QJSValue &job)
 void Jobs::drain()
 {
     // One pass runs what was waiting when it started, and no more. A job is ordinary QML and
-    // may perfectly well enqueue the next one -- a batch that walks a list a page at a time is
-    // exactly that shape -- and a loop that drained until the queue was empty would then never
+    // may perfectly well enqueue the next one (a batch that walks a list a page at a time is
+    // exactly that shape), and a loop that drained until the queue was empty would then never
     // return to the event loop at all. The entity stops answering its connect points, stops
     // reconnecting, stops reporting, and nothing says why: the queue is bounded, so it never
     // grows, and each pass through the loop looks like progress. Taking a pass at a time turns

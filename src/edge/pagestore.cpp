@@ -153,7 +153,7 @@ void PageStore::onFileChanged(const QString &path)
     if (route.isEmpty()) {
         return;
     }
-    // Deliberately not read here. One edit is not one notification: an editor that
+    // Not read here. One edit is not one notification: an editor that
     // truncates and then writes produces two, and reading between them hashes an empty
     // file. Wait until the notifications stop, and let every further one push that wait
     // back.

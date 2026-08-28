@@ -106,7 +106,7 @@ function entityLines(entity) {
     //
     // This wrote nothing at all until a project needed it, which the panel did not know:
     // it read `bundles` and showed the mapping, so an edge with a gate displayed one here
-    // and downloaded without one, and the gate is the whole point of having drawn it.
+    // and downloaded without one, when the gate is the reason to draw it at all.
     const bundles = Object.entries(bundlesOf(entity));
     if (bundles.length) {
         lines.push("    bundles:");
@@ -322,7 +322,7 @@ export function contractOf(link) {
 
 // What a link is called: the two entities it runs between, in the names their author gave
 // them. It used to be the owner's name capitalised, which is the type a consumer writes in
-// QML and not a name this drawing has anything to do with -- so a canvas of entities called
+// QML and not a name this drawing has anything to do with, so a canvas of entities called
 // `edge` and `app` labelled the line between them `Edge`, and a reader had two spellings of
 // one thing and nothing saying they were one thing.
 //
@@ -438,7 +438,7 @@ export function entityFiles(design, entity) {
     if (isFront(link)) {
         // A front owns a connect point it does not implement: it keeps the session and the
         // sign-in, and every caller is answered by the entity wired to their scope. So there
-        // is no Source to write here, and writing one anyway is not harmless -- `synqt
+        // is no Source to write here, and writing one anyway is not harmless: `synqt
         // check` refuses a point whose owner publishes none of what it exports, which is
         // exactly what an empty Source beside a `behind:` block is.
         return [];

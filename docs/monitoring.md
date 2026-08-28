@@ -15,8 +15,8 @@ not rebuild to turn it on, and you do not rebuild to turn it up.
 
 ## Adding one
 
-```console
-$ synqt add entity ops --type monitor
+```cli
+synqt add entity ops --type monitor
 ```
 
 That writes four things, and it writes all four because any three of them leave something
@@ -39,15 +39,15 @@ entity nothing names still builds, starts and serves its console with an empty h
 
 Then give yourself a way in:
 
-```console
-$ synqt monitor operator add alice
+```cli
+synqt monitor operator add alice
 ```
 
 It prints an entry for the monitor's `.env`. Credentials live in the entity's environment,
 never in `synqt.yaml`, for the same reason every other credential in SynQt does.
 
-With no operator configured the console refuses everybody. That is deliberate, and it is
-said out loud at startup so an empty console is not mistaken for a broken deployment.
+With no operator configured the console refuses everybody, and it says so at startup, so
+an empty console is not mistaken for a broken deployment.
 
 ## What is recorded
 
@@ -205,7 +205,7 @@ link that opens the whole trace it belonged to. It is taken by `tests/monitor-co
 a run that has just finished driving that console in a browser, so it is regenerated from a
 passing suite rather than pasted in once and left to age.
 
-Liveness is the absence of the link. An entity that stops heartbeating is shown as down,
+Liveness is reported from the link itself. An entity that stops heartbeating is shown as down,
 which is what makes a catastrophic failure of the main application show up as a red tile
 rather than as silence.
 
@@ -214,7 +214,7 @@ row count and the store decides what to honour, because every row is built in me
 serialized back over the link, so an unbounded count is a question that materializes the
 whole history at once. Two thousand is already far more than anyone reads down a screen;
 when it is not enough, narrowing the question is the answer rather than widening the answer.
-Everything else on this path is bounded the same way, which is the point: the ring, the
+Everything else on this path is bounded the same way: the ring, the
 batch, the spool and the retention sweep all have a ceiling, and the one at the end had
 none.
 
@@ -257,7 +257,7 @@ meant both would make one login reach the other's surface.
 
 ## The identity it uses
 
-The monitor has its own, deliberately not the application's. Credentials are PBKDF2-SHA256
+The monitor has its own rather than the application's. Credentials are PBKDF2-SHA256
 over at least 600,000 iterations, read from `SYNQT_MONITOR_OPERATORS` in the monitor's
 environment. A credential derived with fewer iterations is refused at load rather than
 accepted with a warning, one malformed entry does not lock everyone else out, and an empty

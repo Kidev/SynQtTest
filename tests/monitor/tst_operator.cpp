@@ -208,7 +208,7 @@ private slots:
             QVERIFY(!store.verify(QStringLiteral("ada"), QStringLiteral("correct hors_")));
         }
         const qint64 late{clock.elapsed()};
-        // Both are dominated by the derivation, which is the point: the comparison is
+        // Both are dominated by the derivation: the comparison is
         // nothing next to it, and neither answer is reached sooner than the other.
         QVERIFY2(qAbs(early - late) < (qMax(early, late) / 2 + 5),
                  qPrintable(QStringLiteral("first-byte %1ms vs last-byte %2ms")

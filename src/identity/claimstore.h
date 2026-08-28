@@ -42,7 +42,7 @@ public:
 
     /// Spend a claim, if the verifier matches its challenge and it has not expired.
     ///
-    /// The code is taken out before it is checked, deliberately: a wrong verifier spends it
+    /// The code is taken out before it is checked: a wrong verifier spends it
     /// rather than leaving it there to be tried again. One code, one attempt.
     ///
     /// An empty return is every failure alike (unknown, expired, already spent, wrong

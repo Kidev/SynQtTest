@@ -7,11 +7,11 @@ This is the one part of the benchmarking plan that is not a measurement harness.
 nothing to instrument; the build steps already exist and this times around them. What it
 reports, per entity:
 
-* **clean** -- an empty build directory to a linked artifact. The number a new contributor
+* **clean**: an empty build directory to a linked artifact. The number a new contributor
   or a cold CI runner actually waits for.
-* **no-op** -- `synqt build` again with nothing changed. This should be nearly free, and
+* **no-op**: `synqt build` again with nothing changed. This should be nearly free, and
   it is the number that says whether the build is incremental at all.
-* **touched** -- one QML file's timestamp moved, then build again. The edit-rebuild cycle,
+* **touched**: one QML file's timestamp moved, then build again. The edit-rebuild cycle,
   and what `synqt dev` pays on every hot reload.
 
 The no-op is the interesting one and the reason this exists. A build system that quietly

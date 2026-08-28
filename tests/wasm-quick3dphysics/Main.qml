@@ -26,7 +26,7 @@ Item {
         scene: viewport.scene
         gravity: Qt.vector3d(0, -981, 0)
         running: true
-        // The load-bearing line for WebAssembly. numThreads defaults to -1 (automatic), which
+        // The line WebAssembly needs. numThreads defaults to -1 (automatic), which
         // queries the host core count and steps PhysX on that many worker threads. On the
         // single-threaded WASM kit those workers cannot be spawned, so the simulation never
         // advances (the box stays at its release height); on the multi-threaded kit PhysX

@@ -32,8 +32,8 @@ namespace {
 ///
 /// A broken fallback view reports Error even when status arrived here as
 /// Forbidden or NotFound, so Error can mask a guard's real reason. That
-/// precedence is deliberate, not an oversight: the fallback itself failing to
-/// load is the more urgent fact, and it is what an app must surface first.
+/// precedence is intended: the fallback itself failing to load is the more urgent
+/// fact, and it is what an app must surface first.
 Router::PageStatus loadStatus(const QQmlComponent *component, Router::PageStatus status)
 {
     if (!component) {

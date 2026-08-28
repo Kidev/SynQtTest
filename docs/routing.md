@@ -97,8 +97,8 @@ Captured parameters and query values arrive percent-decoded: `/c/summer%20sale` 
 `Router.params.campaign === "summer sale"`. The three change together, so a binding on any
 of them sees a consistent set.
 
-Deployment under a prefix is the one part worth stating twice, because it is where an app
-is most often written wrong. With `base: /shop`, a route is still declared as
+Deployment under a prefix is where an app is most often written wrong. With `base: /shop`,
+a route is still declared as
 `/c/:campaign`, `Router.go("/c/summer-sale")` is still the call to make, and
 `Router.path` still reads `/c/summer-sale`. Only the address bar carries `/shop`. There is
 no second set of paths to keep in step.

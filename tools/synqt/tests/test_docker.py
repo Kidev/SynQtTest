@@ -118,8 +118,8 @@ class ProfileTest(unittest.TestCase):
     def test_the_edge_is_told_where_a_browser_reaches_it(self):
         # Without this the edge takes its bind address for its identity, and a container
         # binds every interface. Everything the edge says about itself is built from that
-        # one string -- the OAuth redirect_uri, what `self` means at the upgrade's origin
-        # check, the sync endpoint in the CSP -- so an edge answering as "0.0.0.0" refuses
+        # one string (the OAuth redirect_uri, what `self` means at the upgrade's origin
+        # check, the sync endpoint in the CSP), so an edge answering as "0.0.0.0" refuses
         # the only visitor there can be and never says why.
         profile = self._profile(_config())
         web = next(e for e in profile["entities"] if e["name"] == "web")

@@ -145,7 +145,7 @@ bool isAcceptable(const QString &candidate, const QStringList &declaredPaths)
     if (hasUnsafeSegment(path)) {
         return false;
     }
-    // The shape checks above deliberately duplicate work RoutePattern does:
+    // The shape checks above duplicate work RoutePattern does:
     // matches() already refuses a relative path and every doubled slash of
     // its own. The two layers overlap on purpose. This one states what a
     // resume target may be, in one place, so a later change to the matcher

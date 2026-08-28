@@ -246,7 +246,7 @@ function glyph(entity, front, gate) {
     });
     // A gate is a client, and keeps a client's colour and a client's place in the browser
     // box; what it does not keep is the client's glyph. `roleOf` is left alone for both of
-    // those reasons -- it answers which column an entity belongs in and which colour it takes,
+    // those reasons: it answers which column an entity belongs in and which colour it takes,
     // and neither changes because a bundle is the one a signed-out visitor gets.
     for (const shape of GLYPHS[gate ? "gate" : roleOf(entity)]) {
         const {tag, ...attributes} = shape;
@@ -1272,8 +1272,8 @@ export function memberLabel(member) {
 // member: `<admin>`. Empty when nothing gates it, which is a point any session reaches.
 //
 // The member's own gate, or the point's where the member names none, because that is what
-// actually answers "who reaches this". The document carries what the author wrote -- a
-// `scope: user` on the point is one line on the point, not a `<user>` on each of its members
+// actually answers "who reaches this". The document carries what the author wrote: a
+// `scope: user` on the point is one line on the point, not a `<user>` on each of its members,
 // so a row reading the member alone would say nothing about three members out of four.
 // One spelling for the canvas, the tooltip and the file, so a reader meets the same word in
 // all three places.
@@ -1340,7 +1340,7 @@ export function memberMarkSvg(kind) {
 //
 // A gated member says which scope gates it, in the notation the contract writes it in:
 // `erase(int) <admin>`. It used to be an asterisk, with the scope itself only in the tooltip,
-// which meant the one thing a reader wants off a gated row -- gated behind what? -- was the
+// which meant the one thing a reader wants off a gated row (gated behind what?) was the
 // one thing the row would not tell them without being pointed at. It sits after the
 // declaration rather than in front of it, where the `export:` block puts it: the names stay
 // in one column that way, and the gates line up at the end where an eye going down the block
@@ -1684,8 +1684,8 @@ export function draw(layers, design, {problems, selected, filesOf}) {
 // consumes whose owner sits behind no scope is a connection that carries nobody, and the
 // drawing says so rather than leaving it looking like an ordinary link.
 //
-// A state of the drawing and not a rule. `synqt check` has no opinion about it -- a front may
-// legitimately be part-way through being wired -- and the editor's rules are held to the
+// A state of the drawing and not a rule. `synqt check` has no opinion about it (a front may
+// legitimately be part-way through being wired), and the editor's rules are held to the
 // command line's verdict case by case, so this belongs here, on the line, where it can be
 // dragged onto a scope and fixed.
 export function isBroken(front, owner) {

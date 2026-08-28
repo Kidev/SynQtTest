@@ -9,7 +9,7 @@
 //      crossOriginIsolated, SharedArrayBuffer exists, the threaded runtime boots, and
 //      all four QtRO-over-WebSocket paths still work;
 //   2. serves the very same bundle WITHOUT the headers as a control and asserts the page
-//      is NOT isolated; proving the headers are load-bearing, not incidental.
+//      is NOT isolated, which proves the headers are what grant isolation.
 // Exits 0 only if both cases behave as required in every browser that ran.
 //
 // Every engine that launches is driven, because this claim is per-engine: cross-origin

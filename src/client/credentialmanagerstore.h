@@ -13,9 +13,8 @@ namespace SynQt {
 ///
 /// `CRED_PERSIST_LOCAL_MACHINE`, never `CRED_PERSIST_ENTERPRISE`. The enterprise flag roams
 /// the credential with the user profile to every machine they log into, which is precisely
-/// what "device credential" means not to do; it is worth knowing that the wrong constant here
-/// is a one-word change that silently turns this into a credential that follows the visitor
-/// around a domain.
+/// what "device credential" means not to do. The wrong constant here is a one-word change
+/// that silently turns this into a credential following the visitor around a domain.
 ///
 /// At rest the blob is DPAPI-protected under the user account, which is real protection
 /// against another user of the machine and against an offline disk. It is **not** protection

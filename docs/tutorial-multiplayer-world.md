@@ -39,7 +39,7 @@ connect_points:
 > The edge will walk the blob toward that goal at the speed the blob's mass allows,
 > and stop it when it arrives. The client never sends a position, so there is no
 > position to forge. That single choice, taking intent instead of state, is what
-> makes the movement honest, and we will come back to it. `ping` returns a value, so
+> makes the movement honest. `ping` returns a value, so
 > calling it is an asynchronous request whose answer arrives later, which is exactly
 > what a round trip time needs. The `blobs` model lists six roles and only those six
 > cross to a browser; the edge keeps more per player (a GitHub subject id, an aim
@@ -329,7 +329,7 @@ Edge {
 > lean.
 
 > [!NOTE]
-> One honesty note about cost. Each session's Source pushes the whole roster every
+> A note on cost. Each session's Source pushes the whole roster every
 > tick, twenty times a second, so the work grows with the square of the player count.
 > For a handful of friends this is nothing. The pellet field already does the lighter
 > thing, republishing only when a pellet actually moved (`pelletsVersion`), and [the last

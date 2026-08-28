@@ -132,9 +132,8 @@ async function dropEntity(page, label, at) {
         .dragTo(page.locator("#canvas"), { targetPosition: at });
 }
 
-// The project is read-only until it is opened for editing, which is the point of the lock:
-// the pane holds the entities' own code, and a stray keystroke over a file being read is not
-// an edit. One press opens all of it, so this is a no-op once it has been pressed.
+// The project is read-only until it is opened for editing. The pane holds the entities' own
+// code, and a stray keystroke over a file being read is not an edit. One press opens all of it, so this is a no-op once it has been pressed.
 async function unlock(page) {
     if ((await page.locator("#source-lock").getAttribute("aria-pressed")) !== "true") {
         await page.locator("#source-lock").click();
@@ -294,8 +293,8 @@ async function editorOverAProject() {
               "and the panel offers no name for it, because there is none to give");
 
         // OWNER and CONSUMER are about one link, and only ever one. `edge` is now the middle
-        // of a chain -- it consumes the point `service` owns and owns the point `app`
-        // consumes -- so with one of those selected and the pointer on the other it wore
+        // of a chain (it consumes the point `service` owns and owns the point `app`
+        // consumes), so with one of those selected and the pointer on the other it wore
         // both words at once, of nothing in particular, because the two were about two
         // different links. A point that is not the selection says where the pointer is and
         // no more.
@@ -332,7 +331,7 @@ async function editorOverAProject() {
         // does not say what it is.
         await typeIntoRootBlock(page, "function logWinner(winner: string) {}");
 
-        // The contract icon is the point. Clicking it is what opens what crosses, and the
+        // The contract icon is what this checks. Clicking it opens what crosses, and the
         // list it opens is ticked out of what the owner declares and nothing else.
         //
         // Said in the contract's own vocabulary, not the QML the owner writes it in: this list
@@ -726,7 +725,7 @@ async function theCopyOnTheSite() {
     });
     page.on("pageerror", (error) => refused.push(String(error)));
     page.on("console", (message) => {
-        // The 404 on api/project is the whole point of this case: it is how the page finds
+        // The 404 on api/project is what this case is built around: it is how the page finds
         // out there is nobody behind it. Chromium reports a failed fetch as a console error
         // whose text names no URL, so it is matched on where it came from, and only that
         // one is dropped: everything else this case exists to catch is kept.
@@ -894,7 +893,7 @@ async function theProjectALinkHandsYou() {
         await page.waitForFunction(
             () => document.querySelectorAll("#nodes [data-entity]").length === 3);
         // The fragment names the example; the project it opens is called what it is. The
-        // two are deliberately not the same word: `#example=demo` is the link the front
+        // two are not the same word: `#example=demo` is the link the front
         // page publishes, and `chat` is the project under examples/ that link opens.
         check(await page.locator("#project").textContent() === "chat",
               "the fragment named a project and the page opened it");
@@ -1097,8 +1096,8 @@ async function theProjectALinkHandsYou() {
         // Typing a declaration into a Source is the same gesture as adding a member in the
         // panel, which is the whole reason the pane is a textarea and not a preview. It
         // declares; it does not export. A contract is the list of what an owner has agreed to
-        // say to somebody else, and writing a property on an entity is not that agreement --
-        // it is also how a half-typed name used to walk onto the wire one letter at a time.
+        // say to somebody else, and writing a property on an entity is not that agreement.
+        // It is also how a half-typed name used to walk onto the wire one letter at a time.
         await typeIntoRootBlock(page, "    property string headline\n");
         await openAndWaitFor(page, "web/edge/Edge.qml", "property string headline");
         const exported = await sourceText(page);
@@ -1144,8 +1143,8 @@ async function theProjectALinkHandsYou() {
         // Backspace over a file being typed into is a character, never the entity whose file
         // it is. The page's answer to who has focus stops at a shadow host, and the pane is
         // an editor inside one, so what it answered with was the plain <div> the editor is
-        // built into -- not a field, so the canvas took the keystroke and deleted the entity
-        // that was selected. Typed at the end of the file, where there is something to erase.
+        // built into, which is not a field, so the canvas took the keystroke and deleted the
+        // entity that was selected. Typed at the end of the file, where there is something to erase.
         const held = await page.locator("#nodes [data-entity]").count();
         await clickIntoSource(page);
         await page.keyboard.press("Control+End");

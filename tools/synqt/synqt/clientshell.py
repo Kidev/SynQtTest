@@ -83,9 +83,9 @@ _CLIENT_SHELL = """<!doctype html>
        `fixed` and `no-repeat` are what make the background the viewport's rather than the
        element's. The root element's background is painted over the whole canvas, but an
        image in it is still sized and placed against the root element's own box and then
-       tiled to fill the rest; so any moment the canvas is taller than that box -- a
+       tiled to fill the rest; so any moment the canvas is taller than that box (a
        retracting URL bar, an engine that does not know `dvh`, a window resized before
-       layout catches up -- the gradient either restarts partway down or leaves what it
+       layout catches up), the gradient either restarts partway down or leaves what it
        does not reach. Attached to the viewport it is measured against the thing it has
        to cover. */
     html, body {{
@@ -368,8 +368,8 @@ def render_service_worker_js(bundle: str = "client") -> str:
     probe is a single no-store fetch of the manifest: identical is the common case and
     costs one small request; only a real difference pulls the module again.
 
-    The bundle name is written into the script, and that is load bearing rather than
-    cosmetic. An edge may serve one bundle to an anonymous visitor and another once they
+    The bundle name is written into the script, and it changes behaviour rather than
+    appearance. An edge may serve one bundle to an anonymous visitor and another once they
     sign in, both at "/", so both register a worker at the same scope. The browser re-runs
     install only when the worker's own bytes changed; two byte-identical scripts would
     leave the first bundle's worker active, and its cache-first fetch handler would go on
@@ -418,7 +418,7 @@ function precache(manifest) {
         if (urls.indexOf(MANIFEST) === -1) {
             urls.push(MANIFEST);
         }
-        // cache: "reload" is load bearing. A plain addAll() fetches through the browser's
+        // cache: "reload" is required. A plain addAll() fetches through the browser's
         // HTTP cache, which will happily hand back the *previous* build's bytes and store
         // them under this build's name: a cache labelled new and holding old, so the
         // update silently never takes effect. Going to the network is the only way to be

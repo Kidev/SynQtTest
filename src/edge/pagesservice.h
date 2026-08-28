@@ -59,7 +59,7 @@ private:
     /// Built lazily rather than in the constructor because pages are added to the store
     /// after this service exists, and rebuilt when the declared set changes. It used to be
     /// rebuilt per request, which meant every fetch a browser made compiled every route
-    /// pattern in the project and sorted the result -- work a caller could ask for as fast
+    /// pattern in the project and sorted the result: work a caller could ask for as fast
     /// as it could send, on the edge's own event loop, to reach a table that is the same
     /// on every request.
     const QList<Candidate> &candidates() const;

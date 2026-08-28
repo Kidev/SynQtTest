@@ -8,7 +8,7 @@
 // two are a pair and the suite holds them to it by writing a design, reading it back, and
 // asserting the same design comes out.
 //
-// Deliberately not a YAML parser. It reads the shape SynQt writes and the shape SynQt asks
+// Not a YAML parser. It reads the shape SynQt writes and the shape SynQt asks
 // for, which is a flat mapping of blocks, two lists of mappings, and one literal block; a
 // general parser would accept anchors, flow mappings, multi-document streams and tags that
 // the topology has no meaning for, and would then have to refuse them one at a time. What it

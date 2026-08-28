@@ -148,7 +148,7 @@ def resolve(mode: str, project_dir: os.PathLike[str] | str) -> object:
 
     "ts" refuses rather than falling back. Asking for TypeScript and silently getting the
     heuristic would leave a contract full of `var` looking like TypeScript's answer, and
-    the whole point of the flag is to know which one answered.
+    the flag exists so a reader knows which one answered.
     """
     if mode not in MODES:
         raise TypeBackendError("unknown type backend %r; it is one of %s"

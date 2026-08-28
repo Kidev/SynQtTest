@@ -129,7 +129,7 @@ def _collect(build_dir: Path, source_root: Path, gcov: str) -> Dict[Path, Tuple[
 def _wasm_only_lines(path: Path) -> Set[int]:
     """The lines of one file that only a WebAssembly build compiles.
 
-    A deliberately shallow reading of the preprocessor: it tracks `#if`/`#else`/`#endif`
+    A shallow reading of the preprocessor: it tracks `#if`/`#else`/`#endif`
     nesting and calls a branch WebAssembly-only when its condition names Q_OS_WASM
     positively. That is exactly the shape the runtime uses (`#ifdef Q_OS_WASM` ... `#else`
     ... `#endif`), and being approximate is acceptable here because the figure it produces

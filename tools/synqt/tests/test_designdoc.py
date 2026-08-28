@@ -213,7 +213,7 @@ def test_a_points_own_scope_stays_on_the_point_through_a_round_trip():
     because a generated `.syn` has to be complete on its own terms. The editor read its
     document through that same filling, and `to_config` writes the members back out: one
     `scope: user` on the point came back as a `<user>` in front of every member of it. The
-    same contract, spelled longer, in the author's file, on any edit -- which is exactly
+    same contract, spelled longer, in the author's file, on any edit, which is exactly
     what `contract_source`'s `inherit` flag exists to prevent.
 
     The room is the case worth pinning: `scope: user` on the point and `<admin>` on one

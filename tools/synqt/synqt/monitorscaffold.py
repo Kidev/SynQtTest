@@ -54,8 +54,8 @@ def free_port(config: Dict[str, Any]) -> int:
     steps past what is taken rather than writing a collision for `synqt check` to report.
 
     Taken means bound, not written down. This read only declared ports, so on the commonest
-    project there is -- one whose edge never wrote a `public:` block, because it had no
-    reason to -- it saw nothing taken and handed the monitor the very port that edge was
+    project there is: one whose edge never wrote a `public:` block, because it had no
+    reason to: it saw nothing taken and handed the monitor the very port that edge was
     about to bind.
     """
     taken = {appmodel.public_port(entity) for entity in appmodel.entities(config)

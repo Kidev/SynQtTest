@@ -198,7 +198,7 @@
 
 /* The two drop-downs behind "More versions": any published release, any platform one
    carries a binary for. They sit on the download row itself, in the place the button that
-   asked for them gives up, so the card is the same size open as shut -- a panel unfolding
+   asked for them gives up, so the card is the same size open as shut: a panel unfolding
    under the row moved everything below it down the moment somebody asked a question about
    versions, which is the one moment they are reading the row.
 
@@ -422,13 +422,13 @@ body.synqt-dl-open {
    at a 360px viewport, `curl -fsSL https://get.synqt.org/install.sh | sh` ran 196px past its
    block: what a visitor saw was `curl -fsSL https://get.synqt.or`, with the rest behind a
    sideways scroll nothing indicates, and the copy button sitting on top of the last few
-   characters of what was visible -- the button is drawn over the code rather than beside it,
+   characters of what was visible: the button is drawn over the code rather than beside it,
    which is fine on a line with room to spare at the end and is two unreadable words on a
    line with none.
 
    So on a narrow screen the command wraps instead of scrolling, and the button comes out of
-   the corner and sits under it. Wrapping a shell line is not free -- a wrapped command is
-   one you cannot read in a single glance -- but it is whole, and the button that copies it
+   the corner and sits under it. Wrapping a shell line is not free (a wrapped command is
+   one you cannot read in a single glance), but it is whole, and the button that copies it
    is over nothing, which is how the line is actually going to be used on a phone.
    `overflow-wrap: anywhere` rather than `break-word`, because the longest run in all three
    commands is a URL with no space in it and `break-word` would leave it overflowing exactly

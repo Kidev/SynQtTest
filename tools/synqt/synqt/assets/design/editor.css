@@ -1,7 +1,7 @@
 /* SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux
    SPDX-License-Identifier: Apache-2.0
 
-   The file pane's editor, styled -- the half of it that is ours rather than CodeMirror's.
+   The file pane's editor, styled: the half of it that is ours rather than CodeMirror's.
 
    Its own stylesheet and not part of design.css, because the editor lives in a shadow root
    under `#source-view` and this is the sheet that root adopts. That is not decoration: the

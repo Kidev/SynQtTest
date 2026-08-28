@@ -22,7 +22,7 @@ namespace SynQt {
 ///     depending on who was logged in.
 ///   * On Windows, resolving the system configuration runs WinHTTP's proxy auto-detection
 ///     (WPAD), which Qt's own documentation warns "may take several seconds to execute
-///     depending on the configuration of the user's system" -- and it runs on the calling
+///     depending on the configuration of the user's system", and it runs on the calling
 ///     thread, at the first request to a non-local host. An entity whose QML calls out
 ///     while it is starting therefore holds up everything it has not yet started, its
 ///     inbound listener included. That is where this was found: a gateway that called one

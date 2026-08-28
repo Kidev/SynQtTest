@@ -14,10 +14,9 @@ namespace SynQt {
 /// owner cannot reach: `QAbstractItemModelReplica::setData` writes the replica's own cache
 /// and returns true before anything crosses the wire, so a consumer that called it saw its
 /// own value accepted, and went on showing it until the next publish replaced it. Nobody
-/// else was ever affected, which is exactly what makes it worth closing: a lie a view tells
-/// only to itself is the kind that survives review.
+/// else was ever affected, which is why it is easy to miss in review and worth closing here.
 ///
-/// Both halves are needed and only one of them is load bearing. `flags()` is what a view
+/// Both halves are needed, and they cover different callers. `flags()` is what a view
 /// consults before it offers an editor, so clearing the editable bit is what stops a
 /// delegate opening one; `setData` is what stops everything else, because a caller reaching
 /// the model directly never asks about flags.

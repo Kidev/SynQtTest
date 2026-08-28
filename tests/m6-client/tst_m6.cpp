@@ -82,9 +82,9 @@ SynClientConfig clientConfig(quint16 port)
 
 /// A server that accepts every connection and answers none of them, holding each open.
 ///
-/// Not a refusal, which is the point: a refused connection is reported to the client at
-/// once and it moves on. This is the state that is indistinguishable from a slow answer
-/// until somebody decides how long to wait, and it is what a hung proxy looks like.
+/// A refused connection is reported to the client at once and it moves on. This is the
+/// state that is indistinguishable from a slow answer until somebody decides how long to
+/// wait, and it is what a hung proxy looks like.
 class BlackHoleServer : public QTcpServer
 {
     Q_OBJECT
@@ -336,7 +336,7 @@ private slots:
     // Q_INVOKABLE that binding had no dependencies at all: it was evaluated once, while
     // the visitor was still anonymous, and never again. Signing in moved the scope, the
     // edge hosted the scope-gated connect point, and the overlay the sign-in was supposed
-    // to lift stayed up -- which reads as a sign-in that failed. Only C++ ever asked
+    // to lift stayed up, which reads as a sign-in that failed. Only C++ ever asked
     // `hasScope` in a test, and C++ has no bindings, so nothing here could see it.
     //
     // Session is wired to the engine here exactly as the generated main wires it: a

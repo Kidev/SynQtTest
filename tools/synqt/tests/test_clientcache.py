@@ -153,7 +153,7 @@ def test_two_bundles_get_different_cache_names():
     gate = clientshell.render_service_worker_js("gate")
     assert '"app"' in app
     assert '"gate"' in gate
-    # Different bytes, which is the point: the browser only re-runs install when the
+    # Different bytes: the browser only re-runs install when the
     # worker script itself changed, so two identical scripts would leave the old bundle's
     # worker active and serving its cached "/" after a scope change.
     assert app != gate

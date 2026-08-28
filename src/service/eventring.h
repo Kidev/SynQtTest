@@ -22,7 +22,7 @@ namespace SynQt {
 /// does is lie about it: `dropped()` counts every event that did not fit, and the writer
 /// reports that count so a gap in the record is visible as a gap.
 ///
-/// Locking is one `QMutex`, not a lock-free queue, deliberately. The critical section is
+/// Locking is one `QMutex` rather than a lock-free queue. The critical section is
 /// a move and two integer updates, and it is uncontended in the common case, whereas a
 /// lock-free ring is a great deal of subtle code to save nanoseconds on a path that is
 /// already off the wire. Whether that judgement holds is measured rather than argued:

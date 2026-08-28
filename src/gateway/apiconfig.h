@@ -58,8 +58,8 @@ struct ApiConfig
     /// A handler answers on a later turn whenever it reaches a connect point or calls out
     /// (`Api.get("/x", r => Http.api("y").get(...).then(v => r.reply(v)))`), so the
     /// connection has to be held open for it; a handler that never answers must not hold
-    /// it open forever. Zero waits with no deadline, which is a deliberate choice and not
-    /// the default.
+    /// it open forever. Zero is not a way to wait with no deadline: it falls back to the
+    /// default and says so once (see ApiServer::handle).
     int replyTimeoutMs{15000};
 };
 

@@ -241,13 +241,13 @@ body {
 
    The reference's is the one to match, down to the pixels: a flat #1e2129 plate with the
    same colour fading out of it over .4rem all round, quiet bold text on top. Both of
-   those are Material's own -- #1e2129 is its dark background and .4rem its own spread --
+   those are Material's own (#1e2129 is its dark background and .4rem its own spread),
    so this is the stock treatment with the colour pinned flat rather than left to resolve
    against a page that is a gradient. The reference writes the same two out as 8.8px,
    which is what .4rem measures on either page.
 
-   The plate is deliberately not the colour of the page behind it, on any of the three.
-   A pinned label has one job -- hide the entries passing behind it -- and no flat colour
+   The plate is not the colour of the page behind it, on any of the three.
+   A pinned label has one job (hide the entries passing behind it), and no flat colour
    can match a gradient anyway. An earlier attempt painted the page's own gradient here
    with `background-attachment: fixed`, which did resolve the same pixels and so made the
    label invisible as an object: an invisible object with a shadow reads as a stray
@@ -450,8 +450,8 @@ body {
        pinned-label rules): this is a scroll container, so it clips at its own padding
        edge, and with the label sitting exactly in the corner the halo was cut square on
        the two sides it had nothing to spare. The padding is given back on the same two
-       sides as negative margin and added to the height, so the box the reader sees --
-       where the first entry starts, how far down the list runs -- is where it was. */
+       sides as negative margin and added to the height, so the box the reader sees
+       (where the first entry starts, how far down the list runs) is where it was. */
     max-height: calc(100vh - var(--synqt-sidebar-top) - 2rem) !important;
     margin: -.4rem -.4rem 0;
     padding: .4rem .4rem 0;

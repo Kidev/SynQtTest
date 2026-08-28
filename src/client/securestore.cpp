@@ -33,7 +33,7 @@ QString secureStoreBindingName(SecureStore::Binding binding)
 std::unique_ptr<SecureStore> makeSecureStore()
 {
     // One store per platform, chosen at compile time, and NullStore wherever there is not
-    // one. There is deliberately no configuration here: which store an app uses is a
+    // one. There is no configuration here: which store an app uses is a
     // property of the machine it is running on, and a project that could select a different
     // one could select a worse one.
 #if defined(Q_OS_MACOS)

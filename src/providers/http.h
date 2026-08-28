@@ -68,7 +68,7 @@ class Http;
 
 /// One named `network.outbound` entry, as the entity's QML sees it: `Http.api("ltd2")`.
 ///
-/// The point is that a call site names a path and nothing else. The base URL and the key
+/// A call site names a path and nothing else. The base URL and the key
 /// are the deployment's business, they are declared once in `synqt.yaml`, and changing
 /// either is a configuration change rather than an edit to every place that calls.
 class HttpEndpoint : public QObject

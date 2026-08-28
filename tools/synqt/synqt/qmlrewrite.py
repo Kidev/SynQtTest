@@ -19,8 +19,8 @@ the containing directory, so ``Edge`` there is the contract, not the file.
 An entity that exports nothing has no such type, and QML resolves the name to the file
 itself. That is not an error the engine can shrug off; it refuses the document with "Edge
 is instantiated recursively", at start-up, with nothing built to point at. So the same
-sentence is either the whole point or a fatal load failure depending on a fact the author
-cannot see from the file.
+sentence is either what the file needs or a fatal load failure, depending on a fact the
+author cannot see from the file.
 
 This pass makes the sentence always mean the first thing. It mirrors each entity folder
 into ``generated/`` and retypes a self-named root to ``QtObject`` wherever no type of that

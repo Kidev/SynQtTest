@@ -20,7 +20,7 @@ bid update the instant someone raises it, with no refresh. You will grow it in
 three stages:
 
 1. [The base case](tutorial-base-auction.md): a live auction anyone can bid on.
-   This teaches connect points, the heart of SynQt.
+   This teaches connect points.
 2. [Real bidders](tutorial-sign-in.md): add sign in, so a bid is tied to a real
    person and only signed in users can bid. This teaches identity and
    authorization.

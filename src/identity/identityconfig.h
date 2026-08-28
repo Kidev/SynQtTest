@@ -102,8 +102,8 @@ inline QString deviceBindingName(DeviceBinding binding)
 }
 
 /// The level named, or None when the name is not one of the four. An unrecognized name is
-/// deliberately the weakest level and not the strongest: this parses a value a client sent,
-/// and a typo must never read as a stronger claim than the client made.
+/// the weakest level rather than the strongest: this parses a value a client sent, and a
+/// typo must never read as a stronger claim than the client made.
 inline DeviceBinding deviceBindingFromName(const QString &name)
 {
     if (name == QLatin1String("user")) {
@@ -121,10 +121,9 @@ inline DeviceBinding deviceBindingFromName(const QString &name)
 /// Staying signed in on the desktop across relaunches (`identity.desktop_session: device`).
 ///
 /// What a client persists is never the session: it is a credential redeemable exactly once,
-/// at exactly one route, for a fresh session of the ordinary length. That separation is the
-/// whole point, because otherwise "stay signed in for a month" and "a stolen file is good
-/// for a month" would be one number, and product pressure would push a security parameter
-/// the wrong way forever.
+/// at exactly one route, for a fresh session of the ordinary length. The separation is what
+/// keeps "stay signed in for a month" and "a stolen file is good for a month" from being
+/// one number, which product pressure would push the wrong way forever.
 struct DeviceConfig
 {
     /// Off unless the project opted in. Nothing is persisted, and a desktop visitor signs in
@@ -160,7 +159,7 @@ struct IdentityConfig
     bool enabled{false};
     /// Whether an unauthenticated browser is refused at the upgrade is
     /// `WebEdgeConfig::identityRequired`, which is where the check that reads it lives.
-    /// It is deliberately not repeated here: two fields for one decision is a way for the
+    /// It is not repeated here: two fields for one decision is a way for the
     /// generated edge to set the one nothing reads.
     QString providerEntity;        ///< empty: in-process at the edge
 

@@ -6,7 +6,7 @@
 //
 // A project is made of a handful of kinds of text and the pane shows all of them, so all of
 // them are coloured here: the QML an entity is, the configuration, a contract, the schema
-// beside a relational entity, and the page an entity serves a browser -- markup with a
+// beside a relational entity, and the page an entity serves a browser: markup with a
 // stylesheet and a script inside it, each read by the reader that is about it.
 //
 // Only QML is read for meaning, because only QML has any: `synqt infer` does that same
@@ -14,7 +14,7 @@
 // because the copy on synqt.org has no CLI behind it and the editor has to behave the same
 // in both places.
 //
-// It is deliberately a reader of declarations, not a parser of QML. A declaration is a line;
+// It reads declarations rather than parsing QML. A declaration is a line;
 // everything below the line is the author's and is never interpreted, never rewritten and
 // never held against them. That is what makes it safe to run on every keystroke.
 //
@@ -56,7 +56,7 @@ const NOT_AN_ENTITY = new Set([
     "Object", "Promise", "Qt", "Screen", "Set", "String", "Symbol",
     // What SynQt itself puts in QML scope. None of these can be an entity accessor, because
     // `addcontract.ALWAYS_RESERVED` refuses an entity these names in the first place. `Server`
-    // is deliberately not here: it is the one the client reaches its edge through.
+    // is not here: it is the one the client reaches its edge through.
     "Api", "App", "Cache", "Caller", "Client", "Db", "Docs", "EntityTest", "Graphics",
     "Http", "IdentityMapping", "Jobs", "PageSeed", "Router", "Session",
 ]);

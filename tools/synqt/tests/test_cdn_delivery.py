@@ -102,7 +102,7 @@ class GeneratedBootScript(unittest.TestCase):
         self.assertIn('fetch(origin + "/app"', script)
 
     def test_a_same_origin_build_names_no_edge_and_asks_for_nothing(self):
-        """It reads its edge off its own page, which is the whole point of same-origin."""
+        """It reads its edge off its own page, which is what same-origin gives it."""
         config = cdn_config()
         config["entities"][1]["public"]["serve_client"] = True
         script = clientshell.render_boot_js("app", config)

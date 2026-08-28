@@ -113,7 +113,7 @@ the transport has become buildable.
 - The `WebSocketTransport` adapter is shared with the client runtime; the same source
   is compiled into `SynQtTransport` so the edge can wrap accepted browser sockets without
   a service->client library dependency.
-- In-process test trap worth noting: a blocking `waitForEncrypted` starves the
+- In-process test trap: a blocking `waitForEncrypted` starves the
   same-process edge's event loop, so the stall test drives TLS asynchronously (`QTRY`).
 - The full edge *entity* composes `WebEdge` (client side) with M4's `EntityRuntime`
   (mesh side, e.g. reaching a database). M5 tests `WebEdge` standalone.

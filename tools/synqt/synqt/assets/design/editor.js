@@ -6,14 +6,14 @@
 // It used to be two layers sharing a box: a transparent textarea holding the caret, and a
 // coloured copy of the same text painted behind it. That works until it does not, and the
 // list of what it could never do is the list of what anybody expects of a pane they type code
-// into -- line numbers, a matched bracket, a selection that is visible, an undo of its own.
+// into: line numbers, a matched bracket, a selection that is visible, an undo of its own.
 // Every one of those was a layer with nothing to build it on.
 //
 // This is CodeMirror doing that job; vendor/README.md is what is vendored and how. The
 // colouring is still ours: `runsFor` in source.js is the one description of what QML, YAML,
 // SQL, a contract, and a page an entity serves (HTML with CSS and JavaScript in it) look
 // like, and this turns its runs into decorations. Nothing about the syntax is written twice,
-// so the pane and the canvas cannot drift apart -- the members written along a link and the
+// so the pane and the canvas cannot drift apart: the members written along a link and the
 // file they are declared in are coloured by one reader.
 
 import { Compartment, EditorState, RangeSetBuilder } from "./vendor/codemirror-state.js";
@@ -38,7 +38,7 @@ import { runsFor } from "./source.js";
 //
 // The values are the page's own custom properties. They cross into the shadow root and are
 // resolved where they are used, so this follows the reader's light or dark setting with no
-// rebuild -- which is the one thing a theme written in JavaScript would otherwise cost.
+// rebuild, which is the one thing a theme written in JavaScript would otherwise cost.
 const PANE_THEME = EditorView.theme({
     "&": {
         height: "100%",

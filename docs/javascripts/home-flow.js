@@ -5,7 +5,7 @@
  *
  * The section is one small system, seen the way the design editor sees it: the mesh drawn
  * across the top, a project tree of its five files under it, and beside the tree the one
- * file being read. Every part of the drawing has a file behind it -- one QML file per
+ * file being read. Every part of the drawing has a file behind it: one QML file per
  * entity, and the configuration behind each contract mark, since what crosses a link is
  * written there. Pointing at a file in either the tree or the drawing opens it, and lights
  * it in the other, so the two are one set of triggers over the same five files.
@@ -145,13 +145,13 @@
    *
    * Not a picture of the system: the system, drawn by the design editor's own `draw` from
    * the same document the editor opens at /designer/#example=demo. This page adds two
-   * things and no more -- where the drawing goes, and which file each part of it opens.
+   * things and no more: where the drawing goes, and which file each part of it opens.
    *
    * It lives in a shadow root because the editor's stylesheet is the editor's whole look,
    * `html`, `body` and `*` included, and this page has a look of its own. Inside a shadow
    * root none of those match, so the file can be adopted whole rather than picked over: the
    * one edit is `:root` to `:host`, since `:root` is the document element and there is no
-   * document element in here. Adopted whole is the point -- a hand-picked subset of it is a
+   * document element in here. It has to be adopted whole: a hand-picked subset of it is a
    * second answer to what an entity looks like, and the drawing this replaced was exactly
    * that, kept by hand, and it had already drifted.
    */
@@ -166,7 +166,7 @@
    * classes, adopted with the rest of its stylesheet: `is-hover` and the two role classes
    * are put on by the editor's own `highlight` (light.js), and the file being read wears
    * `is-selected`, because the file being read is what a selection is on a page with no
-   * panel to select into. This used to be four rules here -- two copied out of the editor's
+   * panel to select into. This used to be four rules here, two copied out of the editor's
    * selected look and two answering `:hover` with a disc that lit and said nothing about
    * what the line it was on connected to. Both were second answers to questions the editor
    * had already answered, and the copied pair had the usual property of copies. */
@@ -303,8 +303,8 @@
   /* What the drawing answers a pointer with: the editor's own card, and the editor's own
    * lighting, over the editor's own drawing.
    *
-   * Both are functions of the design document, so both are the editor's -- `tipFor` for the
-   * words and `highlight` for the marks -- rather than shorter ones written for this page.
+   * Both are functions of the design document, so both are the editor's own (`tipFor` for
+   * the words and `highlight` for the marks) rather than shorter ones written for this page.
    * A second answer to what an entity is, or to which end of a line it is, would drift from
    * the first the week either changed, and this section exists to show the real thing. What
    * is this page's is where the card goes: in the shadow root, where the editor's stylesheet
@@ -494,7 +494,7 @@
     // not leaf through every file behind it; what it actually bought was a section that
     // lagged the pointer, since nothing at all happens during the wait and the entity under
     // the pointer is already lit by then. A file that opens when it is not wanted costs a
-    // reader nothing -- it is one panel, and the next one they point at replaces it.
+    // reader nothing: it is one panel, and the next one they point at replaces it.
     for (var wire = 0; wire < triggers.length; wire++) {
       (function (trigger) {
         var name = nameOf(trigger);

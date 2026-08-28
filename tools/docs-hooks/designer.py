@@ -61,7 +61,7 @@ _SOURCE_FIELDS = ("qml", "schema")
 # What is not part of the editor and is not published with it: the Markdown beside the
 # vendored library, which says what was vendored and how it was fetched. It is documentation
 # for whoever maintains this repository, no page ever loads it, and the links in it are the
-# very thing the scan below is for -- so rather than exempt a file from the rule, the file is
+# very thing the scan below is for, so rather than exempt a file from the rule, the file is
 # not published and there is nothing to exempt.
 _NOT_PUBLISHED = (".md",)
 
