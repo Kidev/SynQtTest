@@ -39,7 +39,7 @@
 # whether they had expired: a working tree built before a profile change would otherwise
 # keep its old certificates until they aged out, and go on testing the profile that was
 # just fixed.
-SYNQT_CERT_PROFILE="3-ca-extfile"
+SYNQT_CERT_PROFILE="4-ec-edge-leaf"
 
 # Usage: synqt_certs_current <marker-file> <cert> [cert...]
 # True when the marker matches this profile and every named cert exists and is not about
@@ -181,6 +181,23 @@ synqt_gen_entity() { # name signing-ca
 # leaf may also be its own trust root.
 synqt_gen_edge_cert() { # name signing-ca
     _synqt_openssl genrsa -out "$1.key" 2048 || return 1
+    _synqt_gen_edge_leaf "$1" "$2"
+}
+
+# The same edge certificate over an elliptic-curve key.
+#
+# An ACME client asked for `--key-type ecdsa` writes one of these, and the certificate
+# documentation says SynQt has no opinion about where a certificate comes from. It had one:
+# the key loader asked QSslKey for RSA, which decodes with RSA's own PEM reader and answers
+# a null key for anything else, so an EC key loaded as nothing and the edge listened on the
+# public port with no key at all. Nothing said so.
+synqt_gen_edge_cert_ec() { # name signing-ca
+    _synqt_openssl ecparam -name prime256v1 -genkey -noout -out "$1.key" || return 1
+    _synqt_gen_edge_leaf "$1" "$2"
+}
+
+# The leaf both of the two above issue, given a key that is already written.
+_synqt_gen_edge_leaf() { # name signing-ca
     _synqt_openssl req -new -key "$1.key" -subj "/CN=localhost" -out "$1.csr" || return 1
     printf '%s\n' \
         "basicConstraints=critical,CA:FALSE" \

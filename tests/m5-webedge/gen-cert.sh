@@ -20,12 +20,15 @@ OUT="${1:?usage: gen-cert.sh <output-dir>}"
 mkdir -p "$OUT"
 cd "$OUT"
 
-if synqt_certs_current .profile ca.crt server.crt; then
+if synqt_certs_current .profile ca.crt server.crt server-ec.crt; then
     exit 0
 fi
 
 synqt_gen_ca ca
 synqt_gen_edge_cert server ca
+# The same edge certificate over an elliptic-curve key, so one suite proves the edge
+# terminates TLS with either kind rather than only with the kind openssl writes by default.
+synqt_gen_edge_cert_ec server-ec ca
 
 chmod 600 ./*.key
 synqt_mark_certs .profile
