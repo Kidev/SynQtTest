@@ -47,6 +47,10 @@ private slots:
     void paletteAcceptsAnImportEndedWithASemicolon();
     void paletteAllowsASemicolonAndTheWordImportInsideAStringLiteral();
     void paletteAllowsATemplateLiteralSpanningLines();
+    void paletteRejectsAnImportHiddenByALineSeparatorInAComment();
+    void paletteRejectsAnImportHiddenByAParagraphSeparatorInAComment();
+    void paletteRejectsASecondImportAfterALineSeparator();
+    void paletteAcceptsAPageWrittenWithLineSeparators();
     void paletteAllowsAnIdentifierBeginningWithImport();
 
     void loaderBuildsAComponentFromDeliveredSource();
@@ -314,6 +318,41 @@ void tst_RemotePage::paletteAllowsATemplateLiteralSpanningLines()
         "import QtQuick.Controls`\n"
         "}\n")};
     QVERIFY(palette.isAcceptable(source, nullptr));
+}
+
+void tst_RemotePage::paletteRejectsAnImportHiddenByALineSeparatorInAComment()
+{
+    // U+2028 ends a line for QML's lexer (QQmlJS::Lexer::isLineTerminator), so the
+    // comment stops there and the engine reads the import after it. A scan that ends a
+    // comment only at "\n" swallows the import with the comment and accepts the page.
+    const QmlPalette palette{{QStringLiteral("QtQuick")}};
+    QVERIFY(!palette.isAcceptable(
+        QStringLiteral("import QtQuick\n// a note\u2028import Evil\nItem { }\n"), nullptr));
+}
+
+void tst_RemotePage::paletteRejectsAnImportHiddenByAParagraphSeparatorInAComment()
+{
+    // U+2029 is the other one, and the lexer treats the two alike.
+    const QmlPalette palette{{QStringLiteral("QtQuick")}};
+    QVERIFY(!palette.isAcceptable(
+        QStringLiteral("import QtQuick\n// a note\u2029import Evil\nItem { }\n"), nullptr));
+}
+
+void tst_RemotePage::paletteRejectsASecondImportAfterALineSeparator()
+{
+    // The same terminator between two statements, with no comment to hide behind.
+    const QmlPalette palette{{QStringLiteral("QtQuick")}};
+    QVERIFY(!palette.isAcceptable(
+        QStringLiteral("import QtQuick\u2028import Evil\nItem { }\n"), nullptr));
+}
+
+void tst_RemotePage::paletteAcceptsAPageWrittenWithLineSeparators()
+{
+    // The other half of the rule: a page that ends its lines with U+2028 and imports
+    // only what the palette declared is an ordinary page.
+    const QmlPalette palette{{QStringLiteral("QtQuick")}};
+    QVERIFY(palette.isAcceptable(
+        QStringLiteral("import QtQuick\u2028Item { }\u2028"), nullptr));
 }
 
 void tst_RemotePage::paletteAllowsAnIdentifierBeginningWithImport()

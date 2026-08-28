@@ -16,6 +16,20 @@ namespace {
 /// bytes are the mark still imports whatever follows it.
 constexpr char16_t ByteOrderMark{0xFEFF};
 
+/// True for the four characters that end a line for QML's lexer.
+///
+/// Four, not two. `QQmlJS::Lexer::isLineTerminator` counts U+2028 LINE SEPARATOR and
+/// U+2029 PARAGRAPH SEPARATOR alongside the two everybody writes, and a scan that knows
+/// only the two everybody writes reads a different file from the one the engine reads.
+/// The reachable case was a line comment: to the engine `// x<U+2028>import Evil` is a
+/// comment and then an import, and to a scan that ends a comment at "\n" it is one comment
+/// with the import inside it, so the import is never looked at and the page is accepted.
+bool endsLine(QChar character)
+{
+    const char16_t code{character.unicode()};
+    return code == u'\n' || code == u'\r' || code == 0x2028 || code == 0x2029;
+}
+
 const QString &importKeyword()
 {
     static const QString keyword{QStringLiteral("import")};
@@ -57,8 +71,7 @@ qsizetype consumeString(const QString &source, qsizetype index, QString *out)
             out->append(quote);
             return scan;
         }
-        if (quote != QLatin1Char('`')
-            && (character == QLatin1Char('\n') || character == QLatin1Char('\r'))) {
+        if (quote != QLatin1Char('`') && endsLine(character)) {
             // Unterminated: only a template literal may hold a line terminator. Close
             // it here and let the terminator be read as one, so a page that ends a
             // string by accident cannot swallow the lines after it.
@@ -77,7 +90,7 @@ qsizetype consumeBlockComment(const QString &source, qsizetype index, QString *o
 {
     for (qsizetype scan{index + 2}; scan < source.size(); ++scan) {
         const QChar character{source.at(scan)};
-        if (character == QLatin1Char('\r') || character == QLatin1Char('\n')) {
+        if (endsLine(character)) {
             if (character == QLatin1Char('\r') && scan + 1 < source.size()
                 && source.at(scan + 1) == QLatin1Char('\n')) {
                 ++scan;
@@ -97,13 +110,15 @@ qsizetype consumeBlockComment(const QString &source, qsizetype index, QString *o
 /// every line terminator the lexer honors written as "\n", and the byte order mark
 /// dropped.
 ///
-/// Normalizing the terminators is not cosmetic. "\r" alone ends a line for the QML
-/// lexer, so a page written "import QtQuick\rimport Evil" is two imports to the
-/// engine; to a scan that splits on "\n" it is one line whose first token is a
-/// module the palette declared, and the second import is never looked at. The same
-/// goes for the byte order mark: the lexer skips it, so a page starting "
-/// import Evil" imports Evil, while a scan that does not skip it sees a line
-/// beginning with no keyword it knows.
+/// Normalizing the terminators is not cosmetic, and there are four of them (endsLine).
+/// "\r" alone ends a line for the QML lexer, so a page written "import
+/// QtQuick\rimport Evil" is two imports to the engine; to a scan that splits on "\n"
+/// it is one line whose first token is a module the palette declared, and the second
+/// import is never looked at. U+2028 and U+2029 end one too, which is what a line
+/// comment can be cut short with. The same goes for the byte order mark: the lexer
+/// skips it, so a page whose first bytes are the mark and then "import Evil" imports
+/// Evil, while a scan that does not skip it sees a line beginning with no keyword it
+/// knows.
 QString stripped(const QString &source)
 {
     QString body;
@@ -114,9 +129,13 @@ QString stripped(const QString &source)
         if (character == QChar{ByteOrderMark}) {
             continue;
         }
-        if (character == QLatin1Char('\r')) {
+        if (endsLine(character)) {
             body.append(QLatin1Char('\n'));
-            if (hasNext && source.at(index + 1) == QLatin1Char('\n')) {
+            // "\r\n" is one terminator, not two, so the pair leaves as one "\n" and a
+            // page authored on Windows is not read as having an empty statement between
+            // every two lines.
+            if (character == QLatin1Char('\r') && hasNext
+                && source.at(index + 1) == QLatin1Char('\n')) {
                 ++index;
             }
             continue;
@@ -131,8 +150,7 @@ QString stripped(const QString &source)
                 // Up to, but not including, the terminator: the loop reads that next
                 // and turns it into the "\n" the statement split needs.
                 qsizetype scan{index + 2};
-                while (scan < source.size() && source.at(scan) != QLatin1Char('\n')
-                       && source.at(scan) != QLatin1Char('\r')) {
+                while (scan < source.size() && !endsLine(source.at(scan))) {
                     ++scan;
                 }
                 index = scan - 1;
