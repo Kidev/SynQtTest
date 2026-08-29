@@ -410,6 +410,16 @@ Notes:
   connect point's position in the sorted list, so a single host project needs no
   `mesh` block at all. A link whose resolved host is not this machine is a cross
   host link, and `mesh.require_mtls_cross_host` governs it.
+- Every address written here is an address and not a name. `mesh.host`,
+  `public.host` and `network.inbound.bind` are read into a `QHostAddress`, which
+  holds an address and resolves nothing, so `db.internal` binds nothing and dials
+  nothing, and so does `localhost`. Write `127.0.0.1` for this machine and
+  `0.0.0.0` for every interface. `synqt check` refuses a name here rather than
+  resolving one, for the reason it refuses one in `trusted_proxies`: resolving
+  would pick one of a name's addresses at build time and bake it in, which is a
+  different deployment from the one that was written down. A provider's own `host`
+  is not one of these: a database is reached through its driver, which does
+  resolve names.
 - A client entity has no mesh section: it never listens and never participates in
   the mesh. It reaches exactly one web edge over wss. Its `targets` select how the
   same QML is packaged: `wasm` for the browser, `desktop` for a native
@@ -1517,6 +1527,10 @@ fast. Non negotiable checks:
 - `transport: local` is never chosen implicitly: it must be written explicitly,
   and `synqt check` flags every local link with a note that the calling entity is
   trusted by colocation on it, not authenticated by certificate.
+- A `mesh.host`, a `public.host`, a `network.inbound.bind` or a connect point's own
+  `host` that is a name rather than an address is rejected, `localhost` included.
+  Each reaches the runtime as a `QHostAddress`, which resolves nothing, so a name
+  binds nothing and dials nothing.
 - An identity provider missing a required `client_secret` is rejected before the
   edge starts, not at first login. A literal one is rejected too: it must be an
   `env:` reference, so the value stays out of `synqt.yaml` and out of the binary.

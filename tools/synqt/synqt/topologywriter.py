@@ -119,6 +119,11 @@ def resolve_endpoints(config: Dict[str, Any], project_name: str) -> Dict[str, Di
 # The wildcards 0.0.0.0 and :: are not on this list. They read like "local"
 # and mean the opposite: an owner bound to one of them is listening on every interface the
 # machine has, which is the most exposed a link can be, not the least.
+#
+# `localhost` is here because it names this machine and this question is only ever "does
+# the link leave it". It is not a mesh host anybody may write: an endpoint is read into a
+# QHostAddress, which resolves no names, and `synqt check` refuses one that is not a
+# literal address (_bind_address_messages) before this is ever asked.
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
 
 
