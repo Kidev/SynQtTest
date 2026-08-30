@@ -17,11 +17,17 @@ QT_END_NAMESPACE
 namespace SynQt {
 
 /// \file
-/// Statement execution and migration logic shared by the external relational providers
-/// (postgres, mysql). Both bind parameters through QSqlQuery::prepare + addBindValue (the
-/// `?` placeholder is portable across Qt SQL drivers), so no provider is ever handed
-/// concatenated SQL. Kept as free functions so the providers stay parallel final classes
-/// rather than sharing a base.
+/// Statement execution and migration logic shared by every relational provider (sqlite,
+/// postgres, mysql). All of them bind parameters through QSqlQuery::prepare +
+/// addBindValue (the `?` placeholder is portable across Qt SQL drivers), so no provider is
+/// ever handed concatenated SQL. Kept as free functions so the providers stay parallel
+/// final classes rather than sharing a base.
+///
+/// sqlite had its own copy of both of these, character for character apart from one line:
+/// its runStatement wrote `lastInsertId()` through whether or not the driver had one to
+/// give, so an UPDATE came back carrying an invalid QVariant where the other two providers
+/// left the field alone. That is the shape of what a second copy costs, and it is why
+/// there is one now.
 
 /// Prepare + bind + run one statement. collectRows gathers a column-name map per row for a
 /// SELECT; otherwise it reports affected rows and the last insert id. Errors are returned in

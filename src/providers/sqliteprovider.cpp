@@ -3,50 +3,18 @@
 
 #include "sqliteprovider.h"
 
+#include "sqlsupport.h"
+
 #include <QSqlError>
 #include <QSqlQuery>
-#include <QSqlRecord>
 #include <QStringList>
 #include <QUuid>
-#include <QVariantMap>
 
 #include <utility>
 
 namespace SynQt {
 
 namespace {
-
-DbResult runStatement(QSqlDatabase &db, const QString &sql, const QVariantList &params,
-                      bool collectRows)
-{
-    QSqlQuery statement{db};
-    if (!statement.prepare(sql)) {
-        return DbResult::failure(statement.lastError().text());
-    }
-    for (const QVariant &value : params) {
-        statement.addBindValue(value);  // bound, never concatenated -> injection-safe
-    }
-    if (!statement.exec()) {
-        return DbResult::failure(statement.lastError().text());
-    }
-
-    DbResult result;
-    result.ok = true;
-    if (collectRows) {
-        while (statement.next()) {
-            const QSqlRecord record{statement.record()};
-            QVariantMap row;
-            for (int column{0}; column < record.count(); ++column) {
-                row.insert(record.fieldName(column), statement.value(column));
-            }
-            result.rows.append(row);
-        }
-    } else {
-        result.affected = statement.numRowsAffected();
-        result.insertId = statement.lastInsertId();
-    }
-    return result;
-}
 
 /// The journal mode to ask SQLite for, given what the topology asked for.
 ///
@@ -188,50 +156,7 @@ bool SqliteProvider::rollback(QString *error)
 
 bool SqliteProvider::migrate(const QStringList &steps, QString *error)
 {
-    const DbResult versionResult{
-        runStatement(m_db, QStringLiteral("SELECT version FROM synqt_migrations"), {}, true)};
-    if (!versionResult.ok) {
-        if (error) {
-            *error = versionResult.error;
-        }
-        return false;
-    }
-    int applied{0};
-    if (!versionResult.rows.isEmpty()) {
-        applied = versionResult.rows.first().toMap().value(QStringLiteral("version")).toInt();
-    }
-
-    if (applied >= steps.size()) {
-        return true;  // nothing new to apply; re-running migrate is a no-op
-    }
-    if (!m_db.transaction()) {
-        if (error) {
-            *error = m_db.lastError().text();
-        }
-        return false;
-    }
-    for (int step{applied}; step < steps.size(); ++step) {
-        const DbResult stepResult{runStatement(m_db, steps.at(step), {}, false)};
-        if (!stepResult.ok) {
-            m_db.rollback();
-            if (error) {
-                *error = QStringLiteral("migration step %1 failed: %2")
-                             .arg(step + 1)
-                             .arg(stepResult.error);
-            }
-            return false;
-        }
-    }
-    runStatement(m_db, QStringLiteral("DELETE FROM synqt_migrations"), {}, false);
-    runStatement(m_db, QStringLiteral("INSERT INTO synqt_migrations(version) VALUES(?)"),
-                 {steps.size()}, false);
-    if (!m_db.commit()) {
-        if (error) {
-            *error = m_db.lastError().text();
-        }
-        return false;
-    }
-    return true;
+    return applyMigrations(m_db, steps, error);
 }
 
 } // namespace SynQt
