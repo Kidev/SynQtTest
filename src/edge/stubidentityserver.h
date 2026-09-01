@@ -55,6 +55,15 @@ public:
     /// already refuses to run); it only lets the fake misbehave the way a real one can.
     void omitIdTokenClaim(const QString &claim);
 
+    /// Answer a refresh without naming how long the new token lasts.
+    ///
+    /// The same idea as omitIdTokenClaim, for the other half of what a provider answers.
+    /// `expires_in` is RECOMMENDED and not REQUIRED by RFC 6749 section 5.1, so a provider
+    /// that leaves it out is conforming, and what the edge does with an entry whose expiry
+    /// nobody named is worth being able to drive. Only the refresh answer, because the
+    /// exchange answer is what a test needs in order to get a first sweep at all.
+    void setRefreshOmitsExpiry(bool omits);
+
     bool start(quint16 port = 0);
     quint16 port() const;
     QString baseUrl() const;                  // http://127.0.0.1:<port>
@@ -90,6 +99,8 @@ private:
     QString m_kid;
     /// Claims left out of a signed ID token, so the fake can misbehave (omitIdTokenClaim).
     QSet<QString> m_omittedClaims;
+    /// Whether a refresh answer names a lifetime (setRefreshOmitsExpiry).
+    bool m_refreshOmitsExpiry{false};
     QString m_jwkModulus;  ///< base64url
     QString m_jwkExponent; ///< base64url
 };
