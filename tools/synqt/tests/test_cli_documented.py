@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux
 # SPDX-License-Identifier: Apache-2.0
 
-"""Every subcommand the CLI has appears in the CLI reference, and nothing else does.
+"""Every subcommand and option the CLI has appears in the CLI reference, and nothing else
+does.
 
 Written after `docs/build-system-and-cli.md` spent a long time describing a `synqt new`
 that "asks a short, security relevant set of questions" and a getting-started page that
@@ -11,6 +12,11 @@ parser is the only way this stays true, so the page is checked against
 
 The reverse direction matters as much: a command in the docs that no longer exists sends
 a reader to a command that errors out, which is worse than an undocumented one.
+
+Options are held to the same rule, and for a plainer reason: four of them were reachable
+and written down nowhere, so the only way to find `synqt docker up --no-build` was to run
+`--help` or read the parser. A flag that exists and is undocumented is a feature nobody
+can use.
 """
 
 import re
@@ -39,6 +45,27 @@ def _parser_subcommands():
                     continue
                 for child in nested.choices:
                     found.add(f"{name} {child}")
+    return found
+
+
+def _parser_options():
+    """Every long option the parser accepts, anywhere, with where it lives.
+
+    `--help` is argparse's own and is on every parser; nobody documents it per command.
+    """
+    found = {}
+
+    def walk(parser, prefix=""):
+        for action in parser._actions:
+            if action.__class__.__name__ == "_SubParsersAction":
+                for name, sub in action.choices.items():
+                    walk(sub, f"{prefix} {name}".strip())
+                continue
+            for option in action.option_strings:
+                if option.startswith("--") and option != "--help":
+                    found.setdefault(option, set()).add(prefix or "synqt")
+
+    walk(cli.build_parser())
     return found
 
 
@@ -85,6 +112,19 @@ class CliReferenceTest(unittest.TestCase):
         # The command block delegates it, so check the page carries the real names.
         for child in sorted(c for c in self.real if c.startswith("mesh ")):
             self.assertIn(f"synqt {child}", self.text)
+
+    def test_every_option_is_documented(self):
+        """A flag the parser accepts is a flag the reference names.
+
+        Anywhere on the page, not only in the command block: several are explained in the
+        prose under the section they belong to, which is the right place for one that
+        needs a sentence.
+        """
+        undocumented = sorted(option for option in _parser_options()
+                              if option not in self.text)
+        self.assertFalse(
+            undocumented,
+            f"accepted by the CLI and undocumented in {DOCS.name}: {undocumented}")
 
     def test_the_page_does_not_claim_the_cli_prompts_outside_create(self):
         # `synqt create` is the only command that reads the terminal. Any other claim of
