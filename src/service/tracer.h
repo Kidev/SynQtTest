@@ -10,6 +10,7 @@
 
 #include <QMutex>
 #include <QObject>
+#include <QStringList>
 
 #include <atomic>
 #include <functional>
@@ -50,6 +51,30 @@ public:
     static constexpr int MaxMessageChars{512};
     static constexpr int MaxAttributeChars{512};
     static constexpr int MaxAttributes{32};
+
+    /// Whether an attribute of this name has its value replaced before the event is
+    /// recorded (isSecretAttributeName), rather than the value itself.
+    ///
+    /// A backstop, and only a backstop. The property the framework keeps is a property of
+    /// its call sites: a session is recorded as the SHA-256 handle `Caller.session.key`
+    /// and never as the credential, a refused upgrade records the reason and the peer and
+    /// never the cookie it was refused for, a mesh peer is recorded by its verified
+    /// certificate subject, and tokens and private key material reach no trace call at
+    /// all. This catches what that discipline does not cover: an application's own
+    /// `Log.warn("refused", {authorization: header})`, and a call site added later that
+    /// nobody read as closely.
+    ///
+    /// Matched on the name, case-insensitively, as a substring, so one entry covers the
+    /// family: `token` catches `access_token`, `refreshToken` and `authToken`; `cookie`
+    /// catches `set-cookie`. The value is not looked at, because a filter that reads
+    /// values guesses, and a filter that guesses misses and then reads as a guarantee.
+    /// Nor is the message, which is prose an operator wrote and searches on.
+    static const QStringList &secretAttributeNames();
+    static bool isSecretAttributeName(const QString &name);
+
+    /// What a redacted value is recorded as. The key stays, so the record says a value
+    /// was held back rather than looking as though there was none.
+    static QString redacted();
 
     explicit Tracer(QObject *parent = nullptr);
     ~Tracer() override;
@@ -124,6 +149,7 @@ private:
     void wake();
     void deliver();
     static void bound(TraceEvent &event);
+    static void redact(TraceEvent &event);
     void applyLevels();
 
     /// The severity stored for a category that is switched off. Above `Severity::Fatal`,
