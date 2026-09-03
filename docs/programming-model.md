@@ -380,8 +380,10 @@ Two things follow from that:
 - **On a shared entity, `Caller` is whoever is calling right now.** Read it in the slot.
   If the work finishes on a later turn, keep what you need in a local first
   (`const who = Caller.session`), because the object itself will have moved on to the next
-  caller. On an entity that is not shared there is a Source per caller and its `Caller`
-  never changes.
+  caller. A binding is the one thing that does not need the local: `Caller`'s properties
+  say when they move, so `text: Caller.identity.name` follows the caller being served
+  rather than freezing on the first one. On an entity that is not shared there is a Source
+  per caller and its `Caller` never changes.
 
 A Source holds live state rather than storage, whichever answer you give. A per-caller
 Source lasts as long as that caller has at least one link open and is gone once they all
