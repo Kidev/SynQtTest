@@ -268,10 +268,32 @@ QJsonObject otlpTracesRequest(const QList<TraceEvent> &events)
     return request;
 }
 
+bool isExportableCollector(const QUrl &endpoint)
+{
+    if (endpoint.scheme() == QLatin1String("https")) {
+        return true;
+    }
+    const QString host{endpoint.host()};
+    return endpoint.scheme() == QLatin1String("http")
+        && (host == QLatin1String("localhost") || host == QLatin1String("127.0.0.1")
+            || host == QLatin1String("::1"));
+}
+
 OtlpExporter::OtlpExporter(const OtlpSettings &settings)
     : m_settings{settings}
+    , m_refused{settings.endpoint.isValid() && !isExportableCollector(settings.endpoint)}
 {
     m_network.setTransferTimeout(qMax(1, m_settings.timeoutMs));
+    if (m_refused) {
+        // Said once, at startup, and not once per batch: a monitor that repeats itself
+        // every two hundred milliseconds is a second incident. The events are still kept
+        // and still served to the console; it is the cold tier that is switched off, and
+        // dropped() is where that shows up in the monitor's own accounting.
+        qCritical("SynQt: refusing to export to '%s': OTLP over plaintext http to a host "
+                  "that is not this one puts every event and the collector's API key on "
+                  "the network in the clear. Use https, or a collector on localhost.",
+                  qUtf8Printable(m_settings.endpoint.toString()));
+    }
 }
 
 OtlpExporter::~OtlpExporter() = default;
@@ -314,9 +336,18 @@ qint64 OtlpExporter::dropped() const
     return m_dropped;
 }
 
+bool OtlpExporter::isRefused() const
+{
+    return m_refused;
+}
+
 void OtlpExporter::take(const QList<TraceEvent> &events)
 {
     if (events.isEmpty() || !m_settings.endpoint.isValid()) {
+        return;
+    }
+    if (m_refused) {
+        m_dropped += events.size();
         return;
     }
     qint64 logs{0};

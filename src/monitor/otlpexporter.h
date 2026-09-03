@@ -44,6 +44,21 @@ QJsonObject otlpTracesRequest(const QList<TraceEvent> &events);
 /// filters work without a mapping nobody wrote down.
 int otlpSeverityNumber(Severity severity);
 
+/// Whether this collector may be spoken to at all.
+///
+/// A batch on its way to a collector is the whole record of what an entity did: who called
+/// which member, which upgrades were refused and for what, which peer connected. The
+/// request carrying it also carries the collector's API key. Over http to another machine
+/// that is a plaintext feed of the system's security events, readable and forgeable by
+/// anyone on the path, so it is refused here for the same reason `Http` refuses a plaintext
+/// outbound call and a provider refuses an unverified engine link.
+///
+/// https anywhere, and http only to this machine. A collector on localhost or in the same
+/// pod is the ordinary deployment (the OpenTelemetry Collector's own agent pattern), and
+/// that traffic never reaches a network. `synqt check` reports the same rule before
+/// anything runs, and refuses it outright for a release build.
+bool isExportableCollector(const QUrl &endpoint);
+
 /// Ship the same events to an OpenTelemetry collector, over HTTP with JSON encoding.
 ///
 /// JSON rather than protobuf on purpose. It is a supported OTLP encoding, every collector
@@ -72,10 +87,16 @@ public:
     /// credential, so it lives where every other credential in SynQt lives.
     static QHash<QString, QString> headersFromEnvironment();
 
+    /// Whether the configured endpoint was refused (isExportableCollector). A refused
+    /// exporter posts nothing and counts every event it is handed as dropped, so the
+    /// accounting says the collector is not being fed rather than implying it is.
+    bool isRefused() const;
+
 private:
     void post(const QString &signalPath, const QJsonObject &body, qint64 count);
 
     OtlpSettings m_settings;
+    bool m_refused{false};
     QNetworkAccessManager m_network;
     int m_inFlight{0};
     qint64 m_exported{0};

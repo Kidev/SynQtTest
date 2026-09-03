@@ -182,6 +182,16 @@ queues without a bound: past `max_in_flight` requests a batch is dropped and cou
 because an exporter buffering in front of a collector that stopped answering is how a
 monitoring tool takes the machine down with the thing it was watching.
 
+`endpoint` is https, or http to this machine. A batch is the whole record of what the
+system did: who called which member, which upgrades were refused and why, which peer
+connected. The request carrying it also carries the API key above. Sending that over
+plaintext http to another host puts the security record of the system, and the credential
+for the collector holding it, on the network in the clear, so the exporter refuses the
+endpoint outright and says so once at startup rather than every batch. A collector on
+localhost or in the same pod is the ordinary deployment and is not refused, because that
+traffic never reaches a network. `synqt check` reports the same rule before anything runs,
+and `synqt build --release` refuses it.
+
 ## The console
 
 The console is a separate client, built separately, delivered separately, and it reads a

@@ -21,10 +21,10 @@ def _config(export=None):
     }
 
 
-def _monitor_findings(export):
+def _monitor_findings(export, release=False):
     config = _config(export)
     entities = {entity["name"]: entity for entity in config["entities"]}
-    return check._monitor_entity_messages(config, entities)
+    return check._monitor_entity_messages(config, entities, release)
 
 
 def test_a_monitor_with_no_export_block_is_the_normal_case():
@@ -63,6 +63,22 @@ def test_plaintext_to_a_collector_on_this_machine_is_not():
     # It never leaves the machine, and this is the ordinary deployment.
     assert _monitor_findings({"otlp": {"endpoint": "http://127.0.0.1:4318"}}) == []
     assert _monitor_findings({"otlp": {"endpoint": "http://localhost:4318"}}) == []
+
+
+def test_a_release_build_refuses_plaintext_to_a_remote_collector():
+    # The runtime refuses this endpoint outright, so a release build that shipped it would
+    # export nothing and say so only in its own drop counter. Refused at the build instead.
+    findings = _monitor_findings({"otlp": {"endpoint": "http://collector.internal:4318"}},
+                                 release=True)
+    assert len(findings) == 1
+    assert findings[0].startswith("error:")
+
+
+def test_a_release_build_still_allows_https_and_this_machine():
+    assert _monitor_findings({"otlp": {"endpoint": "https://api.honeycomb.io"}},
+                             release=True) == []
+    assert _monitor_findings({"otlp": {"endpoint": "http://127.0.0.1:4318"}},
+                             release=True) == []
 
 
 def test_a_jsonl_file_with_no_cap_is_warned_about():
