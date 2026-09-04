@@ -8,6 +8,7 @@
 #include <QJsonObject>
 #include <QSslCertificate>
 #include <QSslKey>
+#include <QSslSocket>
 
 namespace SynQt {
 
@@ -168,6 +169,26 @@ QByteArray pemBytes(const QString &path, const char *what)
     return file.readAll();
 }
 
+/// What to call \a algorithm in a sentence an operator reads.
+QString algorithmName(QSsl::KeyAlgorithm algorithm)
+{
+    switch (algorithm) {
+    case QSsl::Rsa:
+        return QStringLiteral("an RSA");
+    case QSsl::Dsa:
+        return QStringLiteral("a DSA");
+    case QSsl::Ec:
+        return QStringLiteral("an elliptic-curve");
+    case QSsl::Dh:
+        return QStringLiteral("a Diffie-Hellman");
+    case QSsl::MlDsa:
+        return QStringLiteral("an ML-DSA");
+    case QSsl::Opaque:
+        break;
+    }
+    return QStringLiteral("this");
+}
+
 } // namespace
 
 QSslCertificate loadCertificate(const QString &path)
@@ -193,7 +214,8 @@ QSslKey loadPrivateKey(const QString &path)
     // is handed and returns a null key for anything else. Asking only for RSA meant an EC
     // key, which is what an ACME client asked for `--key-type ecdsa` writes, loaded as
     // nothing at all and the surface it belonged to listened with no key.
-    for (const QSsl::KeyAlgorithm algorithm : {QSsl::Rsa, QSsl::Ec, QSsl::Dsa, QSsl::Dh}) {
+    for (const QSsl::KeyAlgorithm algorithm :
+         {QSsl::Rsa, QSsl::Ec, QSsl::Dsa, QSsl::Dh, QSsl::MlDsa}) {
         const QSslKey key{pem, algorithm, QSsl::Pem, QSsl::PrivateKey};
         if (!key.isNull()) {
             return key;
@@ -203,6 +225,30 @@ QSslKey loadPrivateKey(const QString &path)
              "to be decrypted before an entity is given it, and a key of an algorithm this "
              "Qt was built without cannot be read at all.", qUtf8Printable(path));
     return QSslKey{};
+}
+
+QString unusableKeyReason(const QSslKey &key)
+{
+    if (key.isNull()) {
+        return QStringLiteral("there is no key to present");
+    }
+    // What the PKCS#12 builder every non-OpenSSL backend goes through can write. Named
+    // here as the whole rule, because Qt exposes no way to ask a backend what it accepts:
+    // QSslSocket reports the classes a backend implements, not the key algorithms it can
+    // carry, so the pair below is read off qtbase's builder rather than queried.
+    if (key.algorithm() == QSsl::Rsa || key.algorithm() == QSsl::Dsa) {
+        return QString{};
+    }
+    const QString backend{QSslSocket::activeBackend()};
+    if (backend == QLatin1String("openssl")) {
+        return QString{};
+    }
+    // The article is part of the name, since "an RSA" and "a DSA" do not share one.
+    return QStringLiteral("%1 key cannot be presented by the %2 TLS backend this build "
+                          "runs on, which carries an RSA or DSA key only; reissue the "
+                          "certificate with an RSA key (certbot --key-type rsa) or run "
+                          "against a Qt built with OpenSSL")
+        .arg(algorithmName(key.algorithm()), backend);
 }
 
 } // namespace SynQt

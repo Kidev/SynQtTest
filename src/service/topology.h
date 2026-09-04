@@ -166,6 +166,20 @@ QSslCertificate loadCertificate(const QString &path);
 /// documentation promises SynQt has no opinion about where a certificate comes from.
 QSslKey loadPrivateKey(const QString &path);
 
+/// Why the TLS backend this build runs on cannot present \a key, or an empty string when
+/// it can. Reading the key is not the whole question: the backend has to be able to hand
+/// it to the platform as well.
+///
+/// Only the OpenSSL backend passes the key through as it was read. Every other Qt TLS
+/// backend has no key API of its own, so it converts the certificate and the key into a
+/// PKCS#12 blob for the platform to import (Secure Transport on macOS through
+/// SecPKCS12Import, Schannel on Windows through PFXImportCertStore), and qtbase's builder
+/// for that blob writes an algorithm identifier for RSA and DSA and for nothing else. An
+/// EC key goes in with a malformed AlgorithmIdentifier, the import fails, the socket is
+/// left with no identity, and the surface listens and fails every handshake. Which is the
+/// state loadPrivateKey() was taught to refuse, arrived at by a different road.
+QString unusableKeyReason(const QSslKey &key);
+
 } // namespace SynQt
 
 #endif // SYNQT_TOPOLOGY_H

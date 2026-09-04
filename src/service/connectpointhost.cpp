@@ -210,6 +210,17 @@ bool ConnectPointHost::start()
                                      m_credentials.certPath, m_credentials.keyPath);
             return false;
         }
+        // And the same second question as on the public surfaces: a key that was read is
+        // not necessarily one this build's TLS backend can present (see
+        // unusableKeyReason). A mesh owner that cannot present its own certificate is one
+        // no consumer can complete a handshake with.
+        const QString unusable{unusableKeyReason(key)};
+        if (!unusable.isEmpty()) {
+            m_errorString = QStringLiteral("connect point %1 cannot present the key at %2: "
+                                           "%3")
+                                .arg(m_config.name, m_credentials.keyPath, unusable);
+            return false;
+        }
         if (!m_server->listenMutualTls(QHostAddress{m_config.endpoint.host},
                                        m_config.endpoint.port, ca, cert, key)) {
             m_errorString = m_server->errorString();

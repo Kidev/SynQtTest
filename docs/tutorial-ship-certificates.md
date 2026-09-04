@@ -95,7 +95,9 @@ that produces a full chain and a private key. SynQt has no opinion and no integr
 here on purpose: certificate renewal is an operational concern with good tools already.
 Two things about the files themselves: PEM, and an RSA or elliptic-curve key that is not
 encrypted, because nothing is there to type a passphrase into. An edge handed a pair it
-cannot read says so and does not start.
+cannot read says so and does not start. The same goes for a key its Qt cannot present:
+an elliptic-curve key needs the OpenSSL TLS backend, so if you run the edge on macOS,
+where Qt uses Secure Transport instead, ask for an RSA key (`certbot --key-type rsa`).
 
 Put the two files where `synqt.production.yaml` says they are:
 

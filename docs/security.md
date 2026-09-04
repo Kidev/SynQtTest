@@ -723,7 +723,13 @@ Browser link:
   `public.tls_terminated_upstream` is refused by `synqt check`, and an edge that carries
   them and cannot read them refuses to start rather than listening on a port whose
   handshake can never complete. The key may be RSA or elliptic curve; it may not be
-  encrypted, since nothing is there to type a passphrase into.
+  encrypted, since nothing is there to type a passphrase into. An elliptic-curve key
+  needs a Qt whose TLS backend is OpenSSL, which is what a Linux build uses. The
+  backends that have no key API of their own (Secure Transport on macOS, Schannel on a
+  Windows build with no OpenSSL beside it) hand the pair to the platform as a PKCS#12
+  blob that Qt writes for RSA and DSA only, so an edge running on one of those refuses
+  an elliptic-curve key at startup and names it rather than listening with an identity
+  the handshake never gets.
 - No `origin_model` declared unless a split origin deployment was chosen deliberately;
   `allowed_origins` lists exactly the origins that may open the sync connection.
 - The session is the httpOnly Secure cookie. There is no alternative transport: the
