@@ -31,9 +31,9 @@ that run:
 
 | variant      | raw bytes  | gzip bytes | Brotli bytes |
 | ------------ | ---------- | ---------- | ------------ |
-| remote       | 26092721   | 9581701    | 6746398      |
-| compiled-in  | 26108258   | 9584939    | 6749377      |
-| **saving**   | **15537**  | **3238**   | **2979**     |
+| remote       | 26137545   | 9597540    | 6755645      |
+| compiled-in  | 26153020   | 9603525    | 6758900      |
+| **saving**   | **15475**  | **5985**   | **3255**     |
 
 ## This is a measurement, not a claim
 
