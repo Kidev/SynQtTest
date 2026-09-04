@@ -1006,8 +1006,11 @@ before there is an OAuth app to register. Both keys are optional (`dev_stub: tru
 the defaults) and the provider entry it produces is written by the framework rather than
 by the project. Every part of the login except the provider is the one that ships, and a
 `users` entry names an identity rather than a scope, so what each of them becomes is the
-mapping hook's answer. It is gated three ways and cannot run in a built deployment;
-`synqt check --release` says a project carries one rather than refusing it.
+mapping hook's answer. `synqt check` refuses a `users` entry with no `sub` (a mapping hook
+keys on it, so that entry would land on the default scope and look broken), a field the
+identity object does not have, and a `port` another entity already serves on. It is gated
+three ways and cannot run in a built deployment; `synqt check --release` says a project
+carries one rather than refusing it.
 
 `refresh` times the server side access token renewal described in
 [authentication](authentication.md#session-lifecycle). The values above are the

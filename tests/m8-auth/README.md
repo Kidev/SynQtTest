@@ -46,6 +46,14 @@ browser only ever ends with an httpOnly session cookie.
    page rather than a redirect, and picking the second one yields tokens whose ID-token
    claims and `/userinfo` body are that person's.
 7. oneDevUserIsSignedInWithoutBeingAsked: with one, `/authorize` redirects straight back.
+8. anAuthorizationRequestCarriesOneNonce: exactly one `nonce` leaves the edge, and it is
+   the framework's own. Qt adds one whenever the scope contains `openid`, so a second one
+   beside it made the request carry the parameter twice with two different values, which
+   RFC 6749 section 3.1 forbids and a strict provider answers with `invalid_request`.
+8. anAuthorizationRequestCarriesOneNonce: exactly one `nonce` leaves the edge, and it is
+   the framework's own. Qt adds one whenever the scope contains `openid`, so a second one
+   beside it made the request carry the parameter twice with two different values, which
+   RFC 6749 section 3.1 forbids and a strict provider answers with `invalid_request`.
 
 ## The desktop half (`tst_desktop.cpp`)
 
