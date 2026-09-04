@@ -102,9 +102,10 @@ You land on `/`, the `router.fallback`. Two separate things refused you:
 The path you were refused is remembered, in `sessionStorage`, per tab, and without its query
 string. Give the session the `user` scope, and the router replays it: you end up on
 `/members`, not on the home page wondering what happened. In the auction that scope comes
-from [signing in with a real provider](tutorial-sign-in.md); under `synqt dev` the
-[stub identity provider](build-system-and-cli.md#the-development-environment-synqt-dev)
-can mint one at any scope for testing, and it is gated so it can never ship.
+from [signing in with a real provider](tutorial-sign-in.md); before there is one to
+register, the [development sign-in](authentication.md#the-development-sign-in) hands you
+whichever of the configured people your mapping hook raises, and it is gated three ways
+so it can never ship.
 
 > [!IMPORTANT]
 > The router's half of that is a redirect rule, not a secret. Every compiled-in view's QML

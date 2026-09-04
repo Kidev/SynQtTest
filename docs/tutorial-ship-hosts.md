@@ -150,8 +150,9 @@ the site. Take a bid. Close a lot and confirm the Hall of Fame remembers it.
 
 Two things `synqt serve` is not. It does **not supervise**: it will not restart an entity
 that dies, which is why the next step exists. And it passes **no `--dev` flag** to
-anything, which is what keeps the development stub identity provider out of a running
-deployment. Use it to bring a staging box up by hand and to answer "does this tree work
+anything, which is what keeps the development sign-in and the plaintext localhost link
+out of a running deployment. Use it to bring a staging box up by hand and to answer
+"does this tree work
 at all"; use a process manager for anything that has to stay up.
 
 ## Step 5: Keep it alive

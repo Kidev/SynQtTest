@@ -974,6 +974,11 @@ identity:
   mapping:
     hook: web/edge/identity/map.qml    # optional QML returning a scope for an identity
 
+  dev_stub:                       # the development sign-in; `synqt dev` only
+    port: 8789                    # loopback, and not a port another entity serves on
+    users:                        # identities, not scopes: the mapping hook decides those
+      - { sub: dev, login: dev, name: Developer, email: dev@localhost }
+
   desktop_session: memory         # or `device`: a native client stays signed in between
                                   # launches, through the OS secure store
   device:                         # read only under `desktop_session: device`
@@ -994,6 +999,15 @@ other name needs its endpoints written, because there is nothing to fill in.
 
 `mapping` accepts either the nested `hook:` above or the file directly
 (`mapping: web/edge/identity/map.qml`); both name the same QML.
+
+`dev_stub` turns on the [development sign-in](authentication.md#the-development-sign-in),
+a provider that runs inside the edge on loopback so a scope-gated route can be exercised
+before there is an OAuth app to register. Both keys are optional (`dev_stub: true` takes
+the defaults) and the provider entry it produces is written by the framework rather than
+by the project. Every part of the login except the provider is the one that ships, and a
+`users` entry names an identity rather than a scope, so what each of them becomes is the
+mapping hook's answer. It is gated three ways and cannot run in a built deployment;
+`synqt check --release` says a project carries one rather than refusing it.
 
 `refresh` times the server side access token renewal described in
 [authentication](authentication.md#session-lifecycle). The values above are the

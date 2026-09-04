@@ -93,6 +93,21 @@ second half of that pairing is what keeps the check honest: without it, a genera
 simply dropped the provider would pass the first half, and that is a broken login rather
 than a secure one.
 
+The same fixture carries the [development sign-in](../../docs/authentication.md), because
+the promotion is the arrangement it has the most to prove itself against: the server runs
+inside the edge and the entity that dials it is a different process, with nothing between
+them to agree through. The phase asks the edge for that login too and follows the redirect
+to the stub, which must answer with the chooser naming both configured people.
+
+```
+dev login -> 302 http://127.0.0.1:8789/authorize?...&code_challenge=...&state=...
+```
+
+That is also where the `--dev` on the auth entity's own command line comes from, and it is
+not incidental: the promotion moves the token exchange there, so that process is the one
+that decides whether a provider entry may be spoken to. Started without it, as `synqt
+serve` and every deployment start it, the edge answers this login with 403.
+
 Two things about the phase itself are worth knowing, because both silently produce a green
 run that proves nothing. The binary search counts matches instead of using `grep -q`: the
 script runs under `set -o pipefail`, and `strings | grep -q` reports failure when grep exits

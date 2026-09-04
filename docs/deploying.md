@@ -203,8 +203,9 @@ synqt serve --profile production
 not supervise: it will not restart an entity that dies. Use it to bring a staging box up
 by hand; use systemd, an orchestrator, or your process manager of choice for anything
 that has to stay up, with `process-manifest.json` as its input. Note that `synqt serve`
-passes no `--dev` flag to anything, which is what keeps the development stub identity
-provider out of a running deployment.
+passes no `--dev` flag to anything, which is what keeps the
+[development sign-in](authentication.md#the-development-sign-in) and the plaintext
+localhost link out of a running deployment.
 
 ## 7. The public edge
 
