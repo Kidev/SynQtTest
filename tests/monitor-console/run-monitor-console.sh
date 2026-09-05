@@ -35,7 +35,7 @@ echo "== [2/4] build the monitor and the reporting edge (host kit) =="
 cmake -S "$WORK/project" -B "$WORK/native" -G Ninja \
     -DCMAKE_PREFIX_PATH="$QT_HOST" \
     -DSYNQT_ROOT="$REPO_ROOT" \
-    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "$WORK/native"
 
 for entity in ops web; do
@@ -63,7 +63,7 @@ fi
 echo
 echo "== [3/4] build the console for the browser (WebAssembly kit) =="
 "$QT_WASM/bin/qt-cmake" -S "$WORK/project" -B "$WORK/wasm" -G Ninja \
-    -DSYNQT_ROOT="$REPO_ROOT" -DCMAKE_BUILD_TYPE=Release
+    -DSYNQT_ROOT="$REPO_ROOT" -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "$WORK/wasm"
 
 # The bundle the operator scope is served: only the console's own files, in a directory of
