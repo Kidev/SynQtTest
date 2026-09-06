@@ -36,7 +36,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from . import (appmodel, authentity, cmakegen, contractgen, graphics as graphicsmod,
-               maingen, qmlrewrite, writer)
+               maingen, qmlrewrite, scopegen, writer)
 
 
 def generate(project_dir: os.PathLike[str] | str, config: Dict[str, Any], *,
@@ -140,6 +140,23 @@ def generate(project_dir: os.PathLike[str] | str, config: Dict[str, Any], *,
             source_qml = authentity.render_source_qml(connect_point.get("contract", ""))
             writer.write_if_changed(root / relative, source_qml)
             written.append(relative)
+
+    # The scope vocabulary, as an enum, beside the mapping hook so the hook needs no import
+    # to reach it: a QML component resolves an unqualified type against its own directory
+    # first. Only for a project that has a hook, because a project with no sign-in declares
+    # no scopes and has nothing to name.
+    hook = appmodel.identity_mapping_hook(config)
+    if hook:
+        # Under generated/, beside the *mirrored* hook rather than the authored one, because
+        # generated/ is the tree the engine loads: a Scope.qml in the author's folder would
+        # sit next to a file nothing runs. mirrored_path is what decides that for the hook,
+        # so it decides it here too rather than this pass spelling the prefix itself.
+        relative = qmlrewrite.mirrored_path(scopegen.scope_qml_path(hook))
+        scope_file = root / relative
+        scope_file.parent.mkdir(parents=True, exist_ok=True)
+        writer.write_if_changed(scope_file, scopegen.render_scope_qml(
+            appmodel.scope_vocab(config)))
+        written.append(relative)
 
     # Last, because it mirrors what is in the entity folders and the loop above just wrote
     # the auth entity's Sources into one of them. This is the tree every engine loads from,
