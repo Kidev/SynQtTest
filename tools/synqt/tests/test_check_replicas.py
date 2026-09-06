@@ -41,6 +41,7 @@ def replicated(count=4, **edge_keys):
         # See test_device_session.base_config: a login needs a declared vocabulary.
         "scopes": {"order": ["anonymous", "user"]},
         "identity": {"provider_entity": "auth",
+                     "mapping": {"hook": "web/identity/map.qml"},
                      "providers": [{"name": "github", "client_id": "x",
                                     "client_secret": "env:GITHUB_CLIENT_SECRET"}]},
     }

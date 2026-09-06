@@ -38,6 +38,7 @@ def base_config(**identity):
         "scopes": {"order": ["anonymous", "user"]},
         "identity": {
             "providers": [{"name": "github", "client_id": "id", "client_secret": "env:S"}],
+            "mapping": {"hook": "web/identity/map.qml"},
         },
     }
     config["identity"].update(identity)
