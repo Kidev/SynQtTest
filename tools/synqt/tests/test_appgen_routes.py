@@ -22,6 +22,18 @@ def test_route_carries_a_component_url():
     assert 'qrc:/qt/qml/Shop/Cart.qml' in source
 
 
+def test_the_client_carries_its_tab_nonce_onto_the_sync_url():
+    # The upgrade is a separate request and the browser sends every cookie for the host on
+    # it, so without the nonce there the edge reads the shared session on the socket while
+    # the page reads this tab's: a per-tab session that works for everything except the one
+    # link it exists for.
+    source = maingen.render_client_main({"name": "shop"}, uri="Shop")
+    assert "QString tabNonce()" in source
+    assert 'query.addQueryItem(QStringLiteral("s"), nonce)' in source
+    # And it is read from the page the browser is on, not invented.
+    assert 'location["search"]' in source
+
+
 def test_view_name_without_extension_still_resolves():
     config = {"name": "shop", "routes": [{"path": "/", "view": "Main"}]}
     source = maingen.render_client_main(config, uri="Shop")
