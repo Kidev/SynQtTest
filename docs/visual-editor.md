@@ -204,6 +204,27 @@ however many times the pointer moved, and typing into a file is one step for tha
 than one per letter. With the caret in the file pane those keys are the pane's own undo, over
 the text.
 
+## The scopes a project declares
+
+With nothing picked, the panel is the project's scope vocabulary: one row per scope, typed
+in place to rename it, the two arrows to move it, and an adder under the list. It lives
+there because a scope belongs to no entity and no link, and every gate in every other panel
+chooses from this list.
+
+The order matters twice. It is the authority ranking under `scopes.hierarchical`, so a
+scope satisfies every scope below it. And it is what the mapping hook's generated
+`Scope.Value` enum counts from, so moving a row renumbers the vocabulary and every hook is
+regenerated against the new numbers (see
+[the identity mapping hook](authentication.md#the-identity-mapping-hook)). The first scope is
+what a caller with no session holds.
+
+Renaming carries the name everywhere it is used, in the same edit: the gate on a connect
+point, the gate on one member of its contract, which entity a front hands each scope to,
+which bundle an edge serves each scope, and the member the mapping hook answers with. That
+last one is a file the drawing does not hold, so it is rewritten when the change set is
+applied, and it appears there as a change of its own. A scope that is still named somewhere
+cannot be removed, and the remover says where it is still named.
+
 ## The same project as text
 
 The pane under the canvas is the project this drawing is, open from the start: `synqt.yaml`,
