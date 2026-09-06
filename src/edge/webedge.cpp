@@ -1028,6 +1028,11 @@ bool WebEdge::start()
         // route rate-limits on it exactly as the upgrade verifier caps on it, and two
         // answers to that question is how one of them ends up being the balancer's.
         m_identity->setClientAddress(&m_clientAddress);
+        // The project's declared scopes, so the mapping hook's answer can be resolved as an
+        // index into them. One list, the edge's own: the bundle gate, the connect-point gate
+        // and the login all rank scopes against `m_config.scopeOrder`, and a second copy
+        // read from anywhere else is a second answer to what `admin` outranks.
+        m_identity->setScopeOrder(m_config.scopeOrder);
         // A session that ends takes its server-side tokens with it. Logging out already
         // released them; almost nobody logs out, so both of the ways a session ends
         // without anybody pressing anything are wired here.

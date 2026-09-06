@@ -103,6 +103,12 @@ def provider_template(provider: str) -> Dict[str, Any]:
 #: it exists so that adding auth to a project with no edge still names a real path.
 DEFAULT_HOOK = "web/edge/identity/map.qml"
 
+#: The vocabulary `synqt add auth` writes for a project that declares none. Exactly the
+#: scopes MAP_HOOK names, lowest authority first, because the order is the authority
+#: ranking under `scopes.hierarchical` and the generated enum's values are these indices.
+#: `synqt new` already writes the same four, so this only fires for a hand-written project.
+SCAFFOLD_SCOPES = ("anonymous", "user", "moderator", "admin")
+
 
 def hook_path(config: Dict[str, Any]) -> str:
     """Where this project's identity mapping hook belongs: inside its edge's folder.
@@ -161,17 +167,22 @@ import SynQt
 
 // Turn a normalized identity into a SynQt scope, on the edge, after a successful login.
 // Tolerate a null email: prefer sub or login for authorization decisions.
+//
+// The return value is a member of Scope.Value, which SynQt generates next to this file from
+// scopes.order in synqt.yaml. An enum rather than a string, so a scope this project never
+// declared cannot be spelled here at all: the edge resolves the answer as an index into the
+// same list and refuses the login when it is out of range.
 IdentityMapping {
-    function scopeFor(identity) {
+    function scopeFor(identity): int {
         const admins = [];       // e.g. "you@example.com"
         const moderators = [];
         if (admins.indexOf(identity.email) !== -1) {
-            return "admin";
+            return Scope.Value.Admin;
         }
         if (moderators.indexOf(identity.email) !== -1) {
-            return "moderator";
+            return Scope.Value.Moderator;
         }
-        return "user";           // any successfully authenticated user
+        return Scope.Value.User; // any successfully authenticated user
     }
 }
 """
@@ -249,7 +260,18 @@ def scaffold(project_dir: os.PathLike[str] | str, provider: str, *, required: bo
     hook_relative = hook_path(config)
     section = identity_section(provider, required, provider_entity, hook_relative)
     existing = config_path.read_text() if config_path.exists() else ""
-    config_path.write_text(yamledit.set_scalar(existing, "identity", section))
+    text = yamledit.set_scalar(existing, "identity", section)
+
+    # A project that signs people in has to declare the scopes its sessions can hold, so
+    # scaffolding the login without one would scaffold a project `synqt check` refuses.
+    # These four are exactly the scopes the hook written below names, and the order is the
+    # authority ranking: the generated Scope.Value enum takes its values from these indices.
+    # A project that already declares its own vocabulary keeps it untouched.
+    if not isinstance(config.get("scopes"), dict):
+        text = yamledit.set_scalar(text, "scopes", {"order": list(SCAFFOLD_SCOPES),
+                                                    "hierarchical": True,
+                                                    "default": SCAFFOLD_SCOPES[0]})
+    config_path.write_text(text)
 
     # Document the variable to set, with no value: the line written here is
     # `GITHUB_CLIENT_SECRET=`, so it is discoverable and there is nothing to commit. The
