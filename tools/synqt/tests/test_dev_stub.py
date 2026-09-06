@@ -256,7 +256,8 @@ class WhatDevHandsTheProcesses(unittest.TestCase):
         original_popen = run.subprocess.Popen
         original_binary = run.host_binary
         run.subprocess.Popen = _Popen
-        run.host_binary = lambda _root, name: Path("/nonexistent") / str(name)
+        run.host_binary = (lambda _root, name, *_args, **_kwargs:
+                           Path("/nonexistent") / str(name))
         try:
             run._launch_entities(root, config, ["web"], 8080)
         finally:

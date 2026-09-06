@@ -304,7 +304,8 @@ class TestBuildAndDev:
         assert "plaintext edge in release" in err
         assert "invalid configuration" in err
 
-    def test_build_forwards_its_flags_and_is_release_by_default(self, tmp_path, monkeypatch):
+    def test_build_forwards_its_flags_and_is_a_debug_build_by_default(self, tmp_path,
+                                                                      monkeypatch):
         seen = {}
         monkeypatch.setattr(checkmod, "validate", lambda *a, **k: (True, []))
         monkeypatch.setattr(buildmod, "build",
@@ -312,18 +313,23 @@ class TestBuildAndDev:
 
         assert _run(["build", "--project-dir", _project(tmp_path),
                      "--client", "desktop", "--entity", "web", "--threads", "multi"])[0] == 0
-        assert seen["release"] is True
+        # Debug unless asked. This used to default to release, and the flag reached
+        # nothing but the word printed in the summary line.
+        assert seen["profile_name"] == "debug"
+        assert seen["dev_tools"] is False
         assert seen["client"] == "desktop"
         assert seen["entity"] == "web"
         assert seen["threads"] == "multi"
 
-    def test_debug_beats_the_release_default(self, tmp_path, monkeypatch):
+    def test_release_is_asked_for_and_never_assumed(self, tmp_path, monkeypatch):
         seen = {}
         monkeypatch.setattr(checkmod, "validate", lambda *a, **k: (True, []))
         monkeypatch.setattr(buildmod, "build",
                             lambda project_dir, **kwargs: seen.update(kwargs) or "built")
-        assert _run(["build", "--project-dir", _project(tmp_path), "--debug"])[0] == 0
-        assert seen["release"] is False
+        assert _run(["build", "--project-dir", _project(tmp_path), "--release"])[0] == 0
+        assert seen["profile_name"] == "release"
+        assert seen["strip"] is False   # implied by the profile, not by this flag
+        assert seen["custom_type"] == ""
 
     def test_dev_issues_the_development_ca_before_it_validates(self, tmp_path, monkeypatch):
         order = []
@@ -358,7 +364,9 @@ class TestBuildAndDev:
 
         assert _run(["dev", "--project-dir", _project(tmp_path),
                      "--port", "9001", "--no-open", "--no-watch"])[0] == 0
-        assert built["release"] is False
+        # `synqt dev` is the only command that builds a tree carrying development code.
+        assert built["profile_name"] == "debug"
+        assert built["dev_tools"] is True
         assert ran["port"] == 9001
         assert ran["open_browser"] is False
         assert ran["watch"] is False

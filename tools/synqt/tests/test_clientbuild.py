@@ -251,7 +251,10 @@ class ThreadOverrideTest(unittest.TestCase):
         overridden = clientbuild.with_threads(_single(), "multi")
         self.assertEqual(clientbuild.client_threads(overridden), "multi")
         self.assertEqual(clientbuild.wasm_kit(overridden), "wasm_multithread")
-        self.assertEqual(clientbuild.wasm_build_dir(overridden), "build/wasm-multithread")
+        # The directory is keyed on the kit and on the profile now, so the assertion is
+        # that the kit half moved; the profile half is pinned in test_profiles.py.
+        self.assertEqual(clientbuild.wasm_build_dir(overridden),
+                         "build/wasm-multithread-debug")
         # Forced on despite security.cross_origin_isolation: false in _single().
         self.assertTrue(clientbuild.cross_origin_isolation(overridden))
 

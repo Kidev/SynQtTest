@@ -70,6 +70,14 @@ class BuildDirTest(unittest.TestCase):
         self.assertEqual(profiles.build_dir("wasm", "debug", "wasm_multithread"),
                          "build/wasm-multithread-debug")
 
+    def test_a_development_tree_says_so_in_its_name(self):
+        # A directory whose name does not say it holds the development sign-in is a
+        # directory somebody will eventually ship.
+        self.assertEqual(profiles.build_dir("host", "debug", dev_tools=True),
+                         "build/host-debug-dev")
+        self.assertNotEqual(profiles.build_dir("host", "debug", dev_tools=True),
+                            profiles.build_dir("host", "debug"))
+
     def test_no_two_profiles_share_a_directory(self):
         for environment, kit in (("host", ""), ("wasm", "wasm"), ("wasm", "wasm_multithread")):
             directories = {profiles.build_dir(environment, profile, kit)

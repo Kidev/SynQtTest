@@ -179,7 +179,7 @@ class WriteTest(unittest.TestCase):
         owner = root / "db" / "relational" / "orders"
         owner.mkdir(parents=True, exist_ok=True)
 
-        buildmod.build(root, release=True, client="wasm")
+        buildmod.build(root, profile_name="release", client="wasm")
         topology_path = root / "build" / "orders" / "topology.json"
         self.assertTrue(topology_path.exists())
         topology = json.loads(topology_path.read_text())

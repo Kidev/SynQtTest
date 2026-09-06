@@ -23,6 +23,8 @@ from __future__ import annotations
 import copy
 from typing import Any, Dict, Optional
 
+from . import profiles
+
 # What build.client_threads (and --threads) accept.
 MODES = ("single", "multi")
 
@@ -91,8 +93,9 @@ def wasm_kit(config: Dict[str, Any]) -> str:
     return "wasm_multithread" if client_threads(config) == "multi" else "wasm_singlethread"
 
 
-def wasm_build_dir(config: Dict[str, Any]) -> str:
-    """The client's CMake build directory, one per kit, relative to the project.
+def wasm_build_dir(config: Dict[str, Any], profile_name: str = "debug",
+                   dev_tools: bool = False) -> str:
+    """The client's CMake build directory, one per kit and profile, relative to the project.
 
     The kits must not share a directory. qt-cmake selects a kit by injecting
     CMAKE_TOOLCHAIN_FILE, which CMake honours on the first configure and caches; a later
@@ -101,5 +104,8 @@ def wasm_build_dir(config: Dict[str, Any]) -> str:
     COOP/COEP, which isolates the page and gives it no threads to use). Nothing errors and
     nothing logs, so keying the directory to the kit is what makes build.client_threads
     real, and it lets both kits stay built side by side.
+
+    The profile is the second key, for the same class of reason (see profiles.build_dir):
+    those trees compile different things too, so they must not overwrite each other either.
     """
-    return f"build/{wasm_kit(config).replace('wasm_', 'wasm-')}"
+    return profiles.build_dir("wasm", profile_name, wasm_kit(config), dev_tools=dev_tools)

@@ -68,17 +68,23 @@ def strips(profile: str, strip: bool = False) -> bool:
     return profile == "release" or strip
 
 
-def build_dir(environment: str, profile: str, kit: str = "") -> str:
+def build_dir(environment: str, profile: str, kit: str = "",
+              dev_tools: bool = False) -> str:
     """The project-relative CMake build directory for one environment and profile.
 
-    One directory per profile, and this is load-bearing rather than tidy. A release build
-    does not merely compile the same files with different flags: `SYNQT_DEV_TOOLS` is off,
-    so the development sources are not in the target at all. Sharing a directory would mean
-    a full reconfigure and rebuild on every switch between `synqt dev` and
+    One directory per configuration, and this is load-bearing rather than tidy. These trees
+    do not merely compile the same files with different flags: a `dev_tools` tree compiles
+    the development-only sources and no other tree does. Sharing a directory would mean a
+    full reconfigure and rebuild on every switch between `synqt dev` and
     `synqt build --release`, and would leave a tree holding objects the configuration it now
     has never asked for. The WebAssembly kits already keep separate directories for the same
-    class of reason, and there the two keys compose: a kit and a profile.
+    class of reason, and the keys compose: a kit, a profile, and whether this tree carries
+    development code.
+
+    The `-dev` suffix is deliberately visible. A directory whose name does not say it holds
+    the development sign-in is a directory somebody will eventually ship.
     """
+    suffix = "-dev" if dev_tools else ""
     if environment == "wasm":
-        return f"build/{kit.replace('wasm_', 'wasm-') if kit else 'wasm'}-{profile}"
-    return f"build/{environment}-{profile}"
+        return f"build/{kit.replace('wasm_', 'wasm-') if kit else 'wasm'}-{profile}{suffix}"
+    return f"build/{environment}-{profile}{suffix}"
