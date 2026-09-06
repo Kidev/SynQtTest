@@ -48,12 +48,16 @@ def test_every_attack_names_a_test_that_exists(attack):
     name = re.escape(attack["test"])
     # A Qt private slot (`void name()`), a pytest function (`def name(`) at any
     # indentation, because a pytest test is as often a method on a class as a bare
-    # function, or a JavaScript function in a browser harness (`async function name(`),
-    # because a proof that only a browser can carry out is a test like any other. Still
-    # anchored to the declaration and not to the name appearing anywhere.
+    # function, a JavaScript function in a browser harness (`async function name(`),
+    # because a proof that only a browser can carry out is a test like any other, or a
+    # shell function (`name() {`), because a claim about what a *build* contains can only
+    # be proven by configuring one and reading it, which is a script and not a process.
+    # Still anchored to the declaration and not to the name appearing anywhere: the shell
+    # form requires the parentheses and the brace, so a call site does not match.
     declared = re.search(rf"(?:void\s+{name}\s*\()"
                          rf"|(?:^\s*def\s+{name}\s*\()"
-                         rf"|(?:^\s*(?:async\s+)?function\s+{name}\s*\()",
+                         rf"|(?:^\s*(?:async\s+)?function\s+{name}\s*\()"
+                         rf"|(?:^\s*{name}\s*\(\)\s*\{{)",
                          text, re.MULTILINE)
     assert declared, (f"{attack['id']}: {attack['file']} declares no test named "
                       f"{attack['test']!r}. If it was renamed, rename it here too; if it "
