@@ -12,14 +12,19 @@
 #ifndef SYNQT_IDENTITYPICKER_H
 #define SYNQT_IDENTITYPICKER_H
 
+#include "webedgeconfig.h"
+
 #include <QObject>
 #include <QString>
 #include <QStringList>
 #include <QVariantMap>
 
+#include <functional>
+
 QT_BEGIN_NAMESPACE
 class QHttpServerRequest;
 class QHttpServerResponse;
+class QUrlQuery;
 QT_END_NAMESPACE
 
 namespace SynQt {
@@ -51,6 +56,18 @@ public:
     /// the choice.
     static QString route();
 
+    /// The named people from `.dev-identities`, already checked against this project's
+    /// scopes by `synqt dev`, and one sentence per entry that did not survive that check.
+    void setNamedIdentities(const QList<WebEdgeConfig::DevIdentity> &identities,
+                            const QStringList &problems);
+
+    /// What the project's own mapping hook makes of an identity, or empty with `error` set
+    /// when it refuses one. Unset when this edge has no identity provider to ask, which is
+    /// every project that has not configured a login; then a named entry is worth exactly
+    /// the scope its file gives it, and the page says so rather than implying a hook agreed.
+    using ScopeMapper = std::function<QString(const QVariantMap &identity, QString *error)>;
+    void setScopeMapper(ScopeMapper mapper);
+
     QHttpServerResponse page() const;
 
     /// What one POST asked for: a session, and whether it is this tab's alone.
@@ -70,13 +87,36 @@ public:
     QHttpServerResponse choose(const QHttpServerRequest &request, Choice *choice);
 
 private:
+    /// The named half of `choose`, split out because the two halves share nothing but the
+    /// per-tab checkbox: one resolves an index into the scope vocabulary, the other an
+    /// index into a file, and through a mapping hook.
+    QHttpServerResponse chooseNamed(const QString &picked, const QUrlQuery &form,
+                                    Choice *choice);
+
     /// The identity a picked scope stands for. Deliberately unable to collide with anything
     /// a real provider issues: `sub` is `synqt-dev:<scope>:<epoch-ms>`, and a colon is not
     /// legal in a GitHub numeric id nor a prefix any OIDC issuer hands out.
     QVariantMap identityFor(const QString &scope) const;
 
+    /// The identity a named entry stands for. The address is the one thing about it that is
+    /// real, so it is what `sub` is built from: the same entry names the same person across
+    /// restarts, which is the whole point of naming somebody instead of picking a scope.
+    QVariantMap identityForNamed(const QString &email) const;
+
+    /// What a named entry resolves to: the file's scope, unless a mapping hook exists and
+    /// has an opinion, in which case the hook's answer wins and the disagreement is shown.
+    struct Resolution
+    {
+        QString scope;    ///< empty when the hook refused this identity
+        QString remark;   ///< what to show beside the entry; empty when there is nothing to say
+    };
+    Resolution resolve(const WebEdgeConfig::DevIdentity &identity) const;
+
     SessionManager *m_sessions{nullptr};
     QStringList m_scopeOrder;
+    QList<WebEdgeConfig::DevIdentity> m_named;
+    QStringList m_problems;
+    ScopeMapper m_mapper;
 };
 
 }  // namespace SynQt

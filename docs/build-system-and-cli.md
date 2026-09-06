@@ -515,6 +515,11 @@ register (`tests/dev-exclusion` proves that by reading both symbol tables). The 
 the third of three layers, not the only one; see
 [Development code is absent from a release build](security.md#development-code-is-absent-from-a-release-build).
 
+A `.dev-identities` file at the project root adds named people to the same page, so a
+project keyed to a person can be developed as that person; `synqt dev` reads and checks it
+and git-ignores it. See
+[Being somebody in particular](authentication.md#being-somebody-in-particular-dev-identities).
+
 ## How QML becomes WebAssembly (the client entity)
 
 1. The contract generator turns each connect point's `export:` block into a `.syn` under

@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 
+from . import devidentities
 from .appmodel import ENTITY_NAME_MAX, is_valid_entity_name
 
 # ~13 months. This was 825 days, described as the CA/Browser Forum leaf maximum, which it
@@ -94,17 +95,22 @@ def _mesh_dir(project_dir: os.PathLike[str] | str, dev: bool = False) -> Path:
     return root / "dev" if dev else root
 
 
-def _ensure_gitignored(project_dir: os.PathLike[str] | str) -> None:
-    # The CA key and entity keys must never be committed.
+def ensure_gitignored(project_dir: os.PathLike[str] | str) -> None:
+    # The CA key and entity keys must never be committed, and neither must the list of
+    # people a developer signs in as: `.dev-identities` is one machine's convenience, and a
+    # committed one would put a colleague's address in the repository and hand every clone a
+    # picker offering names that mean nothing on it.
     gitignore = Path(project_dir) / ".gitignore"
-    rules = ["synqt/mesh/*.key", "synqt/mesh/dev/", "synqt/toolchain/"]
+    rules = ["synqt/mesh/*.key", "synqt/mesh/dev/", "synqt/toolchain/",
+             devidentities.FILE_NAME]
     existing = gitignore.read_text().splitlines() if gitignore.exists() else []
     added = [rule for rule in rules if rule not in existing]
     if added:
         with gitignore.open("a") as handle:
             if existing and existing[-1].strip():
                 handle.write("\n")
-            handle.write("# SynQt: never commit mesh private keys or the toolchain cache\n")
+            handle.write("# SynQt: never commit mesh private keys, the toolchain cache, or the\n"
+                         "# development identities of whoever works on this machine\n")
             handle.write("\n".join(added) + "\n")
 
 
@@ -149,7 +155,7 @@ def init(project_dir: os.PathLike[str] | str, *, dev: bool = False, force: bool 
         ext.unlink(missing_ok=True)
         csr.unlink(missing_ok=True)
     restricted = _restrict(ca_key)
-    _ensure_gitignored(project_dir)
+    ensure_gitignored(project_dir)
     protection = ("ca.key is restricted to you and git-ignored" if restricted else
                   "ca.key is git-ignored, but this platform's permissions could NOT be "
                   "restricted: protect it yourself")
@@ -212,7 +218,7 @@ def cert(project_dir: os.PathLike[str] | str, entity: str, *, dev: bool = False,
         ext.unlink(missing_ok=True)
         csr.unlink(missing_ok=True)
     _restrict(key)
-    _ensure_gitignored(project_dir)
+    ensure_gitignored(project_dir)
     return f"Issued {entity}.crt (subject CN={entity}, SAN DNS:{entity})."
 
 
