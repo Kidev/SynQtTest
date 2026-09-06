@@ -235,21 +235,35 @@ configuration.
 ## The identity mapping hook
 
 `web/edge/identity/map.qml` turns a provider identity into a SynQt scope. It runs only
-on the edge, after a successful login.
+on the edge, after a successful login. A project that signs anybody in has to have one,
+and has to declare its `scopes.order`; `synqt check` refuses a project missing either,
+because without them nothing decides what scope a session holds and every login fails.
 
 ```qml
 import SynQt
 
 IdentityMapping {
-    function scopeFor(identity) {
+    function scopeFor(identity): int {
         const admins     = ["owner@example.com"]
         const moderators = ["mod@example.com"]
-        if (admins.indexOf(identity.email) !== -1)     return "admin"
-        if (moderators.indexOf(identity.email) !== -1) return "moderator"
-        return "user"   // any successfully authenticated user
+        if (admins.indexOf(identity.email) !== -1)     return Scope.Value.Admin
+        if (moderators.indexOf(identity.email) !== -1) return Scope.Value.Moderator
+        return Scope.Value.User   // any successfully authenticated user
     }
 }
 ```
+
+The return value is a member of `Scope.Value`, an enum SynQt generates from
+`scopes.order` and writes beside this file, so the hook needs no import to reach it. A
+member's value is the scope's index in `scopes.order`, which is also its authority rank
+under `scopes.hierarchical`, and the edge resolves the answer by that index rather than
+by name. Two things follow, and both are the point of it being an enum rather than a
+string: a scope the project never declared cannot be spelled here at all, and `synqt
+check` refuses a member the generator would not have written, naming the file and line.
+An answer the edge cannot place, from a hook that was not regenerated or one that failed
+to load, refuses the login and says so in the edge's log. There is no fallback scope: a
+login that cannot be given a declared scope fails rather than being given one nobody
+wrote down.
 
 For systems where roles live in a database, the hook can read a connect point the
 edge consumes (for example a `prop var assignments` the roles entity pushes, looked
