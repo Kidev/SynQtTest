@@ -227,7 +227,7 @@ def _bundle_arguments(root: Path, edge: Dict[str, Any],
 
 def dev_command(root: Path, entity: Dict[str, Any], config: Dict[str, Any],
                 port: int, profile_name: str = "debug",
-                dev_tools: bool = True) -> List[str]:
+                dev_tools: bool = True, identity_picker: bool = False) -> List[str]:
     """The argv to launch one entity for `synqt dev` (plaintext localhost), run from the
     project root so the relative bundle/topology defaults resolve. The edge gets the
     served bundle, the owner Source QML directory, and the dev port; a service gets its
@@ -237,9 +237,16 @@ def dev_command(root: Path, entity: Dict[str, Any], config: Dict[str, Any],
     binary = str(resolved) if resolved else str(
         host_build_dir(root, profile_name, dev_tools) / name)
     if appmodel.is_edge(entity):
-        return ([binary] + _bundle_arguments(root, entity, config)
-                + ["--qml-dir", str(root / appmodel.GENERATED_DIR),
-                   "--port", str(port), "--dev"])
+        command = ([binary] + _bundle_arguments(root, entity, config)
+                   + ["--qml-dir", str(root / appmodel.GENERATED_DIR),
+                      "--port", str(port), "--dev"])
+        # Beside --dev rather than instead of it: --dev is what makes any synthesized
+        # identity possible at all, and this only chooses which development sign-in is
+        # served. The binary this launches was built with SYNQT_DEV_TOOLS, so it is the
+        # only kind of edge that has a picker to be asked for.
+        if identity_picker:
+            command.append("--identity-picker")
+        return command
     if appmodel.entity_type(entity) == "monitor":
         # Both halves: the mesh point it hosts needs its topology and the Source QML the
         # generator mirrored under generated/, and the console it serves needs the same
@@ -271,7 +278,8 @@ def _launch_order(config: Dict[str, Any]) -> List[str]:
 
 
 def _launch_entities(root: Path, config: Dict[str, Any], launch_order: List[str],
-                     port: int, profile_name: str = "debug"
+                     port: int, profile_name: str = "debug",
+                     identity_picker: bool = False
                      ) -> Tuple[List[Tuple[str, subprocess.Popen]], List[str]]:
     """Start each entity for `synqt dev` (plaintext localhost). Returns the running
     processes and the names of any entity whose binary is not built yet."""
@@ -294,7 +302,8 @@ def _launch_entities(root: Path, config: Dict[str, Any], launch_order: List[str]
             missing.append(name)
             continue
         processes.append((name, subprocess.Popen(
-            dev_command(root, entity, config, port, profile_name, dev_tools=True),
+            dev_command(root, entity, config, port, profile_name, dev_tools=True,
+                        identity_picker=identity_picker),
             cwd=str(root), env=env)))
     return processes, missing
 
@@ -329,7 +338,8 @@ def dev_summary(config: Dict[str, Any], url: str, launched: List[str]) -> str:
 def dev(project_dir: os.PathLike[str] | str, *, profile_name: str = "debug",
         port: int = 8080,
         open_browser: bool = True, block: bool = True, client: str = "wasm",
-        watch: bool = True, profile: Optional[str] = None) -> str:
+        watch: bool = True, profile: Optional[str] = None,
+        identity_picker: bool = False) -> str:
     """Serve the built client at the web edge over plaintext localhost and open a browser.
 
     Owners start before consumers; the edge comes up last and serves build/client/. With
@@ -345,7 +355,8 @@ def dev(project_dir: os.PathLike[str] | str, *, profile_name: str = "debug",
         return "synqt dev: no web_edge entity in the topology; nothing to serve."
 
     launch_order = _launch_order(config)
-    processes, missing = _launch_entities(root, config, launch_order, port, profile_name)
+    processes, missing = _launch_entities(root, config, launch_order, port, profile_name,
+                                          identity_picker)
     if missing:
         _terminate(processes)
         return ("synqt dev: these entities are not built (run 'synqt build' first): "
@@ -372,7 +383,12 @@ def dev(project_dir: os.PathLike[str] | str, *, profile_name: str = "debug",
         # The watcher needs both: the first to reload synqt.yaml, the second so a rebuild
         # goes into the tree these processes were launched from.
         state = {"processes": processes, "config": config, "profile": profile,
-                 "profile_name": profile_name}
+                 "profile_name": profile_name,
+                 # Carried here so a hot reload relaunches with the same flags it started
+                 # with. The relaunch below used to build its own argv from the defaults,
+                 # so an edit to a host source silently dropped whatever `dev` was asked
+                 # for and put a differently-configured edge back on the same port.
+                 "identity_picker": identity_picker}
         _watch_loop(root, state, port, client)
         return "synqt dev: stopped."
 
@@ -532,7 +548,9 @@ def _hot_reload(root: Path, state: Dict[str, Any], port: int, client: str,
     host_changed, _ = _categorize(changed, root, config, config_names)
     if host_changed:
         _terminate(state["processes"])
-        processes, missing = _launch_entities(root, config, _launch_order(config), port)
+        processes, missing = _launch_entities(
+            root, config, _launch_order(config), port,
+            state.get("profile_name", "debug"), state.get("identity_picker", False))
         state["processes"] = processes
         if missing:
             print("  not built after rebuild: " + ", ".join(missing))

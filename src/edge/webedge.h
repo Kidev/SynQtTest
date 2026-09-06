@@ -32,6 +32,11 @@ namespace SynQt {
 
 class Caller;
 class IdentityProvider;
+#ifdef SYNQT_DEV_TOOLS
+// Development-only, so it is not even named here in a build that does not have it. See
+// identitypicker.h, which refuses to be included by such a build at all.
+class IdentityPicker;
+#endif
 class IoThreadPool;
 class PageStore;
 class PagesService;
@@ -105,6 +110,11 @@ private:
     QHttpServerWebSocketUpgradeResponse verifyUpgrade(const QHttpServerRequest &request);
     /// The password gate an entity serves for its own people; see webedgeconfig.h.
     QHttpServerResponse handleSignIn(const QHttpServerRequest &request);
+#ifdef SYNQT_DEV_TOOLS
+    /// The development picker's POST: hand the choice to IdentityPicker, and put the
+    /// session it minted into a cookie formed by cookieFor(), like every other session.
+    QHttpServerResponse handlePick(const QHttpServerRequest &request);
+#endif
     void onNewWebSocketConnection();
     void hostConnection(QWebSocket *socket);
     void trackPendingUpgrade(QAbstractSocket *socket);
@@ -255,6 +265,12 @@ private:
     QObject *m_connections{nullptr};
     SessionManager *m_sessionManager{nullptr};
     IdentityProvider *m_identity{nullptr};
+#ifdef SYNQT_DEV_TOOLS
+    /// The development scope picker, when `synqt dev --identity-picker` asked for one. The
+    /// member is behind the same gate as the class, so a release build has neither the
+    /// pointer nor anything to point at.
+    IdentityPicker *m_picker{nullptr};
+#endif
     quint16 m_port{0};
     QString m_errorString;
     QList<QByteArray> m_scriptHashes; ///< sha256 of the bundle's inline scripts, for the CSP
