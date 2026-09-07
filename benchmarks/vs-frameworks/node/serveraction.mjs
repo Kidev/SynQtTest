@@ -22,6 +22,7 @@ import {readFileSync} from "node:fs";
 import {join} from "node:path";
 
 import {APP_DIR} from "./nextserver.mjs";
+import {httpCaller} from "./measure.mjs";
 
 /// The ids `next build` assigned, by exported function name.
 ///
@@ -81,17 +82,12 @@ export function serverAction(origin, id, route = "/") {
         // here are a string and a number, so this is the encoding the real call uses.
         "Content-Type": "text/plain;charset=UTF-8",
     };
-    return async (...args) => {
-        const response = await fetch(url, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(args),
-        });
-        if (!response.ok) {
-            throw new Error(`the action answered ${response.status}`);
-        }
-        return actionResult(await response.text());
-    };
+    // The same node:http keep-alive client the bare column uses, so the only difference
+    // between the two columns is the framework answering. React's own runtime sends this
+    // request with fetch; what is being measured here is the request the server sees, and
+    // fetch's own per-call cost is not part of what a Server Function costs to serve.
+    const post = httpCaller({url, headers, decode: actionResult});
+    return (...args) => post(JSON.stringify(args));
 }
 
 /// The same, with the first call checked against what it was supposed to return.

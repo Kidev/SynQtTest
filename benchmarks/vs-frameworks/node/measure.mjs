@@ -8,6 +8,7 @@
 // same JSON. Two columns that measured differently would not be a comparison.
 
 import { writeFileSync } from "node:fs";
+import { Agent, request as httpRequest } from "node:http";
 import { arch, platform, release } from "node:os";
 
 export function distribution(samples) {
@@ -89,6 +90,42 @@ export function parseArgs(defaults) {
         i += 1;
     }
     return values;
+}
+
+/// One HTTP client for every call column, over `node:http` with a keep-alive agent.
+///
+/// Not the global `fetch`, which is what these columns used to call and what made the
+/// control stop being a control. `fetch` is undici, a client library, and on this workload
+/// it costs about a millisecond a call on Node 24 and 26 against a quarter of that on 22 --
+/// measured on one loopback connection that all three reused, with `node:http` itself flat
+/// to slightly faster across the same three. A fixed millisecond in front of the server is
+/// most of the answer at these sizes, so a table about server frameworks was reporting a
+/// difference between client libraries.
+///
+/// The agent matters as much as the module. A caller here holds its connection for the
+/// length of the run, which is what the SynQt column does and what the Next.js column's
+/// real client does, so a new socket per call would be measuring connection setup. And
+/// `maxSockets` is unbounded on purpose: the sweep's whole axis is concurrent callers, and
+/// a pool smaller than the caller count would queue them on the client and report the
+/// queueing as the server's latency.
+export function httpCaller({url, headers, decode}) {
+    const agent = new Agent({keepAlive: true, maxSockets: Infinity});
+    return (body) => new Promise((resolve, reject) => {
+        const request = httpRequest(url, {method: "POST", headers, agent}, (response) => {
+            let text = "";
+            response.setEncoding("utf8");
+            response.on("data", (chunk) => { text += chunk; });
+            response.on("end", () => {
+                if (response.statusCode !== 200) {
+                    reject(new Error(`the call answered ${response.statusCode}`));
+                    return;
+                }
+                resolve(decode(text));
+            });
+        });
+        request.on("error", reject);
+        request.end(body);
+    });
 }
 
 /// The stack id a Node column records itself under, with the runtime major in it.
