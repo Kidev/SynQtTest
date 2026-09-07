@@ -41,6 +41,15 @@ class MemberNameTest(unittest.TestCase):
         self.assertIn("power_user", str(caught.exception))
         self.assertIn("powerUser", str(caught.exception))
 
+    def test_a_scope_that_collides_with_the_enums_own_name_is_refused(self):
+        # A member is reached as `Scope.<Member>`, and this enum is called `Value`, so a
+        # scope called `value` makes `Scope.Value` mean the enum and the member at once.
+        # QML picks the enum, the hook returns something that is not a number, and the
+        # login fails closed at run time with nothing to point at.
+        with self.assertRaises(ValueError) as caught:
+            scopegen.members(["anonymous", "value"])
+        self.assertIn("value", str(caught.exception))
+
     def test_a_name_that_is_not_an_identifier_is_refused(self):
         with self.assertRaises(ValueError) as caught:
             scopegen.members(["read:user"])
@@ -74,7 +83,7 @@ class RenderTest(unittest.TestCase):
 class ScopeQmlPathTest(unittest.TestCase):
     def test_it_lands_beside_the_hook(self):
         # Beside, because a QML component resolves an unqualified type against its own
-        # directory: next to the hook, `Scope.Value.Admin` needs no import.
+        # directory: next to the hook, `Scope.Admin` needs no import.
         self.assertEqual(scopegen.scope_qml_path("web/edge/identity/map.qml"),
                          "web/edge/identity/Scope.qml")
 
@@ -90,7 +99,7 @@ class WrittenBesideTheHookTest(unittest.TestCase):
         hook = root / "web" / "edge" / "identity" / "map.qml"
         hook.parent.mkdir(parents=True, exist_ok=True)
         hook.write_text("import SynQt\nIdentityMapping {\n"
-                        "    function scopeFor(identity): int { return Scope.Value.User; }\n}\n",
+                        "    function scopeFor(identity): int { return Scope.User; }\n}\n",
                         encoding="utf-8")
         config = {
             "project": {"name": "app"},
@@ -109,7 +118,7 @@ class WrittenBesideTheHookTest(unittest.TestCase):
     def test_it_lands_next_to_the_mirrored_hook(self):
         # Next to the *mirrored* hook under generated/, because generated/ is the tree the
         # engine loads: a QML component resolves an unqualified type against its own
-        # directory, so this placement is what lets the hook say `Scope.Value.User` with
+        # directory, so this placement is what lets the hook say `Scope.User` with
         # no import. Beside the authored hook it would be beside a file nothing runs.
         root, config = self.project()
         written = appgen.generate(root, config)

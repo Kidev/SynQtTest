@@ -18,6 +18,11 @@ check. There is no spelling anywhere in the middle to keep in step.
 from posixpath import dirname, join
 from typing import Dict, List, Tuple
 
+# What the generated enum is called inside ``Scope.qml``. A member is reached as
+# ``Scope.<Member>``, which is the form SynQt writes and documents; the enum's own name only
+# shows up in the longer ``Scope.Value.<Member>`` QML also accepts.
+ENUM_NAME = "Value"
+
 
 def member_name(scope: str) -> str:
     """The QML enum member for one scope name.
@@ -37,11 +42,22 @@ def members(order: List[str]) -> List[Tuple[str, str]]:
     Raises ``ValueError`` if two scopes map to one member. Merging them silently would give
     two declared scopes one enum value, so a hook asking for one would get the other and
     every check downstream would agree with the wrong answer.
+
+    ``value`` is refused for the same reason wearing different clothes. A QML enum member is
+    reachable as ``Scope.<Member>`` and as ``<Type>.<Enum>.<Member>``, and this enum is
+    called ``Value``, so a scope called ``value`` would make ``Scope.Value`` mean the enum
+    and the member at once. QML resolves that to the enum, the hook returns something that
+    is not a number, and the login fails closed at run time with nothing to point at.
     """
     seen: Dict[str, str] = {}
     pairs: List[Tuple[str, str]] = []
     for scope in order:
         member = member_name(scope)
+        if member == ENUM_NAME:
+            raise ValueError(
+                f"scope '{scope}' becomes the enum member '{member}', which is also what "
+                f"this enum is called, so 'Scope.{member}' would name both; rename the "
+                f"scope")
         if not member.isidentifier():
             raise ValueError(
                 f"scope '{scope}' does not make a QML enum member ('{member}'); scope names "
@@ -84,7 +100,7 @@ def render_scope_qml(order: List[str]) -> str:
 import QtQml
 
 QtObject {{
-    enum Value {{ {names} }}
+    enum {ENUM_NAME} {{ {names} }}
 }}
 """
 
@@ -95,7 +111,7 @@ def scope_qml_path(hook_relative: str) -> str:
     Beside the hook, in the same mirrored directory under ``generated/``, and for a reason
     worth keeping written down: a QML component resolves an unqualified type name against
     its own directory first, so a hook that sits next to this file can write
-    ``Scope.Value.Admin`` with no import at all. Anywhere else and the hook would need an
+    ``Scope.Admin`` with no import at all. Anywhere else and the hook would need an
     import path, a qmldir and a module URI to reach one enum.
     """
     folder = dirname(hook_relative)

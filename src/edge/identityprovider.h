@@ -98,7 +98,7 @@ public:
 
     /// The scopes this project declared, lowest authority first. It is the vocabulary the
     /// mapping hook's answer is resolved against: the hook returns a member of the
-    /// generated Scope.Value enum, whose value is the scope's index in this list. Left
+    /// generated Scope enum, whose value is the scope's index in this list. Left
     /// unset, the list is empty and every login is refused, which is the honest answer for
     /// an edge nobody told what its scopes are.
     void setScopeOrder(const QStringList &scopeOrder);

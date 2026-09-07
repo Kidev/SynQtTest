@@ -168,7 +168,7 @@ import SynQt
 // Turn a normalized identity into a SynQt scope, on the edge, after a successful login.
 // Tolerate a null email: prefer sub or login for authorization decisions.
 //
-// The return value is a member of Scope.Value, which SynQt generates next to this file from
+// The return value is a member of Scope, which SynQt generates next to this file from
 // scopes.order in synqt.yaml. An enum rather than a string, so a scope this project never
 // declared cannot be spelled here at all: the edge resolves the answer as an index into the
 // same list and refuses the login when it is out of range.
@@ -177,12 +177,12 @@ IdentityMapping {
         const admins = [];       // e.g. "you@example.com"
         const moderators = [];
         if (admins.indexOf(identity.email) !== -1) {
-            return Scope.Value.Admin;
+            return Scope.Admin;
         }
         if (moderators.indexOf(identity.email) !== -1) {
-            return Scope.Value.Moderator;
+            return Scope.Moderator;
         }
-        return Scope.Value.User; // any successfully authenticated user
+        return Scope.User; // any successfully authenticated user
     }
 }
 """
@@ -265,7 +265,7 @@ def scaffold(project_dir: os.PathLike[str] | str, provider: str, *, required: bo
     # A project that signs people in has to declare the scopes its sessions can hold, so
     # scaffolding the login without one would scaffold a project `synqt check` refuses.
     # These four are exactly the scopes the hook written below names, and the order is the
-    # authority ranking: the generated Scope.Value enum takes its values from these indices.
+    # authority ranking: the generated Scope enum takes its values from these indices.
     # A project that already declares its own vocabulary keeps it untouched.
     if not isinstance(config.get("scopes"), dict):
         text = yamledit.set_scalar(text, "scopes", {"order": list(SCAFFOLD_SCOPES),

@@ -343,7 +343,7 @@ private:
         config.identity.allowDevStub = true;
         config.identity.allowDesktopLogin = true;
         // The mapping hook that gives a session its scope, and the vocabulary its
-        // Scope.Value members were generated from. An edge with a login and neither
+        // Scope members were generated from. An edge with a login and neither
         // refuses every login, because there is nothing to resolve an answer against.
         config.identity.mappingHook = QStringLiteral(M8_SRCDIR "/web/identity/map.qml");
         config.scopeOrder = {QStringLiteral("anonymous"), QStringLiteral("user"),
