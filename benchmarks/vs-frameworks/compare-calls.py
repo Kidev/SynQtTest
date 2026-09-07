@@ -22,11 +22,16 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
+from nodemajors import node_majors
+
 # The order the table reads in: what SynQt does, then the Node floor it has to beat, then
 # the framework a reader comparing frameworks is most likely already running. `node-bare` is
 # in the middle because it is what separates "Node is answering an HTTP request" from "React
 # is resolving a server action", and those have different answers and different fixes.
-STACK_ORDER = ["synqt", "node-bare-call", "node-nextjs-action"]
+NODE = node_majors()
+STACK_ORDER = (["synqt"]
+               + [f"node{major}-bare-call" for major in NODE]
+               + [f"node{major}-nextjs-action" for major in NODE])
 
 
 def load(paths: List[str]) -> Dict[str, Dict[str, Any]]:
@@ -107,7 +112,7 @@ def main() -> int:
 
     slopes = {stack: marginal_rss(results[stack].get("sweep", [])) for stack in present}
 
-    header = f"{'N':>6}  {'metric':<24}" + "".join(f"{s:>20}" for s in present)
+    header = f"{'N':>6}  {'metric':<24}" + "".join(f"{s:>22}" for s in present)
     print(header)
     print("-" * len(header))
 
@@ -116,11 +121,11 @@ def main() -> int:
             cells = []
             for stack in present:
                 if stacks_render is not None:
-                    cells.append(f"{stacks_render(stack):>20}")
+                    cells.append(f"{stacks_render(stack):>22}")
                 elif stack in by_stack:
-                    cells.append(f"{render(by_stack[stack]):>20}")
+                    cells.append(f"{render(by_stack[stack]):>22}")
                 else:
-                    cells.append(f"{'-':>20}")
+                    cells.append(f"{'-':>22}")
             print(f"{size:>6}  {label:<24}" + "".join(cells))
 
         line("latency p50 ms", lambda e: f"{e['latency']['p50']:.3f}")

@@ -21,6 +21,8 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
+from nodemajors import node_majors
+
 # The registry: what the table prints, and in what order.
 #
 # The order is an argument, not an alphabet. SynQt first, then the same fan-out with the
@@ -29,19 +31,24 @@ from typing import Any, Dict, List
 # floors: the bare, frameworkless column of each runtime, which is the fastest honest
 # anything and is what tells "SynQt is fast for a Qt thing" apart from "SynQt is fast". Then
 # the frameworks, which is what a team actually deploys and therefore what the comparison is
-# really about. `node-nextjs` sits at the end of the Node group because it is the one column
-# not carrying WebSocket frames: Next has no WebSocket server, so its live path is
+# really about. The Next.js columns sit at the end of the Node group because they are the
+# ones not carrying WebSocket frames: Next has no WebSocket server, so its live path is
 # server-sent events. See the README.
+#
+# Node appears once per major it is measured on, side by side inside each group, so the LTS
+# and the current release read against each other as well as against everything else.
 #
 # A stack not listed here still prints, after these, so a column added without touching this
 # line is visible rather than silently absent.
-STACK_ORDER = [
-    "synqt", "qt-raw",
-    "go-bare", "rust-bare", "node-bare",
-    "phoenix", "dotnet-signalr", "node-socketio", "node-nextjs",
-    "ruby-actioncable", "php-reverb",
-    "python-fastapi", "python-channels",
-]
+NODE = node_majors()
+STACK_ORDER = (
+    ["synqt", "qt-raw", "go-bare", "rust-bare"]
+    + [f"node{major}-bare" for major in NODE]
+    + ["phoenix", "dotnet-signalr"]
+    + [f"node{major}-socketio" for major in NODE]
+    + [f"node{major}-nextjs" for major in NODE]
+    + ["ruby-actioncable", "php-reverb", "python-fastapi", "python-channels"]
+)
 
 
 def runtime_of(data: Dict[str, Any]) -> str:

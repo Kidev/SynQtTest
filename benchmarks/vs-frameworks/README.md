@@ -50,25 +50,47 @@ protocol, because that is what a deployment would be running.
 | `rust-bare` | `tokio` plus `tokio-tungstenite`, release build, no framework | The other floor, and the one nothing in this table is expected to beat |
 | `phoenix` | Phoenix Channels on Bandit, with the subscribers as real WebSocket clients on the same BEAM node | The stack SynQt is most often said to be like |
 | `dotnet-signalr` | ASP.NET Core SignalR, MessagePack protocol, over WebSockets, with the subscribers as SignalR clients in the same process | What a .NET team reaches for when the server has to push |
-| `node-bare` | `node:http` plus a hand-rolled RFC 6455 server, and the global `WebSocket` client Node 22 ships. Zero dependencies | The fastest honest Node, so SynQt cannot be accused of sandbagging |
-| `node-socketio` | Socket.IO, websocket transport pinned, compression off, binary frames | What a Node team would actually deploy |
+| `node24-bare`, `node26-bare` | `node:http` plus a hand-rolled RFC 6455 server, and the global `WebSocket` client Node ships. Zero dependencies | The fastest honest Node, so SynQt cannot be accused of sandbagging |
+| `node24-socketio`, `node26-socketio` | Socket.IO, websocket transport pinned, compression off, binary frames | What a Node team would actually deploy |
 | `ruby-actioncable` | Action Cable on puma, with the subscribers as fibers on one thread | What a Rails team reaches for when the server has to push |
 | `php-reverb` | Laravel Reverb, the Pusher protocol over WebSockets, publisher going through Laravel's broadcast path | PHP's answer, measured in the shape it actually deploys in |
 | `python-fastapi` | FastAPI on uvicorn, WebSockets, no middleware | Python's fast async answer |
 | `python-channels` | Django Channels consumers over ASGI WebSockets | What a team with an existing Django application reaches for |
-| `node-nextjs` | Next.js 16 App Router, a Route Handler streaming server-sent events | The framework most people mean by "a Node app", doing the only live path it has |
+| `node24-nextjs`, `node26-nextjs` | Next.js 16 App Router, a Route Handler streaming server-sent events | The framework most people mean by "a Node app", doing the only live path it has |
 
-The three Node columns exist because any one alone is arguable. Bare builtins are a number
+The three Node stacks exist because any one alone is arguable. Bare builtins are a number
 nobody ships. Socket.IO is the easier comparison. Next.js is what a reader comparing
 frameworks is most likely to already be running, and it is the one column that cannot carry
 the same protocol as the others. Printed side by side, the spread between them is itself
 part of the answer.
 
+### Why Node is measured twice
+
+Every other runtime here is one version. Node is two, and the major is in the column name:
+`node24-bare` and `node26-bare` are the same program on the active LTS and on the current
+release.
+
+Both, because "how fast is Node" has two honest answers and a table can only pick one by
+picking a side. The LTS is what a team is allowed to deploy: it is what a distribution
+packages, what a base image defaults to, and what a platform's runtime dropdown offers.
+The current release is what the runtime can actually do, and quoting only the LTS would
+understate Node by however much a year of V8 and stream work is worth. Quoting only the
+current release would flatter it against a version almost nobody is running in production.
+
+The versions the harness measures are the majors listed in
+[`node/runtimes.txt`](node/runtimes.txt), one per line. `run-bench.sh` resolves the newest
+installed patch of each out of nvm's version directories rather than running whichever
+`node` is first on PATH, because a row that moved because a shell had a different default
+selected is a comparison of two machines wearing one name. A major that is not installed
+skips its columns and prints the `nvm install` line for it. The exact version each run used
+is recorded in that result file's `node_version`.
+
 ### What the floor columns are for
 
 `go-bare` and `rust-bare` are here to do a job no framework column can: they are the other
-stacks' *floor*. `node-bare` already says what the fastest honest Node is; these say what the
-fastest honest anything is, on the same workload, on the same machine, in the same run.
+stacks' *floor*. The bare Node columns already say what the fastest honest Node is; these say
+what the fastest honest anything is, on the same workload, on the same machine, in the same
+run.
 
 That is the difference between two sentences that sound alike and are not. "SynQt is fast for
 a Qt thing" is a claim about Qt. "SynQt is fast" is a claim about the workload, and only a
@@ -96,10 +118,10 @@ connections and writes the frames, so the column measures Next.js rather than so
 standing beside it.
 
 The obvious alternative is **not** a column here. Bolt `ws` onto a custom
-server and Next.js is not in the data path at all: that is `node-bare` with a Next.js
+server and Next.js is not in the data path at all: that is a bare Node column with a Next.js
 process next to it, and printing it under this heading would be measuring one stack and
-labelling it with another's name. If that is the deployment being considered, read the
-`node-bare` column and add Next's fixed memory to it.
+labelling it with another's name. If that is the deployment being considered, read the bare
+Node column for the runtime in question and add Next's fixed memory to it.
 
 Two things about server-sent events are stated rather than corrected for, because both are
 what the design costs a real deployment:
@@ -188,8 +210,8 @@ clocks.
 That caveat is worth the column rather than a reason to drop it. Going through
 `Broadcast::connection('reverb')` is what an application does, and a number measured any
 other way would be a number about Reverb rather than about deploying Laravel. Read the row as
-"what a Reverb deployment costs", and read the gap to `node-socketio` as partly that extra
-hop.
+"what a Reverb deployment costs", and read the gap to the Socket.IO columns as partly that
+extra hop.
 
 The subscribers are N connections on one ReactPHP event loop. PHP has no threads to get this
 wrong with, which is the one place this column had an easier job than the Ruby one.
@@ -645,8 +667,8 @@ So there is a second table, measured the same way, in that direction:
 | Column | What it is |
 |---|---|
 | `synqt` | A returning slot on a real connect point, called from N consumer nodes over the framework's own `WebSocketTransport`, answering through the `QRemoteObjectPendingReply` a consumer facade's `.then()` is built on |
-| `node-bare-call` | `node:http`, a JSON body up and a JSON body back. No framework |
-| `node-nextjs-action` | A Next.js 16 Server Function, invoked with the request React's client runtime makes |
+| `node24-bare-call`, `node26-bare-call` | `node:http`, a JSON body up and a JSON body back. No framework |
+| `node24-nextjs-action`, `node26-nextjs-action` | A Next.js 16 Server Function, invoked with the request React's client runtime makes |
 
 ```sh
 ./benchmarks/vs-frameworks/run-bench.sh            # runs both tables
@@ -779,6 +801,13 @@ they were not.
 The exact versions each result file was produced by are in the file itself: every column
 stamps its own `<runtime>_version`, and `compare.py` prints them across the top of the table
 rather than trusting this list to stay true.
+
+**The Node rows on this page are 22.22.0, and the harness no longer runs it.**
+[`node/runtimes.txt`](node/runtimes.txt) now lists 24 and 26, for the reason under
+[why Node is measured twice](#why-node-is-measured-twice), so every table here is the last
+run before that change: one Node column per stack instead of two, measured on 22.22.0. They
+stay as they are until a full run replaces them. Relabelling a measurement with a runtime it
+did not run on is the one thing this page exists not to do.
 
 ## Where it runs
 
