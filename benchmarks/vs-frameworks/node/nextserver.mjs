@@ -55,5 +55,5 @@ export async function startNext(port) {
 /// Next gives each route its own server bundle, so importing the route from here would
 /// give a second module with a second empty Set in it; see nextjs/app/live/route.js.
 export function liveArena() {
-    return globalThis[Symbol.for("synqt.vs-node.nextjs.live")] || null;
+    return globalThis[Symbol.for("synqt.vs-frameworks.nextjs.live")] || null;
 }

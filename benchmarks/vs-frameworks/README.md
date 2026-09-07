@@ -1,11 +1,17 @@
 <!-- SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-# SynQt against Node.js
+# SynQt against the other frameworks
 
 Every other harness in this tree measures SynQt against itself, which catches regressions
-and answers nothing about whether the thing is fast. This one puts it next to the stack
-somebody choosing a framework is actually comparing it to.
+and answers nothing about whether the thing is fast. This one puts it next to the stacks
+somebody choosing a framework is actually weighing it against.
+
+It started as a comparison against Node alone, and the directory was called `vs-node` for as
+long as that was true. The measurement never was about Node: it is one workload, and every
+column is one runtime carrying it. [`COLUMN-CONTRACT.md`](COLUMN-CONTRACT.md) is that
+workload written down, and is what a column is held to and what you read before adding
+one.
 
 ## The workload, before any code
 
@@ -27,6 +33,8 @@ value), the machine, the subscriber sweep, the publish rate, the payload size, t
 layout (8 bytes of microsecond stamp, then payload), the warm-up, the measured window, the
 drain at the end of it, and the statistics. Publisher and subscribers share one process in
 every column, so each measures an interval on one monotonic clock rather than across two.
+Where a column cannot honour a part of that, it says so in the paragraph that reports its
+number, and never quietly takes a different measurement into the same cell.
 
 **Not held constant**: the protocol on the wire. QtRemoteObjects framing is not a raw
 binary frame and is not Socket.IO's envelope. Each stack is measured carrying its own
@@ -87,8 +95,8 @@ doing work.
 ## Running it
 
 ```sh
-./benchmarks/vs-node/run-bench.sh
-./benchmarks/vs-node/run-bench.sh --subscribers 10,50,100,250,500 --seconds 10 --hz 60
+./benchmarks/vs-frameworks/run-bench.sh
+./benchmarks/vs-frameworks/run-bench.sh --subscribers 10,50,100,250,500 --seconds 10 --hz 60
 ```
 
 It builds the two SynQt harnesses, installs the Node columns' dependencies and builds the
@@ -101,8 +109,8 @@ and one `--subscribers` cannot mean anything to a table with no subscribers in i
 To re-render either table from baselines already on disk:
 
 ```sh
-python3 benchmarks/vs-node/compare.py benchmarks/results/vs-node-*.json
-python3 benchmarks/vs-node/compare-calls.py benchmarks/results/vs-call-*.json
+python3 benchmarks/vs-frameworks/compare.py benchmarks/results/vs-fw-*.json
+python3 benchmarks/vs-frameworks/compare-calls.py benchmarks/results/vs-call-*.json
 ```
 
 ## What it reports, and how to read it
@@ -160,7 +168,7 @@ SynQt now has a second way, which Node has no equivalent of and which this sweep
 measure; it is [below](#threads-the-core-that-is-not-a-process).
 
 ```sh
-python3 benchmarks/vs-node/sweep.py --processes 1,2,4,8 --subscribers 200 --seconds 10
+python3 benchmarks/vs-frameworks/sweep.py --processes 1,2,4,8 --subscribers 200 --seconds 10
 ```
 
 It holds one workload fixed and splits the subscribers across the processes, so the
@@ -258,7 +266,7 @@ A web edge can also spread its accepted sockets over IO threads inside one proce
 keeps the single value. `--threads` runs the SynQt column that way:
 
 ```sh
-build/bench-vs-node/bench_live --subscribers 100 --seconds 6 --saturate --threads 4
+build/bench-vs-frameworks/bench_live --subscribers 100 --seconds 6 --saturate --threads 4
 ```
 
 It applies to the QtRO column only. `--raw --threads N` is refused rather than ignored:
@@ -398,8 +406,8 @@ So there is a second table, measured the same way, in that direction:
 | `node-nextjs-action` | A Next.js 16 Server Function, invoked with the request React's client runtime makes |
 
 ```sh
-./benchmarks/vs-node/run-bench.sh            # runs both tables
-CALL_CALLERS=1,8,32 CALL_WORK=lookup ./benchmarks/vs-node/run-bench.sh
+./benchmarks/vs-frameworks/run-bench.sh            # runs both tables
+CALL_CALLERS=1,8,32 CALL_WORK=lookup ./benchmarks/vs-frameworks/run-bench.sh
 ```
 
 The sweep is over concurrency and the loop is closed per caller: N callers, N calls
@@ -489,16 +497,16 @@ adds the three Node ones, serving byte-identical answers from a shared
 framework and the driver:
 
 ```sh
-node benchmarks/vs-node/node/http-bare.mjs --port 8481      # node:http + node:sqlite
-node benchmarks/vs-node/node/http-fastify.mjs --port 8482   # Fastify + better-sqlite3
-node benchmarks/vs-node/node/http-nextjs.mjs --port 8483    # Next.js 16 + better-sqlite3
+node benchmarks/vs-frameworks/node/http-bare.mjs --port 8481      # node:http + node:sqlite
+node benchmarks/vs-frameworks/node/http-fastify.mjs --port 8482   # Fastify + better-sqlite3
+node benchmarks/vs-frameworks/node/http-nextjs.mjs --port 8483    # Next.js 16 + better-sqlite3
 ```
 
 The Next.js one needs its build first, which `run-bench.sh` does and which is what running
 Next in production is:
 
 ```sh
-(cd benchmarks/vs-node/node/nextjs && npx next build)
+(cd benchmarks/vs-frameworks/node/nextjs && npx next build)
 ```
 
 Drive them with the loader in `benchmarks/edge`, which is what measures SynQt's column, so

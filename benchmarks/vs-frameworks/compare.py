@@ -8,7 +8,7 @@ Each result file holds the same sweep measured the same way; this turns them int
 a reader actually wants, and derives the one figure an operator sizes a host with: how many
 live users a core and a gigabyte hold.
 
-    python3 benchmarks/vs-node/compare.py benchmarks/results/vs-node-*.json
+    python3 benchmarks/vs-frameworks/compare.py benchmarks/results/vs-fw-*.json
 
 Every column is printed, including a stack that lost. A comparison that only prints its
 winner is an advertisement.

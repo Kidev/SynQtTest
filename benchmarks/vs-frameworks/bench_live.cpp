@@ -3,7 +3,7 @@
 
 // The live path, SynQt's column: one publisher changes a value at a fixed rate and N
 // subscribers must each see every change. This is what SynQt is for, so it is the headline
-// of the comparison in benchmarks/vs-node/README.md and the Node columns are measured
+// of the comparison in benchmarks/vs-frameworks/README.md and the Node columns are measured
 // against it rather than the other way round.
 //
 // It runs the real path and not a model of it: a QWebSocketServer feeding a
@@ -596,7 +596,7 @@ int main(int argc, char *argv[])
     }
 
     QJsonObject root;
-    root.insert(QStringLiteral("benchmark"), QStringLiteral("vs-node-live"));
+    root.insert(QStringLiteral("benchmark"), QStringLiteral("vs-frameworks-live"));
     root.insert(QStringLiteral("stack"),
                 raw ? QStringLiteral("qt-raw") : QStringLiteral("synqt"));
     root.insert(QStringLiteral("path"), QStringLiteral("qtro-over-websockets"));

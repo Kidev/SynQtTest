@@ -16,7 +16,7 @@ import Database from "better-sqlite3";
 
 import {FORTUNES, WORLD_ROWS} from "../../techempower.mjs";
 
-const HELD = Symbol.for("synqt.vs-node.nextjs.store");
+const HELD = Symbol.for("synqt.vs-frameworks.nextjs.store");
 
 function opened() {
     const database = new Database(":memory:");

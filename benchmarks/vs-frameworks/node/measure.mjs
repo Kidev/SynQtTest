@@ -3,7 +3,7 @@
 
 // The measurement half, shared by both Node columns so the only difference between them is
 // the server. Deliberately the same shape as the SynQt harness reports
-// (benchmarks/vs-node/bench_live.cpp): the same distribution summary, the same frame layout
+// (benchmarks/vs-frameworks/bench_live.cpp): the same distribution summary, the same frame layout
 // (8 bytes of microsecond stamp, then payload), the same delivered/expected pair, and the
 // same JSON. Two columns that measured differently would not be a comparison.
 
@@ -93,7 +93,7 @@ export function parseArgs(defaults) {
 
 export function writeResult(path, root) {
     const complete = {
-        benchmark: "vs-node-live",
+        benchmark: "vs-frameworks-live",
         node_version: process.version,
         host: `${platform()} ${release()}`,
         arch: arch(),

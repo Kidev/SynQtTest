@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux
 # SPDX-License-Identifier: Apache-2.0
 
-# SynQt's column of the Node.js comparison: the live path, over the real
-# QtRemoteObjects-over-WebSockets stack a browser client reaches. The Node columns are plain
-# .mjs under node/ and need no build. Not a ctest (a measurement run, not a pass/fail gate);
-# build and run it through run-bench.sh.
+# SynQt's columns of the framework comparison: the live path, over the real
+# QtRemoteObjects-over-WebSockets stack a browser client reaches. Every other column is its
+# own runtime under its own directory and is not built from here. Not a ctest (a measurement
+# run, not a pass/fail gate); build and run it through run-bench.sh.
 
 cmake_minimum_required(VERSION 3.21)
-project(synqt_bench_vs_node LANGUAGES CXX)
+project(synqt_bench_vs_frameworks LANGUAGES CXX)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/SynQtBuildFlags.cmake")
 

@@ -20,7 +20,7 @@
 #
 # The HTTP half is a separate run: those servers are driven by the loader in
 # benchmarks/edge, which measures request throughput rather than propagation. See
-# benchmarks/vs-node/README.md.
+# benchmarks/vs-frameworks/README.md.
 
 set -euo pipefail
 
@@ -28,13 +28,20 @@ QT_HOST="${QT_HOST:-/opt/Qt/6.11.1/gcc_64}"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_ROOT"
 
-BUILD_DIR="build/bench-vs-node"
-RESULTS_DIR="${BENCH_OUT_DIR:-benchmarks/results}"
+BUILD_DIR="build/bench-vs-frameworks"
+# Resolved to an absolute path once, here, because the columns are run from their own
+# directories: a relative results directory means something different inside
+# benchmarks/vs-frameworks/node/ than it does at the repository root. It used to be prefixed
+# with $REPO_ROOT at each Node column instead, which produced `/repo//abs/path` and a
+# no-such-file the moment BENCH_OUT_DIR was given an absolute one.
+RESULTS_DIR="${BENCH_OUT_DIR:-$REPO_ROOT/benchmarks/results}"
+mkdir -p "$RESULTS_DIR"
+RESULTS_DIR="$(cd "$RESULTS_DIR" && pwd)"
 HOST_TAG="$(hostname | tr -c 'A-Za-z0-9_.-' '_')"
-NODE_DIR="benchmarks/vs-node/node"
+NODE_DIR="benchmarks/vs-frameworks/node"
 
 echo "== configure + build the SynQt column =="
-cmake -S benchmarks/vs-node -B "$BUILD_DIR" -G Ninja \
+cmake -S benchmarks/vs-frameworks -B "$BUILD_DIR" -G Ninja \
     -DCMAKE_PREFIX_PATH="$QT_HOST" \
     -DCMAKE_BUILD_TYPE=Release
 cmake --build "$BUILD_DIR"
@@ -56,34 +63,32 @@ if [ ! -f "$NODE_DIR/nextjs/.next/BUILD_ID" ] || \
     (cd "$NODE_DIR/nextjs" && npx next build)
 fi
 
-mkdir -p "$RESULTS_DIR"
-
 echo
 echo "== SynQt =="
-"$BUILD_DIR/bench_live" --out "$RESULTS_DIR/vs-node-synqt-${HOST_TAG}.json" "$@"
+"$BUILD_DIR/bench_live" --out "$RESULTS_DIR/vs-fw-synqt-${HOST_TAG}.json" "$@"
 
 echo
 echo "== Qt, bare QWebSocket (the same fan-out with no object protocol on it) =="
-"$BUILD_DIR/bench_live" --raw --out "$RESULTS_DIR/vs-node-qtraw-${HOST_TAG}.json" "$@"
+"$BUILD_DIR/bench_live" --raw --out "$RESULTS_DIR/vs-fw-qtraw-${HOST_TAG}.json" "$@"
 
 echo
 echo "== Node, bare (node:http + hand-rolled RFC 6455) =="
 (cd "$NODE_DIR" && node live-bare.mjs \
-    --out "$REPO_ROOT/$RESULTS_DIR/vs-node-bare-${HOST_TAG}.json" "$@")
+    --out "$RESULTS_DIR/vs-fw-bare-${HOST_TAG}.json" "$@")
 
 echo
 echo "== Node, realistic (Socket.IO) =="
 (cd "$NODE_DIR" && node live-socketio.mjs \
-    --out "$REPO_ROOT/$RESULTS_DIR/vs-node-socketio-${HOST_TAG}.json" "$@")
+    --out "$RESULTS_DIR/vs-fw-socketio-${HOST_TAG}.json" "$@")
 
 echo
 echo "== Node, framework (Next.js, server-sent events) =="
 (cd "$NODE_DIR" && node live-nextjs.mjs \
-    --out "$REPO_ROOT/$RESULTS_DIR/vs-node-nextjs-${HOST_TAG}.json" "$@")
+    --out "$RESULTS_DIR/vs-fw-nextjs-${HOST_TAG}.json" "$@")
 
 echo
 echo "== the table =="
-python3 benchmarks/vs-node/compare.py "$RESULTS_DIR"/vs-node-*-"${HOST_TAG}".json
+python3 benchmarks/vs-frameworks/compare.py "$RESULTS_DIR"/vs-fw-*-"${HOST_TAG}".json
 
 # The other direction: a caller asks and waits. This is where the Next.js Server Function
 # column lives, because that is the Next.js feature shaped like a connect point's returning
@@ -93,7 +98,7 @@ python3 benchmarks/vs-node/compare.py "$RESULTS_DIR"/vs-node-*-"${HOST_TAG}".jso
 # callers, so forwarding one run's arguments to the other would hand --subscribers to a
 # program that has no such option. CALL_CALLERS, CALL_SECONDS and CALL_WORK are the knobs.
 #
-# Written under vs-call- rather than vs-node-calls-, so the live table's glob above keeps
+# Written under vs-call- rather than vs-fw-calls-, so the live table's glob above keeps
 # matching only the live results.
 CALL_WORK="${CALL_WORK:-echo}"
 CALL_CALLERS="${CALL_CALLERS:-1,8,32,128}"
@@ -108,13 +113,13 @@ echo "== SynQt, a connect point's returning slot ($CALL_WORK) =="
 echo
 echo "== Node, bare (node:http, a JSON body each way) =="
 (cd "$NODE_DIR" && node calls-bare.mjs "${CALL_ARGS[@]}" \
-    --out "$REPO_ROOT/$RESULTS_DIR/vs-call-bare-${HOST_TAG}.json")
+    --out "$RESULTS_DIR/vs-call-bare-${HOST_TAG}.json")
 
 echo
 echo "== Node, framework (Next.js Server Functions) =="
 (cd "$NODE_DIR" && node calls-nextjs.mjs "${CALL_ARGS[@]}" \
-    --out "$REPO_ROOT/$RESULTS_DIR/vs-call-nextjs-${HOST_TAG}.json")
+    --out "$RESULTS_DIR/vs-call-nextjs-${HOST_TAG}.json")
 
 echo
 echo "== the call table =="
-python3 benchmarks/vs-node/compare-calls.py "$RESULTS_DIR"/vs-call-*-"${HOST_TAG}".json
+python3 benchmarks/vs-frameworks/compare-calls.py "$RESULTS_DIR"/vs-call-*-"${HOST_TAG}".json

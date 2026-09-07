@@ -10,7 +10,7 @@
 //
 // It needs a build first, because that is what running Next.js in production is:
 //
-//   (cd benchmarks/vs-node/node/nextjs && npx next build)
+//   (cd benchmarks/vs-frameworks/node/nextjs && npx next build)
 //
 // run-bench.sh does it. Serves until killed; the loader in benchmarks/edge is what measures.
 

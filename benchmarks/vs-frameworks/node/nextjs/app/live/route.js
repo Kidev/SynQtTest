@@ -20,7 +20,7 @@
 // that adding a subscriber does not add an encode. It is the honest cost of this design
 // rather than an artefact of the harness: a Next.js deployment doing this pays it too.
 
-const HELD = Symbol.for("synqt.vs-node.nextjs.live");
+const HELD = Symbol.for("synqt.vs-frameworks.nextjs.live");
 
 // On `globalThis`, so the publisher can reach the subscribers this route is holding. Two
 // reasons, and the second is the one that forces it: the App Router gives each route its own

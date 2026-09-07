@@ -135,7 +135,7 @@ for (const callers of sizes) {
 }
 
 writeResult(args.out, {
-    benchmark: "vs-node-calls",
+    benchmark: "vs-frameworks-calls",
     stack: "node-bare-call",
     path: "node:http, a JSON body in and a JSON body out",
     work,

@@ -1,5 +1,5 @@
 {
-  "benchmark": "vs-node-replicas",
+  "benchmark": "vs-frameworks-replicas",
   "stack": "synqt",
   "qt_version": "6.11.1",
   "node_version": "v22.22.0",

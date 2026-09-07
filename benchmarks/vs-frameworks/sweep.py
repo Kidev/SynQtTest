@@ -12,12 +12,12 @@ the fair question is not "which is faster on one core" but "what does each do wi
 A web edge has a second way that Node has no equivalent of (`threads:`, which spreads its
 sockets over IO threads inside one process and so keeps a single shared value). This script
 does not measure it, because what it measures is process count; `bench_live --threads N`
-does, and benchmarks/vs-node/README.md prints the two side by side.
+does, and benchmarks/vs-frameworks/README.md prints the two side by side.
 
-    python3 benchmarks/vs-node/sweep.py --processes 1,2,4,8 --subscribers 200 --seconds 10
+    python3 benchmarks/vs-frameworks/sweep.py --processes 1,2,4,8 --subscribers 200 --seconds 10
 
 It runs the same fixed workload at each process count, with the subscriber count held
-constant and divided among the processes, and writes a `vs-node-replicas-<host>.json` that
+constant and divided among the processes, and writes a `vs-fw-replicas-<host>.json` that
 `benchmarks/baselines.py check` reads: throughput must rise with process count, and no
 process count may buy that throughput by dropping deliveries.
 
@@ -42,8 +42,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-NODE_DIR = REPO_ROOT / "benchmarks" / "vs-node" / "node"
-DEFAULT_BINARY = REPO_ROOT / "build" / "bench-vs-node" / "bench_live"
+NODE_DIR = REPO_ROOT / "benchmarks" / "vs-frameworks" / "node"
+DEFAULT_BINARY = REPO_ROOT / "build" / "bench-vs-frameworks" / "bench_live"
 
 
 def run_one(command: List[str], out_path: Path, cwd: Path) -> Dict[str, Any]:
@@ -143,12 +143,12 @@ def main() -> int:
     counts = [int(part) for part in args.processes.split(",") if part.strip()]
     binary = Path(args.binary)
     if not binary.exists():
-        print(f"{binary} is not built; run benchmarks/vs-node/run-bench.sh first",
+        print(f"{binary} is not built; run benchmarks/vs-frameworks/run-bench.sh first",
               file=sys.stderr)
         return 2
 
     scratch = Path(args.scratch) if args.scratch else Path(
-        os.environ.get("TMPDIR", "/tmp")) / "synqt-vs-node-sweep"
+        os.environ.get("TMPDIR", "/tmp")) / "synqt-vs-frameworks-sweep"
     if scratch.exists():
         shutil.rmtree(scratch)
     scratch.mkdir(parents=True)
@@ -173,10 +173,10 @@ def main() -> int:
 
     host_tag = "".join(c if c.isalnum() or c in "_.-" else "_" for c in socket.gethostname())
     out_path = Path(args.out) if args.out else (
-        REPO_ROOT / "benchmarks" / "results" / f"vs-node-replicas-{host_tag}.json")
+        REPO_ROOT / "benchmarks" / "results" / f"vs-fw-replicas-{host_tag}.json")
 
     document = {
-        "benchmark": "vs-node-replicas",
+        "benchmark": "vs-frameworks-replicas",
         "stack": "synqt",
         "qt_version": "6.11.1",
         "node_version": subprocess.run(["node", "--version"], capture_output=True,

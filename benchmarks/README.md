@@ -592,16 +592,22 @@ every seldom-reached page an app keeps on the edge.
 [The harness README](remote-pages/README.md) says the same at
 length, and says why the harness needs the WebAssembly kit and so belongs on a workstation.
 
-## vs-node: SynQt next to the thing people compare it to
+## vs-frameworks: SynQt next to the stacks people compare it to
 
 Every harness above measures SynQt against itself, which catches regressions and answers
-nothing about whether it is fast. [`vs-node/`](vs-node/README.md) puts it beside Node.js on
-the workload SynQt exists for: one publisher, N live subscribers, everyone sees every
-change. Five columns, because no one Node column alone is arguable: bare Node built-ins are
-the floor SynQt has to beat and nobody ships them, Socket.IO is what people deploy and is the
-easier comparison, and Next.js is what most readers are already running. Next.js has no
-WebSocket server of its own, so its live path is a Route Handler streaming server-sent events
-and it is the one column carrying a different protocol from the rest.
+nothing about whether it is fast. [`vs-frameworks/`](vs-frameworks/README.md) puts it beside
+the other stacks on the workload SynQt exists for: one publisher, N live subscribers,
+everyone sees every change. One column is never arguable on its own, so there are several:
+bare runtime built-ins are the floor SynQt has to beat and nobody ships them, Socket.IO is
+what people deploy and is the easier comparison, and Next.js is what most readers are
+already running. Next.js has no WebSocket server of its own, so its live path is a Route
+Handler streaming server-sent events and it is the one column carrying a different protocol
+from the rest.
+
+Adding a column is writing one program against
+[`COLUMN-CONTRACT.md`](vs-frameworks/COLUMN-CONTRACT.md), which is what every column is
+held to and what a contributor reads instead of reverse-engineering the reference
+implementation.
 
 It measures the other direction too, because that is the direction most application code
 goes: a caller asks the server to do something and waits for the value. There the Next.js
@@ -612,8 +618,8 @@ answering a JSON POST sits between the two as the control, so the gap can be spl
 React's machinery costs and what holding an open connection saves.
 
 ```sh
-./benchmarks/vs-node/run-bench.sh                       # both tables, five columns and three
-python3 benchmarks/vs-node/sweep.py --processes 1,2,4,8 # throughput against process count
+./benchmarks/vs-frameworks/run-bench.sh                       # both tables, every column
+python3 benchmarks/vs-frameworks/sweep.py --processes 1,2,4,8 # throughput against process count
 ```
 
 The sweep is also the acceptance test for [`replicas:`](../docs/deploying.md#8-running-more-than-one-edge),
@@ -623,7 +629,7 @@ count to the largest, and no process count may buy that throughput by dropping d
 1.5x rather than the 2x used elsewhere, because real scaling is sublinear and the baseline
 moves with the machine.
 
-Read [its README](vs-node/README.md) before the numbers. It carries two measurement bugs
+Read [its README](vs-frameworks/README.md) before the numbers. It carries two measurement bugs
 this harness shipped and then found, both of which produced plausible tables: a busy-wait
 that reported SynQt at 85x its real CPU cost, and a zero-millisecond timer that reported
 Node as scaling 1.14x when it scales 3.86x. Neither looked wrong from the outside.

@@ -9,7 +9,7 @@ here a caller asks and waits for the answer. That is the shape a Next.js Server 
 has and the shape a connect point's returning slot has, which is why the two are measured
 against each other at all.
 
-    python3 benchmarks/vs-node/compare-calls.py benchmarks/results/vs-node-calls-*.json
+    python3 benchmarks/vs-frameworks/compare-calls.py benchmarks/results/vs-call-*.json
 
 Every column is printed, including a stack that lost. A comparison that only prints its
 winner is an advertisement.

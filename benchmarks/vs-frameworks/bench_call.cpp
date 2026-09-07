@@ -519,7 +519,7 @@ int main(int argc, char *argv[])
     }
 
     QJsonObject root;
-    root.insert(QStringLiteral("benchmark"), QStringLiteral("vs-node-calls"));
+    root.insert(QStringLiteral("benchmark"), QStringLiteral("vs-frameworks-calls"));
     root.insert(QStringLiteral("stack"), QStringLiteral("synqt"));
     root.insert(QStringLiteral("path"),
                 QStringLiteral("a connect point's returning slot over QtRemoteObjects"));

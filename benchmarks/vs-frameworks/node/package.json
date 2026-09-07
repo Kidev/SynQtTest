@@ -1,5 +1,5 @@
 {
-  "name": "synqt-vs-node",
+  "name": "synqt-vs-frameworks",
   "private": true,
   "type": "module",
   "description": "The Node.js columns of the SynQt comparison. The bare column needs none of these; they are what the two framework columns are.",

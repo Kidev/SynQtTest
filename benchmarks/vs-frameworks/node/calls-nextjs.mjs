@@ -56,7 +56,7 @@ const ids = actionIds();
 if (!ids[work]) {
     console.error(`the build names no server action '${work}' `
                   + `(it has: ${Object.keys(ids).join(", ") || "none"}); `
-                  + `rebuild with: (cd benchmarks/vs-node/node/nextjs && npx next build)`);
+                  + `rebuild with: (cd benchmarks/vs-frameworks/node/nextjs && npx next build)`);
     process.exit(1);
 }
 
@@ -99,7 +99,7 @@ for (const callers of sizes) {
 }
 
 writeResult(args.out, {
-    benchmark: "vs-node-calls",
+    benchmark: "vs-frameworks-calls",
     stack: "node-nextjs-action",
     path: "Next.js 16 App Router, Server Function over the React flight protocol",
     work,
