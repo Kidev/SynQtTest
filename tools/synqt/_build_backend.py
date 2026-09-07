@@ -46,12 +46,22 @@ _VENDORED = _HERE / "synqt" / "framework"
 # cmake/SynQtContracts.cmake resolves SYNQTC_ROOT as "<the directory holding cmake/>/tools/
 # synqtc", so it has to sit at that spot relative to the other two. Without it every build
 # stops at "synqtc failed for <contract>.syn" before compiling a line.
-_FRAMEWORK_DIRS = ("src", "cmake", "tools/synqtc")
+#
+# `examples` is the fourth because `synqt new <name> --example <example>` copies one, and a
+# CLI that offers an example it does not carry offers nothing. They are about 220 KB of QML
+# and YAML with the build trees left behind, which is smaller than the CMake it ships beside.
+_FRAMEWORK_DIRS = ("src", "cmake", "tools/synqtc", "examples")
 
 # The build tree and the editor droppings that collect inside src/ on a working checkout.
 # A wheel carrying one developer's object files is both larger and wrong.
+#
+# `generated/` and the user preset are the same thing for an example: both are written from
+# synqt.yaml by the first `synqt dev`, and shipping one machine's copy means shipping its
+# absolute paths. `.env` and `certs/` would be somebody's secrets, and a checkout should
+# never have them, but a copy step is the wrong place to find out.
 _EXCLUDE = shutil.ignore_patterns("build", "CMakeFiles", "*.o", "*.so", "*.a",
-                                  "__pycache__", ".DS_Store")
+                                  "__pycache__", ".DS_Store",
+                                  "generated", "CMakeUserPresets.json", ".env", "certs")
 
 
 def _vendor_framework() -> None:

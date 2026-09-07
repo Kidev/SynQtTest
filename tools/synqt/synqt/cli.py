@@ -17,7 +17,8 @@ from typing import Any, Dict, List, Optional, Tuple
 from . import (addauth, addcontract, addentity, addprovider, appmodel,
                build as buildmod, check as checkmod, clientbuild,
                config as configmod, create, deploy as deploymod, design as designmod,
-               docker as dockermod, doctor, infer as infermod, mesh,
+               docker as dockermod, doctor, examples as examplesmod,
+               infer as infermod, mesh,
                monitorops, newproject, profiles,
                run as runmod, typebackend, version as versionmod)
 
@@ -75,6 +76,11 @@ def build_parser() -> argparse.ArgumentParser:
     # had to carry a name and a type at once (`--blueprint orders:relational`), and one
     # command already says that better: `synqt add entity orders --type relational`, run
     # once the project exists. `synqt create` asks for both, as two questions.
+    # Start from one of the systems SynQt ships rather than from a client and an edge with
+    # nothing between them. `synqt examples` lists them; a copy is a project like any other
+    # from the moment it lands, so nothing about the rest of the CLI knows it came this way.
+    new.add_argument("--example", default=None,
+                     help="start from a shipped example (see 'synqt examples')")
     new.add_argument("--parent-dir", default=".")
 
     # The interactive twin of `new`, as its own command rather than a mode of that one.
@@ -95,9 +101,10 @@ def build_parser() -> argparse.ArgumentParser:
                            ("infer", "read back the contracts the QML already implies"),
                            ("clean", "remove build outputs"),
                            ("doctor", "diagnose toolchain, certificates, versions"),
-                           ("providers", "list bundled providers per family")]:
+                           ("providers", "list bundled providers per family"),
+                           ("examples", "list the example systems 'synqt new' can copy")]:
         p = sub.add_parser(name, help=helptext)
-        if name != "providers":
+        if name not in ("providers", "examples"):
             p.add_argument("--project-dir", default=".")
         if name in ("dev", "design", "build", "serve", "check", "infer", "doctor"):
             # The commands that read the topology take the profile that layers over it
@@ -433,11 +440,24 @@ def main(argv: Optional[List[str]] = None) -> int:
         if args.command == "version":
             print("\n".join(versionmod.version_lines()))
         elif args.command == "new":
-            print(newproject.scaffold(args.parent_dir, args.name, auth=args.auth))
+            if args.example:
+                if args.auth:
+                    # An example carries its own identity block, or deliberately carries
+                    # none. Priming a provider into one would edit a file the reader is
+                    # about to be told to read.
+                    raise examplesmod.ExampleError(
+                        "--auth and --example cannot be used together: an example already "
+                        "says whether it signs people in. Copy it, then run 'synqt add "
+                        "auth <provider>' if you want to change that.")
+                print(examplesmod.scaffold(args.parent_dir, args.name, args.example))
+            else:
+                print(newproject.scaffold(args.parent_dir, args.name, auth=args.auth))
         elif args.command == "create":
             print(create.create(args.parent_dir, name=args.name))
         elif args.command == "providers":
             print(addentity.list_providers())
+        elif args.command == "examples":
+            print(examplesmod.listing())
         elif args.command == "doctor":
             print(doctor.report(args.project_dir, profile=args.profile))
         elif args.command == "check":
@@ -560,7 +580,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         else:
             parser.error("unknown command")
     except (newproject.NewProjectError, create.CreateError, addauth.AddAuthError,
-            addentity.AddEntityError,
+            addentity.AddEntityError, examplesmod.ExampleError,
             addprovider.AddProviderError, addcontract.AddContractError, mesh.MeshError,
             designmod.DesignError, infermod.InferError, typebackend.TypeBackendError,
             dockermod.DockerError, appmodel.AppGenError, buildmod.BuildError,
