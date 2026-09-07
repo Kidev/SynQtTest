@@ -37,7 +37,7 @@ class Server:
         self.url = ""
 
         @self.app.websocket("/live")
-        async def live(socket: WebSocket) -> None:  # noqa: ANN202 (FastAPI route)
+        async def live(socket: WebSocket) -> None: # noqa: ANN202 (FastAPI route)
             await socket.accept()
             self.clients.append(socket)
             try:

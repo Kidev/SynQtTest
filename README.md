@@ -119,17 +119,17 @@ Read [security](https://synqt.org/security/) before deploying, and
 
 A value changes on the server and every connected client has to see it. One publisher,
 100 subscribers, saturating, 256 byte payload, on a 32 core Linux host with Qt 6.11.1 and
-Node 22.22. Deliveries per second:
+Node 24.20.0. Deliveries per second:
 
 | processes | SynQt | Node, built-ins only | Node, Socket.IO |
 |---|---|---|---|
-| 1 | 108k | 117k | 59k |
-| 2 | 248k | 237k | |
-| 4 | 507k | 466k | |
-| 8 | 1.03M | 871k | |
+| 1 | 104k | 124k | 61k |
+| 2 | 241k | 247k | |
+| 4 | 506k | 491k | |
+| 8 | 1.02M | 907k | |
 
 Both runtimes run one thread per process and add capacity by running more processes. SynQt
-trails the built-ins column by 8% on one process and leads it by 18% on eight. That column
+trails the built-ins column by 16% on one process and leads it by 12% on eight. That column
 is `node:http` with a hand written WebSocket implementation, which is faster than what most
 deployments run; Socket.IO is the usual choice, and the sweep measures it on one process
 only. Next.js is measured too and is not in this table, because it ships no WebSocket server:
@@ -142,12 +142,12 @@ process, where all 100 subscribers still share a single value:
 
 | cores | `threads: N`, one process, one shared value | `replicas: N`, N processes, one value each |
 |---|---|---|
-| 1 | 112k | 108k |
-| 2 | 179k | 248k |
-| 4 | 200k | 507k |
-| 8 | 176k | 1.03M |
+| 1 | 104k | 104k |
+| 2 | 200k | 241k |
+| 4 | 199k | 506k |
+| 8 | 183k | 1.02M |
 
-The threads column stops improving after four cores. The processes column keeps scaling, and
+The threads column stops improving after two cores. The processes column keeps scaling, and
 it cannot answer the case in the left column: making N processes agree on one value costs a
 broadcast between them that these numbers do not include.
 
@@ -156,14 +156,16 @@ something and waits for the answer. In SynQt that is a connect point's returning
 Next.js feature shaped the same way is a Server Function. Same host, `--work echo`, one
 caller with nothing else on the machine, then a hundred and twenty-eight at once:
 
-| | SynQt slot | Node, plain JSON POST | Next.js Server Function |
-|---|---|---|---|
-| latency p50, 1 caller | 0.019 ms | 0.116 ms | 0.755 ms |
-| latency p50, 128 callers | 2.3 ms | 16.1 ms | 73.8 ms |
-| calls per core-second | ~57k | ~6.0k | ~1.0k |
+SynQt's column is 0.020 ms for one caller, 2.4 ms for a hundred and twenty-eight, and about
+60 thousand calls a core-second. **The two Node columns are being re-measured and are left
+out here rather than printed stale:** the harness issued their requests with the global
+`fetch`, whose own per-call cost on this workload went up fivefold between Node 22 and 24,
+which is a fact about a client library and not about either server. Both now go through
+`node:http` on a held-open connection, as SynQt's column and Next.js's real client both do.
 
-Two things are stacked in that gap and they are worth separating. React's machinery around a
-server action costs five to six times what the same Node process costs answering a plain
+Two things are stacked in that gap and they are worth separating, and a spot check at one
+and thirty-two callers says the correction leaves both standing. React's machinery around a
+server action costs six to seven times what the same Node process costs answering a plain
 POST, which is a like-for-like number. The rest is that a SynQt caller already holds its
 connection while both Node columns open a request per call, which is a difference in design
 rather than in efficiency.
