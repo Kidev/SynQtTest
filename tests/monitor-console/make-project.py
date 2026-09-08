@@ -27,7 +27,7 @@ BASE = """\
 project:
   name: watched
   version: 0.1.0
-  qt_version: 6.11.1
+  qt_version: 6.12.0
 
 # The client's own diagnostics, on. A release WASM build is silent by default, which is
 # right for something served to visitors and wrong for a suite whose whole job is to find

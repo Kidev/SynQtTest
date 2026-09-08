@@ -97,7 +97,7 @@ def _project(tmp_path: Path) -> Path:
         "    function bid(amount) {\n        return amount;\n    }\n}\n")
     (root / "service" / "ledger" / "Ledger.qml").write_text(_SOURCE)
     (root / "synqt.yaml").write_text(yaml.safe_dump({
-        "project": {"name": "app", "version": "0.1.0", "qt_version": "6.11.1"},
+        "project": {"name": "app", "version": "0.1.0", "qt_version": "6.12.0"},
         "entities": [
             {"name": "edge", "type": "web_edge"},
             {"name": "ledger", "type": "service"},

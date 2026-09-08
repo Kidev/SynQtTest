@@ -25,7 +25,7 @@ BASE = """\
 project:
   name: picked
   version: 0.1.0
-  qt_version: 6.11.1
+  qt_version: 6.12.0
 
 scopes:
   order: [anonymous, user, moderator]

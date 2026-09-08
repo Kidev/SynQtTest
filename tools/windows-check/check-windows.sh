@@ -16,9 +16,9 @@
 #
 # Environment (all resolved to sensible defaults where possible):
 #   XWIN_DIR    the `xwin splat` output directory (required; holds crt/ and sdk/)
-#   QT_WIN      the Windows Qt kit (default: $HOME/Qt-win/6.11.1/msvc2022_64)
+#   QT_WIN      the Windows Qt kit (default: $HOME/Qt-win/6.12.0/msvc2022_64)
 #   QT_HOST     the Linux host Qt kit whose generators run here
-#               (default: /opt/Qt/6.11.1/gcc_64)
+#               (default: /opt/Qt/6.12.0/gcc_64)
 #   OPENSSL_WIN a Windows OpenSSL prefix (the dir holding include/ and lib/), needed by
 #               any target that links SynQtService. Default:
 #               $HOME/.cache/synqt-openssl-win/Library. Ignored if it does not exist, so
@@ -35,8 +35,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 TOOLCHAIN="$REPO_ROOT/cmake/toolchains/windows-clang-cl.cmake"
-QT_WIN="${QT_WIN:-$HOME/Qt-win/6.11.1/msvc2022_64}"
-QT_HOST="${QT_HOST:-/opt/Qt/6.11.1/gcc_64}"
+QT_WIN="${QT_WIN:-$HOME/Qt-win/6.12.0/msvc2022_64}"
+QT_HOST="${QT_HOST:-/opt/Qt/6.12.0/gcc_64}"
 OPENSSL_WIN="${OPENSSL_WIN:-$HOME/.cache/synqt-openssl-win/Library}"
 BUILD_TYPE="${BUILD_TYPE:-RelWithDebInfo}"
 

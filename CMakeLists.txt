@@ -13,7 +13,7 @@
 # compiles SynQtEdge, SynQtClient, and the leaves under them once per suite. Here they
 # are compiled once for all of them.
 #
-# Prerequisites are the union of what the suites need: a Qt 6.11 host kit including
+# Prerequisites are the union of what the suites need: a Qt 6.12 host kit including
 # HttpServer and NetworkAuth, OpenSSL, and jwt-cpp 0.7.1 or newer. One suite on its own
 # needs only its own share, which is why the per-suite run-*.sh scripts still exist and
 # still work; see tests/README.md.
@@ -23,7 +23,7 @@ project(SynQt VERSION 0.1.0 LANGUAGES CXX)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/SynQtBuildFlags.cmake")
 
-find_package(Qt6 6.11 REQUIRED COMPONENTS Core)
+find_package(Qt6 6.12 REQUIRED COMPONENTS Core)
 qt_standard_project_setup()
 
 option(SYNQT_BUILD_TESTS "Build the host-kit test suites under tests/" ON)

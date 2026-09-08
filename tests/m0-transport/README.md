@@ -129,21 +129,21 @@ Build directly without the harness:
 ```sh
 # edge (native)
 cmake -S tests/m0-transport -B build/m0-edge -G Ninja -DSYNQT_M0_ENTITY=edge \
-  -DCMAKE_PREFIX_PATH=/opt/Qt/6.11.1/gcc_64 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  -DCMAKE_PREFIX_PATH=/opt/Qt/6.12.0/gcc_64 -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build/m0-edge
 
 # client (WASM single-threaded)
-/opt/Qt/6.11.1/wasm_singlethread/bin/qt-cmake -S tests/m0-transport -B build/m0-client \
+/opt/Qt/6.12.0/wasm_singlethread/bin/qt-cmake -S tests/m0-transport -B build/m0-client \
   -G Ninja -DSYNQT_M0_ENTITY=client -DCMAKE_BUILD_TYPE=Release
 cmake --build build/m0-client
 ```
 
 ## Findings (recorded per the M0 gate)
 
-1. QtRemoteObjects is missing from the prebuilt Qt 6.11.1 WASM kits. The
+1. QtRemoteObjects is missing from the prebuilt Qt 6.12.0 WASM kits. The
    `wasm_singlethread` / `wasm_multithread` kits ship QtWebSockets but not
    QtRemoteObjects (no CMake package, no `.a`, no QML plugin), and it is not available
-   via aqt. It must be built from the pinned source (`/opt/Qt/6.11.1/Src/qtremoteobjects`)
+   via aqt. It must be built from the pinned source (`/opt/Qt/6.12.0/Src/qtremoteobjects`)
    with each kit's `qt-cmake` and installed into the kit prefix. The kits'
    `qt-configure-module` is broken on Linux (Windows backslashes in its paths); use
    `qt-cmake` directly. This is a toolchain-provisioning step the M10 CLI must perform.

@@ -36,6 +36,6 @@ synqt_activate_emsdk() {
     echo "       Without one the Qt WASM kit configures against the Windows path baked into" >&2
     echo "       it and fails claiming there is no C++ compiler. Install the pinned version:" >&2
     echo "         git clone https://github.com/emscripten-core/emsdk.git ~/emsdk" >&2
-    echo "         ~/emsdk/emsdk install 4.0.7 && ~/emsdk/emsdk activate 4.0.7" >&2
+    echo "         ~/emsdk/emsdk install 5.0.5 && ~/emsdk/emsdk activate 5.0.5" >&2
     return 1
 }

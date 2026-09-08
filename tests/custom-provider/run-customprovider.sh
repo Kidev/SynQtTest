@@ -15,12 +15,12 @@
 # committed, so this builds what the tool emits today rather than a copy of it). Step 2 builds
 # them into a test that asserts each registered itself and that its family factory selects it.
 #
-# Needs the pinned host kit (/opt/Qt/6.11.1/gcc_64). Usage:
+# Needs the pinned host kit (/opt/Qt/6.12.0/gcc_64). Usage:
 #   tests/custom-provider/run-customprovider.sh
 
 set -euo pipefail
 
-QT_HOST="${QT_HOST:-/opt/Qt/6.11.1/gcc_64}"
+QT_HOST="${QT_HOST:-/opt/Qt/6.12.0/gcc_64}"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_ROOT"
 

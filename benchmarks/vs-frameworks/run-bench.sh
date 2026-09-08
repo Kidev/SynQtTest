@@ -4,7 +4,7 @@
 
 # SynQt against the other frameworks, in both directions. Builds the SynQt harnesses, runs
 # every column over the same sweep, and writes one baseline each under benchmarks/results/
-# keyed by hostname. Pinned Qt 6.11.1.
+# keyed by hostname. Pinned Qt 6.12.0.
 #
 # A column whose toolchain is not installed skips with a printed reason rather than failing
 # the run. benchmarks/vs-frameworks/COLUMN-CONTRACT.md is what every column is held to.
@@ -31,7 +31,7 @@
 
 set -euo pipefail
 
-QT_HOST="${QT_HOST:-/opt/Qt/6.11.1/gcc_64}"
+QT_HOST="${QT_HOST:-/opt/Qt/6.12.0/gcc_64}"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_ROOT"
 

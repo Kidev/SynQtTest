@@ -20,7 +20,7 @@ import yaml
 from synqt import appgen, appmodel, cmakegen, maingen, run
 
 CONFIG = {
-    "project": {"name": "gavel", "qt_version": "6.11.1"},
+    "project": {"name": "gavel", "qt_version": "6.12.0"},
     "entities": [
         {"name": "client", "type": "client", "targets": ["wasm"]},
         {"name": "web", "type": "web_edge"},

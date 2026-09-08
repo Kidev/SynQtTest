@@ -20,7 +20,7 @@
 #
 # The string-level unit tests assert the generated CMake/main text; only a real build catches a
 # missing link library, a CMake collision, or (as this fixture first found) build.desktop.
-# edge_url never being passed to the compile. Needs the pinned host kit (/opt/Qt/6.11.1/gcc_64).
+# edge_url never being passed to the compile. Needs the pinned host kit (/opt/Qt/6.12.0/gcc_64).
 #
 # Usage: tests/desktop-client/run-desktop-client.sh
 
@@ -29,8 +29,8 @@ set -euo pipefail
 # The kit directory is named for the host, not the target, so a single Linux default makes this
 # script fail on macOS with "native host kit not found" for a kit that is installed and correct.
 case "$(uname -s)" in
-Darwin) QT_HOST_DEFAULT=/opt/Qt/6.11.1/macos ;;
-*)      QT_HOST_DEFAULT=/opt/Qt/6.11.1/gcc_64 ;;
+Darwin) QT_HOST_DEFAULT=/opt/Qt/6.12.0/macos ;;
+*)      QT_HOST_DEFAULT=/opt/Qt/6.12.0/gcc_64 ;;
 esac
 
 QT_HOST="${QT_HOST:-$QT_HOST_DEFAULT}"

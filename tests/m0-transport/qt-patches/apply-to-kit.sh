@@ -18,9 +18,9 @@
 
 set -euo pipefail
 
-QT_WASM="${QT_WASM:-/opt/Qt/6.11.1/wasm_singlethread}"
-QT_HOST="${QT_HOST:-/opt/Qt/6.11.1/gcc_64}"
-QT_SRC="${QT_SRC:-/opt/Qt/6.11.1/Src/qtbase}"
+QT_WASM="${QT_WASM:-/opt/Qt/6.12.0/wasm_singlethread}"
+QT_HOST="${QT_HOST:-/opt/Qt/6.12.0/gcc_64}"
+QT_SRC="${QT_SRC:-/opt/Qt/6.12.0/Src/qtbase}"
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$HERE/../../.." && pwd)"
@@ -93,12 +93,12 @@ trap 'rm -rf "$WORK"' EXIT
 cp "$QT_SRC/$RELPATH" "$WORK/qeventdispatcher_wasm.cpp"
 patch -s -d "$WORK" -i "$PATCH" qeventdispatcher_wasm.cpp
 
-PRIVATE="$QT_WASM/include/QtCore/6.11.1/QtCore/private"
+PRIVATE="$QT_WASM/include/QtCore/6.12.0/QtCore/private"
 INCLUDES=(
     "-I$QT_WASM/include"
     "-I$QT_WASM/include/QtCore"
-    "-I$QT_WASM/include/QtCore/6.11.1"
-    "-I$QT_WASM/include/QtCore/6.11.1/QtCore"
+    "-I$QT_WASM/include/QtCore/6.12.0"
+    "-I$QT_WASM/include/QtCore/6.12.0/QtCore"
     "-I$PRIVATE"
     "-I$QT_WASM/mkspecs/wasm-emscripten"
     "-I$WORK"

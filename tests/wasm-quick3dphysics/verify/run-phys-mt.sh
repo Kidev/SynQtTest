@@ -18,21 +18,21 @@
 #               REAL browser tab and watch the box fall. This is the definitive interactive
 #               check the headless rAF loop cannot make for you.
 #
-# Needs the multi-threaded WASM kit (/opt/Qt/6.11.1/wasm_multithread) with emsdk 4.0.7, and
+# Needs the multi-threaded WASM kit (/opt/Qt/6.12.0/wasm_multithread) with emsdk 5.0.5, and
 # Node for the driver. Usage:
 #   tests/wasm-quick3dphysics/verify/run-phys-mt.sh            # build + headless check
 #   tests/wasm-quick3dphysics/verify/run-phys-mt.sh --serve    # build + interactive serve
 
 set -euo pipefail
 
-QT_WASM_MT="${QT_WASM_MT:-/opt/Qt/6.11.1/wasm_multithread}"
+QT_WASM_MT="${QT_WASM_MT:-/opt/Qt/6.12.0/wasm_multithread}"
 REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 HERE="$REPO_ROOT/tests/wasm-quick3dphysics"
 cd "$REPO_ROOT"
 
 if [ ! -x "$QT_WASM_MT/bin/qt-cmake" ]; then
     echo "error: multi-threaded WASM kit not found at $QT_WASM_MT" >&2
-    echo "       install it (aqtinstall wasm_multithread for 6.11.1) and retry." >&2
+    echo "       install it (aqtinstall wasm_multithread for 6.12.0) and retry." >&2
     exit 1
 fi
 

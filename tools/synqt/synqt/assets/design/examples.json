@@ -39,7 +39,7 @@
     "user",
     "admin"
    ],
-   "sourceHash": "8649ebbf8488d513e76c514bdafd5feb453b9874ceaee4da4c0dad9132392e84",
+   "sourceHash": "64befc171faa5e875a7a7e75a9c2dc45534167f79f587d7e7d55e8b3ff254e3d",
    "entities": [
     {
      "id": "app",
@@ -222,7 +222,7 @@
     "moderator",
     "admin"
    ],
-   "sourceHash": "a5981f3edc82b6e62610e5c3fe49a75941a148ed31bf50060cedb96230e92788",
+   "sourceHash": "d414ca81afa332d8e675544421d1e9a6515d5b2d6883d025e0baf17bd0149b34",
    "entities": [
     {
      "id": "app",
@@ -441,7 +441,7 @@
     "anonymous",
     "player"
    ],
-   "sourceHash": "630f919a9b8935aee6188875e8d3a9ba9bdbae63cce6cc419e58c30b607b601c",
+   "sourceHash": "a2c9639204b6439b21da79a410ceee2a05e7629b2a94d8a16a7da7561337d2f0",
    "entities": [
     {
      "id": "app",
@@ -706,7 +706,7 @@
     "anonymous",
     "user"
    ],
-   "sourceHash": "278b6600fbbd77bf7c00cca49fa6e06106fdde57267f45b4ad20aa37991d1fd8",
+   "sourceHash": "4e38e6c7397bef41933ea521b3206c708a8fb03d9301ac6af4a3506282973e4f",
    "entities": [
     {
      "id": "app",

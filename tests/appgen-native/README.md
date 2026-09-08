@@ -121,7 +121,7 @@ shell wrapping it and the cleanup actually stops it.
 tests/appgen-native/run-appgen-native.sh
 ```
 
-Needs the pinned host kit (`/opt/Qt/6.11.1/gcc_64`). It writes everything under
+Needs the pinned host kit (`/opt/Qt/6.12.0/gcc_64`). It writes everything under
 `build/appgen-native/` (git-ignored) and prints `APPGEN-NATIVE GATE: GO` once every generated
 entity compiles and links (the `web` edge, the `database` service, and the `client`, built here
 as a native desktop app), the routed client above resolves every one of its routes, and the

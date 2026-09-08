@@ -8,7 +8,7 @@
 # object to the path given by --out and a readable summary to stderr. brotli is optional; if it is not
 # installed the brotli figures are reported as null rather than a wrong number.
 #
-#   measure-bundle.sh <bundle-dir> <label> --out <file.json> [--qt-version 6.11.1]
+#   measure-bundle.sh <bundle-dir> <label> --out <file.json> [--qt-version 6.12.0]
 
 set -euo pipefail
 
@@ -16,7 +16,7 @@ BUNDLE_DIR="${1:?usage: measure-bundle.sh <bundle-dir> <label> --out <file.json>
 LABEL="${2:?missing label}"
 shift 2
 OUT=""
-QT_VERSION="6.11.1"
+QT_VERSION="6.12.0"
 while [ $# -gt 0 ]; do
     case "$1" in
         --out) OUT="$2"; shift 2 ;;

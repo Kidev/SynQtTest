@@ -33,8 +33,8 @@ tests/m0-transport/qt-patches/apply-to-kit.sh revert    # put Qt's own archive b
 tests/m0-transport/qt-patches/apply-to-kit.sh verify    # rebuild and check, change nothing
 ```
 
-It defaults to `/opt/Qt/6.11.1/wasm_singlethread`, with `/opt/Qt/6.11.1/gcc_64` for `moc` and
-`/opt/Qt/6.11.1/Src/qtbase` for the source; set `QT_WASM`, `QT_HOST` and `QT_SRC` for
+It defaults to `/opt/Qt/6.12.0/wasm_singlethread`, with `/opt/Qt/6.12.0/gcc_64` for `moc` and
+`/opt/Qt/6.12.0/Src/qtbase` for the source; set `QT_WASM`, `QT_HOST` and `QT_SRC` for
 anything else. Anything already built has to be relinked afterwards, which for the M0 client
 means deleting `build/m0-client/m0-client.wasm` and building again.
 
@@ -127,8 +127,12 @@ measured here. JSPI avoids both costs and only Chromium ships it.
 
 ## Status
 
-Not upstream, and not fixed on `dev` either: `qeventdispatcher_wasm.cpp` at
-`v6.12.0-beta1-1287` is identical to 6.11.1 apart from an unrelated startup-task removal. This
-is a local patch on a local kit, and CI builds against a stock Qt, so the SynQt workaround it
-would replace (the `Q_OS_WASM` poll in `src/consumer/promise.cpp`) stays where it is until
-either the fix ships in a Qt release or SynQt links its client with asyncify.
+Not upstream, and not fixed in 6.12.0 either. That was first checked against
+`v6.12.0-beta1-1287`, where `qeventdispatcher_wasm.cpp` was identical to 6.11.1 apart from an
+unrelated startup-task removal; it is now checked against the released source the project
+pins, and this patch applies to `/opt/Qt/6.12.0/Src/qtbase` with no offset and no fuzz, which
+is the same statement with a stronger instrument behind it: the context it patches is
+byte-identical, so the two-hop chain is unchanged. This is a local patch on a local kit, and
+CI builds against a stock Qt, so the SynQt workaround it would replace (the `Q_OS_WASM` poll
+in `src/consumer/promise.cpp`) stays where it is until either the fix ships in a Qt release or
+SynQt links its client with asyncify.

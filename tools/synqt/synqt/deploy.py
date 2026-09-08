@@ -453,7 +453,7 @@ def _deploy_linux(root: Path, name: str, out: Path, host_qt: Optional[str],
     libraries = _library_closure(shipped, kit)
     for soname, source in libraries.items():
         # Copied under the soname, following the symlink: the kit's libQt6Core.so.6 points at
-        # libQt6Core.so.6.11.1, and the loader asks for the name in DT_NEEDED.
+        # libQt6Core.so.6.12.0, and the loader asks for the name in DT_NEEDED.
         shutil.copy2(source, lib_dir / soname, follow_symlinks=True)
 
     _verify_closure(shipped, lib_dir, kit)

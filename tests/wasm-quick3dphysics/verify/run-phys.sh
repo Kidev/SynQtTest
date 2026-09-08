@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Is Qt Quick 3D Physics usable on WebAssembly? The spec audit recorded "does not work on
-# WASM"; this checks that against the pinned 6.11.1 kit in two halves that together settle it:
+# WASM"; this checks that against the pinned 6.12.0 kit in two halves that together settle it:
 #
 #   WASM half; build the scene with the wasm_singlethread kit (proves the Quick3DPhysics
 #                 plugin and the bundled PhysX archive that ship in the kit actually link) and
@@ -20,8 +20,8 @@
 
 set -euo pipefail
 
-QT_HOST="${QT_HOST:-/opt/Qt/6.11.1/gcc_64}"
-QT_WASM="${QT_WASM:-/opt/Qt/6.11.1/wasm_singlethread}"
+QT_HOST="${QT_HOST:-/opt/Qt/6.12.0/gcc_64}"
+QT_WASM="${QT_WASM:-/opt/Qt/6.12.0/wasm_singlethread}"
 REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 HERE="$REPO_ROOT/tests/wasm-quick3dphysics"
 cd "$REPO_ROOT"
@@ -45,7 +45,7 @@ PHYS_HEADLESS=1 node verify-phys.mjs
 echo "== [4/4] Native: assert the box falls under gravity and rests on the plane =="
 # Rendered offscreen with Mesa's software rasteriser, with no display and no X server. The
 # note this replaces said Quick3D "needs a real GL context, so this cannot run on the
-# offscreen platform" and reached for Xvfb instead; measured against the pinned 6.11.1 kit
+# offscreen platform" and reached for Xvfb instead; measured against the pinned 6.12.0 kit
 # that is simply not true; the offscreen platform brings up the RHI through surfaceless
 # EGL and prints the identical startY/minY/finalY. The Xvfb route cost a day to disprove:
 # xvfb-run requires xauth, funnels the X server's own errors into a temp file it deletes on

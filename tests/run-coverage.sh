@@ -39,7 +39,7 @@
 
 set -euo pipefail
 
-QT_HOST="${QT_HOST:-/opt/Qt/6.11.1/gcc_64}"
+QT_HOST="${QT_HOST:-/opt/Qt/6.12.0/gcc_64}"
 BUILD_DIR="${BUILD_DIR:-build/coverage}"
 CXX_FLOOR="${CXX_FLOOR:-78}"
 PY_FLOOR="${PY_FLOOR:-91}"

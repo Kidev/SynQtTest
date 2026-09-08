@@ -20,8 +20,8 @@
 set -euo pipefail
 
 case "$(uname -s)" in
-Darwin) QT_HOST_DEFAULT=/opt/Qt/6.11.1/macos ;;
-*)      QT_HOST_DEFAULT=/opt/Qt/6.11.1/gcc_64 ;;
+Darwin) QT_HOST_DEFAULT=/opt/Qt/6.12.0/macos ;;
+*)      QT_HOST_DEFAULT=/opt/Qt/6.12.0/gcc_64 ;;
 esac
 QT_HOST="${QT_HOST:-$QT_HOST_DEFAULT}"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"

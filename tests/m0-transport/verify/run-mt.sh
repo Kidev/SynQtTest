@@ -15,12 +15,12 @@ set -euo pipefail
 # is the host's, not the target's, so defaulting to the Linux one makes this script fail on
 # macOS with a CMake error about a prefix that was never going to exist there.
 case "$(uname -s)" in
-Darwin) QT_HOST_DEFAULT=/opt/Qt/6.11.1/macos ;;
-*)      QT_HOST_DEFAULT=/opt/Qt/6.11.1/gcc_64 ;;
+Darwin) QT_HOST_DEFAULT=/opt/Qt/6.12.0/macos ;;
+*)      QT_HOST_DEFAULT=/opt/Qt/6.12.0/gcc_64 ;;
 esac
 
 QT_HOST="${QT_HOST:-$QT_HOST_DEFAULT}"
-QT_WASM_MT="${QT_WASM_MT:-/opt/Qt/6.11.1/wasm_multithread}"
+QT_WASM_MT="${QT_WASM_MT:-/opt/Qt/6.12.0/wasm_multithread}"
 
 # A cross-compiled Qt cannot find its own host tools: the WASM kit is host-independent and
 # carries the path from Qt's own build machine. CI passes this in, so only a developer

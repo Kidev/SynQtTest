@@ -146,7 +146,7 @@ Identity and cross cutting choices for the whole application.
 project:
   name: my-app                 # required
   version: 0.1.0
-  qt_version: 6.11.1           # pinned Qt; drives the Emscripten version too
+  qt_version: 6.12.0           # pinned Qt; drives the Emscripten version too
 ```
 
 `name` is the only required key; the rest have defaults. `qt_version` pins the

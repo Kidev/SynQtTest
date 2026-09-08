@@ -21,12 +21,12 @@
 # about the compiler: `routed/` says every declared route resolves to its view, and `promoted/`
 # says `identity.provider_entity` moves the client secret and the token exchange off the edge.
 #
-# Needs the pinned host kit (/opt/Qt/6.11.1/gcc_64). Usage:
+# Needs the pinned host kit (/opt/Qt/6.12.0/gcc_64). Usage:
 #   tests/appgen-native/run-appgen-native.sh
 
 set -euo pipefail
 
-QT_HOST="${QT_HOST:-/opt/Qt/6.11.1/gcc_64}"
+QT_HOST="${QT_HOST:-/opt/Qt/6.12.0/gcc_64}"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_ROOT"
 

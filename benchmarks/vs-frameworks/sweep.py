@@ -214,7 +214,7 @@ def main() -> int:
     document = {
         "benchmark": "vs-frameworks-replicas",
         "stack": "synqt",
-        "qt_version": "6.11.1",
+        "qt_version": "6.12.0",
         "node_version": node_version,
         "host": f"{platform.system()} {platform.release()}",
         "arch": platform.machine(),

@@ -20,7 +20,7 @@
 
 include_guard(GLOBAL)
 
-# C++20, the newest standard Qt 6.11 supports across all of its compilers. Extensions stay
+# C++20, the newest standard Qt 6.12 supports across all of its compilers. Extensions stay
 # on (the default, `gnu++20`) because Qt's own headers are compiled that way and a mixed
 # tree is not worth the churn.
 set(CMAKE_CXX_STANDARD 20)
