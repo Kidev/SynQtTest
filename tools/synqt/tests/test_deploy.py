@@ -330,7 +330,7 @@ class LinuxLayoutTest(unittest.TestCase):
         self.assertIn("LD_LIBRARY_PATH", body)
         self.assertIn("QT_PLUGIN_PATH", body)
         self.assertIn("QML_IMPORT_PATH", body)
-        # QML2_IMPORT_PATH is the Qt 5 spelling, still honoured in 6.11 and documented as
+        # QML2_IMPORT_PATH is the Qt 5 spelling, still honoured in 6.12 and documented as
         # deprecated. Writing it into a launcher generated today dates the output.
         self.assertNotIn("QML2_IMPORT_PATH", body)
 

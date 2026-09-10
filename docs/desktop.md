@@ -85,7 +85,7 @@ gets back to the app:
    header itself and needs no cookie jar.
 
    The session travels in the same header the browser uses, not in a WebSocket
-   subprotocol. `security.session_transport: subprotocol` is refused, because Qt 6.11
+   subprotocol. `security.session_transport: subprotocol` is refused, because Qt 6.12
    gives the edge no way to select the subprotocol it would have to echo; see
    [`session_transport`](project-layout-and-config.md#security-browser-hardening-and-connection-gating) for the measurement.
 

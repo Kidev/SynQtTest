@@ -28,9 +28,13 @@ Concretely, the defaults baked in by `synqt add auth`:
 - The Authorization Code flow with PKCE (on by default in Qt since 6.8), run
   entirely on the web edge. The browser never holds a client secret.
 - A random state value on every authorization request (CSRF defense). The framework
-  generates it itself with a cryptographic RNG and verifies it on the callback; it
-  does not rely on Qt to auto generate one, because the Qt 6.11 documentation makes
-  no such promise.
+  generates it itself with a cryptographic RNG and verifies it on the callback. Qt
+  6.12 does generate one when none is set, and the framework still sets its own,
+  because the state is not only a CSRF token here: it is the key the pending login is
+  filed under. The PKCE verifier, the OIDC nonce and the browser binding are stored
+  against it before the browser ever leaves, and the callback is answered by looking
+  the state up and finding them. A value the framework only learns after the request
+  is built cannot be that key.
 - A session credential delivered as an httpOnly, Secure, SameSite cookie. httpOnly
   keeps it unreadable by page script (so a cross site scripting bug cannot steal
   it); Secure keeps it on TLS only; SameSite blunts cross site request forgery.
@@ -215,7 +219,7 @@ or a private window.
 
 The mechanism is the cookie's *name*. RFC 6265 scopes a cookie to a host and not a port,
 so two tabs on one host share one jar however they were opened, and there is no other axis
-available: the WebSocket subprotocol alternative is not reachable on Qt 6.11
+available: the WebSocket subprotocol alternative is not reachable on Qt 6.12
 (`tests/m5-webedge/tst_m5.cpp::theUpgradePathCannotNegotiateASubprotocol` pins that). So a
 per-tab choice sends the tab to `/?s=<nonce>` and puts its session under
 `synqt_session_<nonce>`; the edge reads `s` from the page request and from the sync URL to

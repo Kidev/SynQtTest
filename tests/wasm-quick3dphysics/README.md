@@ -4,10 +4,15 @@
 # wasm-quick3dphysics: is Qt Quick 3D Physics usable on WebAssembly?
 
 The July 2026 spec audit recorded, as the reason the multiplayer tutorial was rewritten in
-2D, that Qt Quick 3D Physics does not work on WASM. This fixture tests that directly against
-the pinned Qt 6.12.0 kit, and the claim turns out to be false with the right configuration:
-Quick3D Physics builds, links, loads, boots, and steps on WASM; the box falls under gravity
-and rests on the plane, headless, on both the single-threaded and the multi-threaded kit.
+2D, that Qt Quick 3D Physics does not work on WASM. This fixture tests that directly, and the
+claim turns out to be false with the right configuration: Quick3D Physics builds, links,
+loads, boots, and steps on WASM; the box falls under gravity and rests on the plane,
+headless, on both the single-threaded and the multi-threaded kit.
+
+That run was on Qt 6.11.1 with Emscripten 4.0.7, which was the pin at the time. The scripts
+below now build against the pin as it is (6.12.0 and 5.0.5) and the fixture has not been
+re-run since it moved. The finding is about a default in Quick3D Physics rather than about a
+Qt release, so it is not expected to have changed; nobody has watched it not change.
 
 The tutorial staying 2D is still a reasonable call (it keeps the arena simple and GPU-free), but
 it is a choice, not a "Physics is impossible on WASM" necessity.

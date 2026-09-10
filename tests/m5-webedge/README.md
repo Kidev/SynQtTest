@@ -83,7 +83,7 @@ saying what it buys. `security.session_transport: subprotocol` is documented as 
 key and refused by `synqt check`, and this is the evidence behind that refusal.
 
 Carrying the session in `Sec-WebSocket-Protocol` needs the server to select one of the
-offered subprotocols and echo it in the `101`. Qt 6.11 gives this path no way to say which:
+offered subprotocols and echo it in the `101`. Qt 6.12 gives this path no way to say which:
 `QHttpServerWebSocketUpgradeResponse::accept()` takes no arguments, and the
 `QWebSocketServer` that writes the response lives in `QAbstractHttpServerPrivate`, out of
 reach of `setSupportedSubprotocols()`. The upgrade still completes, negotiating nothing,

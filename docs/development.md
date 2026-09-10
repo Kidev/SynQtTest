@@ -9,7 +9,7 @@ tutorials; you never need to read the framework's internals. This page maps the
 repository, names the runtime libraries and what each is responsible for, and shows how
 to build and test the framework locally the same way continuous integration does.
 
-Why the code is shaped the way it is, and which Qt 6.11 APIs each piece relies on, is
+Why the code is shaped the way it is, and which Qt 6.12 APIs each piece relies on, is
 covered by [architecture](architecture.md), [security](security.md), and
 [entities](entities.md). This page is the orientation layer above them: where the code
 is, not why. For the generated class and member reference, see the
@@ -204,7 +204,7 @@ is included by every `CMakeLists.txt` in this repository, and `synqt build` writ
 include into the CMake it generates for an application, so a project built with SynQt
 compiles under the rules SynQt compiles under.
 
-- **C++20**, the newest standard Qt 6.11 supports on all of its compilers.
+- **C++20**, the newest standard Qt 6.12 supports on all of its compilers.
 - **Warnings are errors.** `-Wall -Wextra -Werror` for GCC and Clang, `/W4 /WX
   /permissive- /utf-8` for MSVC and for `clang-cl`. Qt's own headers and jwt-cpp arrive
   through `SYSTEM` include paths, so nothing third party can fail the build.
