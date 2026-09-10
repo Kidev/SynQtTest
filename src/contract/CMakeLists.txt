@@ -11,7 +11,7 @@
 
 # GLOBAL: see the note in src/service/CMakeLists.txt. Qt6::Gui is public on this target,
 # so it has to resolve in whatever scope the consuming executable is finalized in.
-find_package(Qt6 6.11 REQUIRED COMPONENTS Core Gui GLOBAL)
+find_package(Qt6 6.12 REQUIRED COMPONENTS Core Gui GLOBAL)
 
 qt_add_library(SynQtContract STATIC
     sourcemodel.cpp

@@ -10,7 +10,7 @@ project(synqt_m4_topology LANGUAGES CXX)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/SynQtBuildFlags.cmake")
 
-find_package(Qt6 6.11 REQUIRED COMPONENTS Core Network Qml RemoteObjects Test)
+find_package(Qt6 6.12 REQUIRED COMPONENTS Core Network Qml RemoteObjects Test)
 qt_standard_project_setup()
 
 # Guarded: configured on its own, this suite is what pulls the runtime library in;

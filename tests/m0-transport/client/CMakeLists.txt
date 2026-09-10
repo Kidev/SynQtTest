@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Alexandre 'kidev' Poumaroux
 # SPDX-License-Identifier: Apache-2.0
 
-find_package(Qt6 6.11 REQUIRED COMPONENTS Core Network RemoteObjects WebSockets Qml Quick)
-qt_standard_project_setup(REQUIRES 6.11)
+find_package(Qt6 6.12 REQUIRED COMPONENTS Core Network RemoteObjects WebSockets Qml Quick)
+qt_standard_project_setup(REQUIRES 6.12)
 
 qt_add_executable(m0-client
     main.cpp

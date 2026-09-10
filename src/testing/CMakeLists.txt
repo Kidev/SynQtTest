@@ -9,7 +9,7 @@
 # the runtime's surface: the harness reaches Caller through the same public factory an
 # entity's transport does, and there is no test-only door in Caller for it to use.
 
-find_package(Qt6 6.11 REQUIRED COMPONENTS Core Qml GLOBAL)
+find_package(Qt6 6.12 REQUIRED COMPONENTS Core Qml GLOBAL)
 
 qt_add_library(SynQtTesting STATIC
     entitytest.cpp

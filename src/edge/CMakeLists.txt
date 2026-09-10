@@ -12,7 +12,7 @@
 # points links ../service and stays LGPLv3 (docs/licensing.md).
 
 # GLOBAL: see the note in ../service/CMakeLists.txt.
-find_package(Qt6 6.11 REQUIRED COMPONENTS
+find_package(Qt6 6.12 REQUIRED COMPONENTS
     Core Network Qml RemoteObjects WebSockets HttpServer GLOBAL)
 
 if(NOT TARGET SynQtIdentity)

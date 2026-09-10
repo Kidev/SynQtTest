@@ -10,7 +10,7 @@ project(synqt_m3_mesh LANGUAGES CXX)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/SynQtBuildFlags.cmake")
 
-find_package(Qt6 6.11 REQUIRED COMPONENTS Core Network RemoteObjects Test)
+find_package(Qt6 6.12 REQUIRED COMPONENTS Core Network RemoteObjects Test)
 qt_standard_project_setup()
 
 # The framework service runtime library that owns the mesh transport.

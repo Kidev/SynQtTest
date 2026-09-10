@@ -12,7 +12,7 @@
 # binary in a project to serve one of them.
 
 # GLOBAL: see the note in ../service/CMakeLists.txt.
-find_package(Qt6 6.11 REQUIRED COMPONENTS
+find_package(Qt6 6.12 REQUIRED COMPONENTS
     Core Network Qml RemoteObjects WebSockets HttpServer Sql GLOBAL)
 
 if(NOT TARGET SynQtEdge)
