@@ -76,6 +76,25 @@ class QtToolPathTest(unittest.TestCase):
             # A tool the kit genuinely lacks still reports as absent.
             self.assertIsNone(check.qt_tool_path("qmlformat"))
 
+    def test_the_pinned_kit_wins_over_another_qt_on_path(self):
+        """A machine with several Qt kits has one of them on PATH, and it is rarely the
+        pinned one. Taking PATH first runs a linter from a version this project does not
+        target, which answers about a different language and is worse than no linter: it
+        looks like a check that ran."""
+        kit = Path(tempfile.mkdtemp())
+        (kit / "bin").mkdir()
+        pinned = kit / "bin" / "qmllint"
+        pinned.write_text("stub")
+
+        with unittest.mock.patch.object(check.shutil, "which",
+                                        lambda tool: "/opt/Qt/6.11.1/gcc_64/bin/qmllint"), \
+                unittest.mock.patch.object(check.toolchain, "resolve",
+                                           lambda project: {"host_qt": str(kit)}):
+            self.assertEqual(check.qt_tool_path("qmllint"), str(pinned))
+            # And PATH is still the fallback when the kit has nothing to offer.
+            self.assertEqual(check.qt_tool_path("qmlformat"),
+                             "/opt/Qt/6.11.1/gcc_64/bin/qmllint")
+
 
 class QmlLintTest(unittest.TestCase):
     """qmllint exits 0 for warnings, so a check that reads only its exit code reports
@@ -111,6 +130,24 @@ class QmlLintTest(unittest.TestCase):
         messages = check.lint_qml(self.root)
         self.assertTrue(any(m.startswith("error:") and "property-override" in m
                             for m in messages), messages)
+
+    def test_a_qmllint_that_cannot_run_says_so_rather_than_passing(self):
+        # An older qmllint does not know one of the categories the check elevates, prints a
+        # usage error and lints nothing. Reading only for the categories, that is
+        # indistinguishable from a clean project, so the check has to name it.
+        self._write("Item {\n}\n")
+        original = check.subprocess.run
+
+        def unknown_option(cmd, **kwargs):
+            del cmd, kwargs
+            return subprocess.CompletedProcess([], 1, stdout="",
+                                               stderr="Unknown option 'made-up-category'.\n")
+
+        with unittest.mock.patch.object(check.subprocess, "run", unknown_option):
+            messages = check.lint_qml(self.root)
+        self.assertTrue(any(m.startswith("error:") and "linted nothing" in m
+                            for m in messages), messages)
+        self.assertIs(check.subprocess.run, original)
 
     def test_a_final_override_fails_the_whole_check(self):
         (self.root / "synqt.yaml").write_text("project:\n  name: x\n")
