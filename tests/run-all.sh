@@ -87,9 +87,36 @@ fi
 # incomplete-linking report (a SynQt library publicly links a Qt module the consumer's scope
 # could not resolve) and a Qt module missing from the kit, and both scrolled past in green
 # builds for as long as the workflow existed.
-if grep -q "CMake Warning" "$log"; then
+#
+# One warning is not ours and cannot be made to go away from here: Qt 6.12.0's own Qt6Graphs
+# package. Qt6GraphsTargets.cmake requires the imported target Qt6::Graphs2DImpl, a module
+# that was split out in 6.12, and Qt6GraphsDependencies.cmake does not list it, so the target
+# never exists and Qt6Graphs sets Qt6Graphs_FOUND to FALSE. A static build reaches it through
+# plugin scanning (Qt6Gui -> the virtual keyboard plugin -> Qt6Qml -> the Graphs QML plugin),
+# so every WebAssembly configure against a kit that has QtGraphs installed prints it, and
+# nothing that links Qt Quick can avoid it. Measured here: a four-line CMakeLists calling
+# find_package(Qt6 COMPONENTS Core Gui Qml Quick) and nothing else prints it under both
+# 6.12.0 wasm kits and prints nothing under the 6.12.0 host kit, and the 6.11.1 wasm kit has
+# no Qt6Graphs2DImpl in it at all. SynQt neither uses nor links QtGraphs. The block is
+# skipped by name so that every other Qt warning still fails the run, and so that this one
+# starts failing again the day the kit is fixed and the text no longer matches.
+cmake_warnings() {
+    awk '
+        /^CMake Warning/ { if (in_block) emit(); in_block = 1; block = $0; upstream = 0; next }
+        in_block {
+            if ($0 ~ /^(-- |\[|CMake )/) { emit(); next }
+            block = block "\n" $0
+            if ($0 ~ /Qt6Graphs/) upstream = 1
+        }
+        END { if (in_block) emit() }
+        function emit() { if (!upstream) print block; in_block = 0 }
+    ' "$1"
+}
+
+warnings="$(cmake_warnings "$log")"
+if [ -n "$warnings" ]; then
     echo "error: the tree configured with CMake warnings (see $log)" >&2
-    grep -n -A3 "CMake Warning" "$log" >&2
+    echo "$warnings" >&2
     exit 1
 fi
 
@@ -187,7 +214,7 @@ while read -r suite; do
         fail=1
         failed="$failed $runner"
     fi
-    if grep -q "CMake Warning" "$suite_log"; then
+    if [ -n "$(cmake_warnings "$suite_log")" ]; then
         warned="$warned $runner"
     fi
 done < "$BUILD_DIR/script-suites.txt"
