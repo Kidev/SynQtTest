@@ -111,22 +111,33 @@ def test_every_script_and_workflow_names_the_pinned_toolchain():
                        f"{toolchain.EMSCRIPTEN_VERSION}): " + ", ".join(wrong))
 
 
-_CI_AQT = re.compile(r"AQT_VERSION:\s*\"?(\d+\.\d+\.\d+)")
-_PIP_AQT = re.compile(r"aqtinstall==(\d+\.\d+\.\d+)")
+_CI_AQT = re.compile(r"AQT_VERSION:\s*\"?([0-9a-f]{40}|\d+\.\d+\.\d+)")
+_PIP_AQT = re.compile(r"aqtinstall(?:==(\d+\.\d+\.\d+)|[^\n]*?aqtinstall@([0-9a-f]{40}))")
 
 
 def test_every_workflow_installs_the_pinned_aqtinstall():
     # aqt is what provisions the kit, so a workflow on a different one is a workflow whose
     # kit was assembled by different Qt-repository knowledge. It is also installed inside a
     # job that holds a token and produces artifacts the rest of the pipeline trusts, which
-    # is why it is pinned at all rather than taken from a branch.
+    # is why it is pinned at all.
+    #
+    # The pin is a commit: no released aqt can address Qt's per-toolchain Windows repository
+    # folder, so a release would leave the Windows column unable to install a kit at all
+    # (toolchain.AQT_VERSION says it in full). A commit is a pin; a branch or a moving tag is
+    # not, and that is what this refuses.
     wrong = []
     for path in _tracked(".github/**/*.yml", ".github/**/*.yaml"):
         text = path.read_text()
-        assert "aqtinstall.git@" not in text, (
-            f"{path.relative_to(ROOT)} installs aqtinstall from git rather than from a "
-            "pinned release")
-        for found in _CI_AQT.findall(text) + _PIP_AQT.findall(text):
+        for moving in ("aqtinstall@master", "aqtinstall@main", "aqtinstall.git@master",
+                       "aqtinstall.git@main"):
+            assert moving not in text, (
+                f"{path.relative_to(ROOT)} installs aqtinstall from a branch rather than "
+                "from the pinned commit")
+        for a, b in _PIP_AQT.findall(text):
+            found = a or b
+            if found != toolchain.AQT_VERSION:
+                wrong.append(f"{path.relative_to(ROOT)}: aqtinstall {found}")
+        for found in _CI_AQT.findall(text):
             if found != toolchain.AQT_VERSION:
                 wrong.append(f"{path.relative_to(ROOT)}: aqtinstall {found}")
     assert not wrong, (f"these are not the pinned aqtinstall {toolchain.AQT_VERSION}: "
