@@ -38,8 +38,10 @@ suites configured and built one at a time cost 227 s and 812 object files; the t
 suite, and because 17 configure steps become one.
 
 Prerequisites for the whole tree are the union of what the suites need: a Qt 6.12.0 host
-kit including HttpServer and NetworkAuth, OpenSSL, and jwt-cpp 0.7.1 or newer. A single
-suite needs only its own share; its `run-*.sh` says so when something is missing.
+kit carrying the four add-on modules SynQt links (`qtremoteobjects`, `qtwebsockets`,
+`qthttpserver`, `qtnetworkauth`), OpenSSL, and jwt-cpp 0.7.1 or newer. `synqt doctor` names
+any of the four a kit is short of, and prints the aqt command that adds it. A single suite
+needs only its own share; its `run-*.sh` says so when something is missing.
 
 How much of the framework these suites reach:
 

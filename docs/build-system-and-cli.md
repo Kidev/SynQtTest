@@ -35,13 +35,21 @@ surprise. Output lands under `build/<entity>/`.
 
 ## Toolchain resolution and pinning
 
-The CLI installs and pins the toolchain so a developer does not hand install Qt or
-Emscripten:
+The CLI pins the toolchain and resolves it, and `synqt doctor` prints the exact command
+for every piece that is missing. It does not download anything itself yet: the pieces are
+named here, and the commands doctor prints are the ones that provision them.
 
 - Qt via `aqtinstall` into `synqt/toolchain/qt/<version>`: the host desktop kit for
   service entities (and for a native desktop client target, which reuses it), and
   the WebAssembly kit (single or multi threaded per `build.client_threads`) for the
-  browser client.
+  browser client. Both need modules beyond what a bare kit carries: `qtremoteobjects`
+  for every connect point, `qtwebsockets` for the browser link, and `qthttpserver`
+  and `qtnetworkauth` for the web edge, so the command doctor prints carries `-m`.
+- QtRemoteObjects for the WebAssembly kit, from source, because there is no prebuilt
+  one. For the pinned Qt, aqt publishes `qtwebsockets` and `qthttpserver` for the
+  `all_os`/`wasm` kits and no `qtremoteobjects`, so the kit's own `qt-cmake` compiles it
+  out of `Src/qtremoteobjects` and installs it back into the kit. This is the one
+  step that is two commands rather than one, and doctor prints both.
 - Emscripten via `emsdk` into `synqt/toolchain/emsdk/<version>`, pinned to the
   version Qt selects for the Qt version (5.0.5 for 6.12.0). A different Emscripten
   version is unsupported because Emscripten does not promise ABI stability across
@@ -49,8 +57,14 @@ Emscripten:
 - vcpkg, only if a project adds native dependencies beyond Qt and the bundled
   engine backends. A default project needs none.
 
-Resolution is cached and re runs only when `project.qt_version` or
-`build.client_threads` changes.
+A kit is checked for those modules, not merely for its directory. A stock WebAssembly kit
+has no QtRemoteObjects in it, and reporting the toolchain as complete because the directory
+exists is how a build gets several minutes in and then fails inside CMake, on a message
+naming a package rather than the kit it is missing from.
+
+Resolution is not cached: it is a handful of `exists()` calls against the pinned paths, and
+it re runs whenever a command needs it, so a kit installed a moment ago is found without
+anything to invalidate.
 
 The framework sources themselves are found separately from the toolchain, because the
 generated CMake includes them directly (`${SYNQT_ROOT}/cmake/SynQtContracts.cmake`, and the
