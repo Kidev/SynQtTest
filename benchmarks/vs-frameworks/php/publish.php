@@ -26,6 +26,11 @@ $app->make(Kernel::class)->bootstrap();
 $hz = (int) ($argv[1] ?? 30);
 $seconds = (int) ($argv[2] ?? 5);
 $payloadBytes = (int) ($argv[3] ?? 256);
+// Saturation has to reach this process, not just the one that spawned it. While it did not,
+// this side paced every measured window at $hz and the subscriber process still recorded the
+// run as saturated: the Reverb row of a saturation sweep was a 30 Hz result under a heading
+// that said otherwise, and it read as Reverb topping out at exactly 30 frames a second.
+$saturate = ($argv[4] ?? 'false') === 'true';
 $payload = str_repeat('x', $payloadBytes);
 
 $broadcaster = Broadcast::connection('reverb');
@@ -51,13 +56,40 @@ fwrite(STDOUT, "warmed\n");
 fgets(STDIN);
 
 $started = hrtime(true);
-$ticks = $hz * $seconds;
-for ($tick = 0; $tick < $ticks; $tick++) {
-    $publish();
-    $due = $started + (int) (($tick + 1) * 1e9 / $hz);
-    $wait = $due - hrtime(true);
-    if ($wait > 0) {
-        usleep((int) ($wait / 1000));
+if ($saturate) {
+    // The closed loop COLUMN-CONTRACT.md asks for: publish, wait for the whole fleet to have
+    // that frame, publish again. The fleet lives in the subscriber process, so "the fleet has
+    // it" arrives here as a line on stdin rather than as a counter this process can read. The
+    // pipe costs a few tens of microseconds per frame and sits between frames, outside the
+    // stamp-to-receipt interval every sample is measured over.
+    $ticks = 0;
+    $deadline = $started + (int) ($seconds * 1e9);
+    while (hrtime(true) < $deadline) {
+        $publish();
+        $ticks++;
+        // A frame that never lands everywhere would otherwise park this process until the
+        // subscriber's own guard fires 90 seconds later, so it is a bounded wait that says
+        // what went wrong.
+        $readable = [STDIN];
+        $writable = [];
+        $except = [];
+        if (stream_select($readable, $writable, $except, 5) < 1) {
+            fwrite(STDERR, "a frame never reached every subscriber\n");
+            exit(1);
+        }
+        if (fgets(STDIN) === false) {
+            break;
+        }
+    }
+} else {
+    $ticks = $hz * $seconds;
+    for ($tick = 0; $tick < $ticks; $tick++) {
+        $publish();
+        $due = $started + (int) (($tick + 1) * 1e9 / $hz);
+        $wait = $due - hrtime(true);
+        if ($wait > 0) {
+            usleep((int) ($wait / 1000));
+        }
     }
 }
 fwrite(STDOUT, "done $ticks\n");
