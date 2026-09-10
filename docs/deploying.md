@@ -337,18 +337,16 @@ close to linearly to about 1.02M and 907k at eight processes, while SynQt thread
 230k at two cores and then flattens, and is the only one of the three that keeps a
 single shared value.](assets/scaling-cores.svg){ width="100%" }
 
-One publisher, 100 subscribers, saturating, 256 byte payload; 32 core Linux host. The
-`threads:` column is Qt 6.12.0 and is the median of five runs; the other two are the
-earlier Qt 6.11.1 and Node 24.20.0 record, which the change behind that column does not
-touch. Reproduce it with [`benchmarks/vs-frameworks/run-bench.sh`](https://github.com/Kidev/SynQt/blob/main/benchmarks/vs-frameworks/run-bench.sh)
+One publisher, 100 subscribers, saturating, 256 byte payload; 32 core Linux host, Qt 6.12.0,
+Node 24.20.0, one session. Reproduce it with [`benchmarks/vs-frameworks/run-bench.sh`](https://github.com/Kidev/SynQt/blob/main/benchmarks/vs-frameworks/run-bench.sh)
 and [`benchmarks/vs-frameworks/sweep.py`](https://github.com/Kidev/SynQt/blob/main/benchmarks/vs-frameworks/sweep.py).
 
 | cores | `replicas: N` | Node `cluster` | `threads: N` |
 |---|---|---|---|
-| 1 | 103 600 | 124 067 | 107 583 |
-| 2 | 240 825 | 247 158 | 229 667 |
-| 4 | 505 779 | 491 000 | 238 550 |
-| 8 | 1 015 815 | 907 228 | 227 733 |
+| 1 | 128 833 | 123 167 | 136 983 |
+| 2 | 292 817 | 247 700 | 238 300 |
+| 4 | 601 242 | 491 425 | 236 350 |
+| 8 | 1 191 737 | 915 366 | 222 683 |
 
 Read the two dashed lines against the solid one rather than against each other. Processes
 scale close to linearly, and SynQt and Node do about equally well at it. What they are
@@ -357,8 +355,8 @@ eight processes there are eight publishers holding eight values, and delivering 
 value to every subscriber from all of them costs a broadcast between processes that is in
 none of these numbers.
 
-The solid line is the one that keeps the shared value, and it flattens: 2.13x from one core
-to two, a little more at four, and level after that. `threads:` buys about two cores of
+The solid line is the one that keeps the shared value, and it flattens: 1.74x from one core
+to two, level at four, and a little back at eight. `threads:` buys about two cores of
 delivery for something every subscriber must agree on, which is the case `replicas:` cannot
 serve at all, and no more than that. Where it flattens is not the sockets: the Source still
 runs once, on the thread that owns it, and serialising a change is not work more sockets can
@@ -379,6 +377,35 @@ allowed, not against the host's core count.
 together, as one WebSocket message, so `security.max_message_bytes` also caps how large a
 batch may grow. Nothing to configure: a single message already over that ceiling still
 goes on its own, exactly as it does unthreaded.
+
+### One thing your entities do to their own event loop
+
+On Linux, Qt uses GLib's event dispatcher whenever GLib is installed, and every service, web
+edge and monitor SynQt generates asks for the polling one instead. The line is the first
+statement in the generated `main`, before the application is constructed, because that is
+when the dispatcher is chosen.
+
+The reason is fan-out. GLib keeps every watched descriptor in one poll list, and a socket
+adds itself to that list and removes itself again whenever it has bytes waiting to be
+written. Publishing one value to N subscribers writes to N sockets in one pass, so N sockets
+each walk a list of length N, and the event loop's own cost grows with the square of the
+subscriber count. Measured on
+[the framework comparison](https://github.com/Kidev/SynQt/tree/main/benchmarks/vs-frameworks),
+the polling dispatcher delivers 18% more at ten subscribers, 33% more at one hundred and 52%
+more at two hundred and fifty. A toggle costs a fixed part and a part that grows with the
+list, and it is the second one that says where the cost was.
+
+What GLib's dispatcher is actually for is sharing an event loop with a GLib program, which
+in practice means GTK: it is what lets a desktop application use the platform's native file
+and colour dialogs. That is a client's concern, so a desktop client is left on the platform
+default and only the headless entities change.
+
+To put it back, set the variable Qt reads and SynQt will not override it. Qt treats any
+non-empty value as "no GLib", so putting GLib back is an **empty** value, not a zero:
+
+```sh
+QT_NO_GLIB= ./web --topology topology.json
+```
 
 ## 9. Desktop clients, if you ship one
 

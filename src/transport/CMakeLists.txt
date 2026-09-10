@@ -23,6 +23,8 @@ qt_add_library(SynQtTransport STATIC
     secrets.h
     websockettransport.cpp
     websockettransport.h
+    pollingdispatcher.cpp
+    pollingdispatcher.h
     socketoptions.cpp
     socketoptions.h
     iothreadpool.cpp
