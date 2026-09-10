@@ -102,14 +102,41 @@ Worth knowing when reading these: the acceptance test passes against a transport
 throws away everything a short read did not consume. The buffered partial-read row passes
 too. The unbuffered row and the large-message case are what catch it.
 
+## The split cases (`tst_threadedsocket.cpp`)
+
+The same adapter, cut in half: the `QIODevice` QtRO writes into stays on the thread that
+owns the host, and the `QWebSocket` under it lives on an IO thread. That is what a web
+edge's [`threads:`](../../docs/deploying.md#running-one-edge-on-more-than-one-core) key
+does to every accepted browser socket, and it is the only place in the framework where one
+connection spans two threads.
+
+The cases are about the split itself: that the two halves really are on different threads,
+that bytes cross in both directions, that nothing is reordered on the way, that a batch
+respects the message ceiling the browser end is held to, and that destroying the device
+puts its socket down on the socket's own thread rather than from here.
+
+One of them is about cost rather than correctness, and it earns its place by having gone
+wrong. `aFanOutCrossesOncePerSocketThreadRatherThanOncePerConnection` writes to eight split
+connections in one pass and asserts that **one** queued call crosses to their shared IO
+thread. It used to be eight, one per connection, and that is most of the reason a threaded
+edge stopped gaining throughput after two cores: a queued call costs about a microsecond,
+which is nothing against what delivering to a connection costs and everything against it a
+hundred times over, so the thread holding the Sources spent its pass posting instead of
+serialising. Grouping them is worth 14% to 18% of saturating throughput at two, four and
+eight threads, and a fifth off the propagation p50. The case counts the crossings by
+filtering the IO thread's event dispatcher, which is the object every crossing is addressed
+to; it reports eight the moment the grouping is undone.
+
 ## How to run
 
 ```sh
 tests/m2-transport/run-m2.sh
 ```
 
-Builds the `SynQtClient` library and both tests, then runs them via ctest: `m2` (the
-acceptance path) and `wstransport` (the unit cases).
+Builds the `SynQtClient` library and every test, then runs them via ctest: `m2` (the
+acceptance path), `wstransport` (the unit cases), `threadedsocket` (the split cases),
+`iothreads` (the pool that hands the threads out) and `proxypolicy` (which proxy a client
+is allowed to dial through).
 
 ## Notes
 
