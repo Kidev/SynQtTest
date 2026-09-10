@@ -637,8 +637,8 @@ check did not approve. The last rule is what makes this hold under a page writte
 it: an import the check cannot account for is refused without reasoning about how it got
 there.
 
-"Exactly as the lexer does" is load bearing, and where a line ends is the part of it that
-is easiest to get wrong. The engine ends one at four characters, not two: a line feed, a
+Matching the lexer matters most at the definition of a line ending, which is the part
+easiest to get wrong. The engine ends one at four characters, not two: a line feed, a
 lone carriage return, and U+2028 and U+2029, the Unicode line and paragraph separators. Any
 of them closes a `//` comment, so a page can put an import after one and have a scan that
 knows only the first two read it as part of the comment. All four count here, and so does a
@@ -691,8 +691,7 @@ page protects the page's markup, never the data the page later reads.
 
 ## Development code is absent from a release build
 
-A development convenience that ships is not a convenience, it is a back door, and SynQt has
-two worth naming. The stub identity provider signs anybody in as a preconfigured person with
+A development convenience that ships is a back door. SynQt has two worth naming. The stub identity provider signs anybody in as a preconfigured person with
 no password, so a developer can exercise the whole login flow without registering an OAuth
 application. The scope picker (`synqt dev --identity-picker`) goes further: it skips the flow
 entirely and mints a session at whichever scope you click. Both exist because they make

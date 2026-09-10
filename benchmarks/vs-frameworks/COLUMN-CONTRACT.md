@@ -97,8 +97,8 @@ Per subscriber count, in order:
    measured with the previous one's sockets still open.
 
 `expected` is `ticks * subscribers`. **`delivered` must equal `expected`.** A column that
-dropped frames is not a faster column, it is a broken one, and every other number in it is a
-figure over the survivors.
+dropped frames is broken, and every number in it is a figure over the survivors rather than
+over the workload.
 
 ## The runtime
 

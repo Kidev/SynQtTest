@@ -210,6 +210,16 @@ def _config(name: str, entities: List[Dict[str, Any]]) -> Dict[str, Any]:
         # never rewrites, and never fails the check. The rules are the project's own
         # .qmlformat.ini; edit it or set this to false.
         "check": {"qml_format": True},
+        # Written empty rather than left out, so the keys a European app has to fill in are
+        # in front of whoever opens this file rather than in a document they have to know to
+        # look for. Empty values are the same as no block: LegalFooter leaves out a link it
+        # has no URL for, and `synqt check` says which ones are still blank.
+        #
+        # `cookies` stays empty, and it is not an oversight. The session credential is
+        # strictly necessary and exempt under Article 5(3) of the ePrivacy Directive, so a
+        # project that adds no other cookie needs no banner at all; adding a category here is
+        # what makes CookieConsent appear. See docs/privacy.md.
+        "privacy": {"policy": "", "legal_notice": "", "contact": "", "cookies": []},
         "entities": entities,
         "connect_points": [],
     }

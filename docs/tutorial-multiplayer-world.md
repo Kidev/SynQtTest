@@ -110,7 +110,7 @@ Source is then a thin layer over the one arena.
 
 One of it, for as long as the edge runs. `pragma Shared` is what says so, and every
 Source the edge owns reaches it as `World`. It has no `Caller`, so it decides nothing
-about who may do what; it is handed a player and told to act.
+about who may do what. It is handed a player and told to act.
 
 ```qml
 pragma Shared                         // one instance for the whole edge

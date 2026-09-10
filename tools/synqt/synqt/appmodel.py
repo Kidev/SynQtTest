@@ -1117,6 +1117,62 @@ def identity_settings(config: Dict[str, Any]) -> Dict[str, Any]:
     return dict(settings) if isinstance(settings, dict) else {}
 
 
+# What the law asks a project to keep and no longer, when the project says nothing. Two
+# years is the outer edge of what a European supervisory authority routinely accepts for
+# ordinary account and transaction records, and the several national statutes that oblige a
+# business to retain commercial records at all (the German HGB and AO, the French Code de
+# commerce, the Italian Codice civile) sit at ten years for accounting documents and well
+# under this for anything about a person. So it is the default a project inherits, not a
+# recommendation: Article 5(1)(e) asks for no longer than necessary, and only the project
+# knows what necessary is for what it stores.
+DEFAULT_RETENTION_DAYS = 730
+
+
+def privacy_settings(config: Dict[str, Any]) -> Dict[str, Any]:
+    """The declared ``privacy:`` block, empty when the project declares none."""
+    settings = config.get("privacy")
+    return dict(settings) if isinstance(settings, dict) else {}
+
+
+def retention_days(config: Dict[str, Any]) -> int:
+    """How long this project keeps personal data, in days.
+
+    A project that says nothing gets ``DEFAULT_RETENTION_DAYS``. A project that says
+    something keeps what it said, including when what it said is longer: this fills a gap
+    and never overrides a decision. A shorter period is the one thing that is always safe to
+    keep, so a value below the default passes through unchanged rather than being raised to
+    it.
+    """
+    declared = privacy_settings(config).get("retention_days")
+    if isinstance(declared, bool) or not isinstance(declared, int):
+        return DEFAULT_RETENTION_DAYS
+    if declared <= 0:
+        return DEFAULT_RETENTION_DAYS
+    return declared
+
+
+def cookie_categories(config: Dict[str, Any]) -> List[str]:
+    """The non-essential cookie categories the project declared, in declaration order.
+
+    Empty is the default and the common case. The session credential is exempt under
+    Article 5(3) of the ePrivacy Directive, so a project that adds no other cookie needs no
+    consent banner and ``CookieConsent`` renders nothing.
+    """
+    declared = privacy_settings(config).get("cookies")
+    if not isinstance(declared, list):
+        return []
+    return [str(item) for item in declared if isinstance(item, str) and item.strip()]
+
+
+def erasure_offered(config: Dict[str, Any]) -> bool:
+    """Whether the client offers a signed-in visitor an Article 17 erasure request.
+
+    Off unless the project turns it on. The component sends the request no further than the
+    app, so it only makes sense where somebody has connected it to a slot that acts.
+    """
+    return privacy_settings(config).get("erasure") is True
+
+
 def identity_enabled(config: Dict[str, Any], entity: Dict[str, Any]) -> bool:
     """Whether this web edge serves the login, callback and logout routes.
 

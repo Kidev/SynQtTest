@@ -53,6 +53,8 @@ qt_add_library(SynQtClient STATIC
     graphicsprobe.h
     loopbackreceiver.cpp
     loopbackreceiver.h
+    privacy.cpp
+    privacy.h
     qmlpalette.cpp
     qmlpalette.h
     remotepageloader.cpp
@@ -109,6 +111,20 @@ elseif(UNIX AND NOT EMSCRIPTEN)
 endif()
 
 target_include_directories(SynQtClient PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+
+# The three privacy components, as QML files in this library's own resource rather than as
+# C++ types. Each is a handful of Controls, and an app restyling one should be able to read
+# what it is replacing. registerPrivacyTypes() registers them into the `SynQt` module by the
+# URLs below, so the prefix here and the URLs there are one thing spelled twice and have to
+# stay in step; tests/m6-client covers that they resolve.
+qt_add_resources(SynQtClient "synqt_privacy_qml"
+    PREFIX "/qt/qml/SynQt/privacy"
+    BASE "${CMAKE_CURRENT_SOURCE_DIR}/privacy"
+    FILES
+        privacy/LegalFooter.qml
+        privacy/CookieConsent.qml
+        privacy/DataErasureRequest.qml
+)
 
 # The framework's own SessionState connect point, at the consumer role: the edge owns it
 # (src/edge/contracts/) and this is the side that acquires it, so what the client compiles

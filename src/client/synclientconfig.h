@@ -114,6 +114,29 @@ struct SynClientConfig
     /// change to notice it by; with it, the wait ends and the ordinary reconnect backoff
     /// takes over.
     int requestTimeoutMs{15000};
+
+    /// The project's `privacy:` block, read by the Privacy accessor and by the three QML
+    /// types it backs. All of it is public information a visitor is entitled to (Articles 13
+    /// and 14), so none of it is a secret the client should not hold.
+    ///
+    /// `privacyPolicyUrl` and `legalNoticeUrl` are an application route or an absolute URL,
+    /// empty when the project declared none. `privacyContact` is the controller contact.
+    /// `retentionDays` is how long the project keeps personal data.
+    QString privacyPolicyUrl;
+    QString legalNoticeUrl;
+    QString privacyContact;
+    int retentionDays{0};
+
+    /// The non-essential cookie categories the project declared. Empty is the default and
+    /// the common case: the session credential is exempt under Article 5(3) of the ePrivacy
+    /// Directive, so a project that adds no other cookie has nothing to ask about and shows
+    /// no banner.
+    QStringList cookieCategories;
+
+    /// Whether the app offers a signed-in visitor a data erasure request. Off unless the
+    /// project turns it on, because the component only makes sense where somebody has
+    /// undertaken to act on what it sends.
+    bool erasureOffered{false};
 };
 
 } // namespace SynQt
