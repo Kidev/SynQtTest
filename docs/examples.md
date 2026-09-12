@@ -352,9 +352,9 @@ ApplicationWindow {
   client that calls `Server.add` while anonymous still hits an edge that
   refuses, with `rejected("Sign in to add items.")`.
 - Ownership is enforced with an edge side value the client cannot spoof, never with
-  anything the client sends. Here that value is `Client.id`, the session identifier;
+  anything the client sends. Here that value is `Client.id`, the session key;
   `Client` is the edge alias for the `Caller` accessor, so this is the same mechanism
-  the mesh example (Example 4) writes as `Caller`. A session id is enough for this in
+  the mesh example (Example 4) writes as `Caller`. A session key is enough for this in
   memory list, where the data lives only as long as the edge process. Durable rows
   key ownership on `Caller.identity.sub` instead (see Example 4), so ownership
   survives a new session and a restart.
@@ -588,7 +588,7 @@ not know a database exists; it only ever talks to the edge.
 - Data minimization across two hops. `ownerSub` is on the internal contract for the
   edge's ownership logic and is dropped before anything reaches the browser, because
   it is not one of the edge's `items` roles. It carries `Caller.identity.sub`, the stable
-  identity subject, rather than the session id (`Client.id`) that Example 2 used:
+  identity subject, rather than the session key (`Client.id`) that Example 2 used:
   the accessor is the same one Example 2 reaches through the `Client` alias, but a
   durable row must stay owned across new sessions and restarts, so it keys on the
   identity rather than the session.
