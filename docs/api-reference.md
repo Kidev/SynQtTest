@@ -27,6 +27,9 @@ explains what each is responsible for and why they are split the way they are.
 | `SynQtEdge` | `SynQt::WebEdge`, `SynQt::IdentityProvider`, `SynQt::PagesService`, `SynQt::PageStore`. |
 | `SynQtGateway` | `SynQt::ApiServer` and the `Api` helper an entity's `network.inbound` opens. |
 | `SynQtProviders` | `SynQt::IPersistenceProvider`, `SynQt::IDocumentProvider`, `SynQt::ICacheProvider`, `SynQt::ProviderRegistry`, and the bundled provider implementations. |
+| `SynQtMonitor` | `SynQt::MonitorService`, `SynQt::EventStore`, and the two exporters, `SynQt::OtlpExporter` and `SynQt::JsonlExporter`. |
+| `SynQtContract` | `SynQt::SourceModel`, the model a generated Source publishes its rows through. |
+| `SynQtTesting` | `SynQt::EntityTest`, the harness behind `synqt test`. |
 
 Every class and member is listed, whether or not it carries a comment, so the reference
 is a complete map of the runtime rather than a partial one. Private members are listed
