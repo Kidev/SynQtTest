@@ -42,7 +42,6 @@ fill in what its discovery document says:
 
 ```yaml
 identity:
-  enabled: true
   providers:
     - name: staffsso
       authorize_url: https://sso.internal.example/oauth2/authorize
@@ -102,7 +101,7 @@ IdentityMapping {
     // connect point the edge consumes: the directory owns it, the edge already holds the
     // current value, and reading it here costs nothing.
     function scopeFor(identity): int {
-        const role = Directory.roles.assignments[identity.sub] ?? "";
+        const role = Directory.assignments[identity.sub] ?? "";
         if (role === "owner") {
             return Scope.Admin;
         }

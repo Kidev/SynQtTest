@@ -87,7 +87,7 @@ engine and carrying its connection:
       port: 5432
       database: gavel
       user: gavel
-      password: env:DB_PASSWORD   # the value lives in database/.env, not here
+      password: env:DB_PASSWORD   # the value lives in the books entity's .env, not here
       sslmode: verify-full        # the entity verifies the engine certificate
       ca_cert: certs/db-ca.pem
 ```
