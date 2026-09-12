@@ -260,7 +260,7 @@ Put `roundMs` back to ten minutes when you are done.
 `synqt check` rejects it. A connect point the browser consumes must be owned by the web
 edge, and the database is not a web edge. The browser can physically reach only the
 edge, never an internal entity. That is why the edge mirrors the standings into its own
-point with `setChampions`. There are two boundaries here: the edge authorizes the person,
+point, with the one `championsRows` binding of step 3. There are two boundaries here: the edge authorizes the person,
 and the records entity's one-name consumer list puts it out of everyone else's reach. Put
 the line back to `[edge]`. The full reasoning is in [security](security.md).
 

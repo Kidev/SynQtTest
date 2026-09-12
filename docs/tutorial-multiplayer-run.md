@@ -307,8 +307,8 @@ position from a client, and it shows each player only what they are entitled to 
   shared singleton and sends each player only their slice, so the payload stops growing
   with the whole arena, and a client is shown only what it can see.
 - Durable data lives in a database the browser can never reach; the edge authorizes the
-  person and the database authorizes the edge (`Caller.entity`), and the edge mirrors what
-  the browser is allowed to see.
+  person, the records entity's one-name consumer list is what keeps everyone else out, and
+  the edge mirrors what the browser is allowed to see.
 - A scoped connect point (`scope: player`) is what actually admits or refuses a visitor;
   the sign in gate on screen is only there to be friendly.
 

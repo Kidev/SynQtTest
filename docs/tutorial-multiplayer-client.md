@@ -100,7 +100,7 @@ units. Add inside the `view` `Rectangle`:
 MouseArea {
     anchors.fill: parent
     hoverEnabled: true
-    onPositionChanged: {
+    onPositionChanged: mouse => {
         root.aimX = root.myX + (mouse.x - view.width / 2) / view.zoom
         root.aimY = root.myY + (mouse.y - view.height / 2) / view.zoom
     }
