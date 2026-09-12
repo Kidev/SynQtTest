@@ -26,6 +26,7 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QTcpServer>
+#include <QTextStream>
 #include <QUrlQuery>
 #include <QVariant>
 
@@ -150,7 +151,19 @@ int main(int argc, char *argv[])
     const QCommandLineOption portOption{QStringLiteral("port"),
         QStringLiteral("Listen port."), QStringLiteral("port"), QStringLiteral("8480")};
     parser.addOption(portOption);
+    // The Qt this binary is linked against, for the loader to record. Every other harness
+    // writes its own baseline and reads `qVersion()` on the way past; this one is driven by
+    // a Node loader that cannot see the kit, so the binary that did the work answers for it
+    // rather than the driver carrying a literal.
+    const QCommandLineOption qtVersionOption{QStringLiteral("print-qt-version"),
+        QStringLiteral("Print the Qt version this binary links and exit.")};
+    parser.addOption(qtVersionOption);
     parser.process(app);
+
+    if (parser.isSet(qtVersionOption)) {
+        QTextStream{stdout} << QString::fromLatin1(qVersion()) << Qt::endl;
+        return 0;
+    }
 
     QSqlDatabase database{QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"))};
     database.setDatabaseName(QStringLiteral(":memory:"));
