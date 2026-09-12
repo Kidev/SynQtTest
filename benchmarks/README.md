@@ -12,11 +12,11 @@ later change that regresses one is visible in review; re-run on a fixed runner t
 
 **Two toolchains are represented here, and each file says which one it is.** The native
 harnesses (transport, the edge's HTTP path, mesh, sessions, persistence, monitor, fanout,
-capstone, and every column of vs-frameworks but `replicas`) were re-run on Qt 6.12.0. The ones that
-need a WebAssembly kit (client bundle weight and frame time, remote-pages) and the two that
-have not been swept since (buildtime, the `replicas` sweep) are still the 6.11.1 run they
-say they are. Every environment block below names the file's own `qt_version`, so the two
-groups are told apart by reading rather than by remembering.
+capstone, and every column of vs-frameworks but `replicas`) were re-run on Qt 6.12.0. The
+ones that need a WebAssembly kit (client bundle weight and frame time, remote-pages) and
+the two that have not been swept since (buildtime, the `replicas` sweep) are still the
+6.11.1 run they say they are. Every environment block below names the file's own
+`qt_version`, so the two groups are told apart by reading rather than by remembering.
 
 A number carries the toolchain it was taken on, and relabelling one makes it a different
 claim. So a baseline moves only by being measured again: the 6.12.0 group was re-run in one
