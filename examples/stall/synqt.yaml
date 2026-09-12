@@ -62,6 +62,7 @@ connect_points:
     export: |
       model items(string[40] sku, string[80] title, int price)        // the durable stock
       slot restock(string[40] sku, string[80] title, int price)       // edge -> stock
+      slot var list()   // everything on the shelves, for an edge that just came up
       signal itemStocked(string[40] sku, string[80] title, int price) // stock -> edge
 
 # The route table (top level, docs/project-layout-and-config.md). A route with `view:` is

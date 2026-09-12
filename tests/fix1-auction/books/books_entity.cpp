@@ -20,12 +20,42 @@
 #include "books_sourcehelper.h"  // synqtRegisterBooksSources()
 
 #include <QCoreApplication>
+#include <QFile>
 #include <QQmlEngine>
 #include <QTextStream>
+#include <QVariantMap>
 
 #include <cstdio>
 
 using namespace SynQt;
+
+namespace {
+
+/// The example's own `schema.sql`, as the forward-only steps the runtime applies, the way
+/// `synqt build` writes them into the topology: line comments dropped, one step per
+/// statement.
+QStringList schemaOf(const QString &path)
+{
+    QFile file{path};
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return {};
+    }
+    QString code;
+    const QStringList lines{QString::fromUtf8(file.readAll()).split(QLatin1Char('\n'))};
+    for (const QString &line : lines) {
+        code += line.section(QStringLiteral("--"), 0, 0) + QLatin1Char('\n');
+    }
+    QStringList steps;
+    const QStringList statements{code.split(QLatin1Char(';'))};
+    for (const QString &statement : statements) {
+        if (!statement.trimmed().isEmpty()) {
+            steps.append(statement.trimmed());
+        }
+    }
+    return steps;
+}
+
+} // namespace
 
 int main(int argc, char *argv[])
 {
@@ -57,6 +87,15 @@ int main(int argc, char *argv[])
     topology.entity = QStringLiteral("books");
     topology.credentials = credentials;
     topology.connectPoints = {point};
+    // A relational entity, which is what the example declares it to be: the runtime puts
+    // `Db` in the Source's scope and applies the schema before the point is listening.
+    // Without this the entity starts, the QML runs, and every `Db` line is a ReferenceError
+    // on a ledger that records nothing, which is the shape the example itself once had.
+    topology.type = QStringLiteral("relational");
+    topology.provider = QVariantMap{{QStringLiteral("name"), QStringLiteral("sqlite")},
+                                    {QStringLiteral("file"), QStringLiteral(":memory:")}};
+    topology.schema = schemaOf(QStringLiteral(FIX1_GAVEL_DIR
+                                              "/db/relational/books/schema.sql"));
 
     QQmlEngine engine;
     EntityRuntime runtime{topology, &engine};
