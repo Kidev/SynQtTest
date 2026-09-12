@@ -39,10 +39,10 @@ behavior) needs a run on macOS, which is what
 Every harness pins Qt 6.12.0 and Emscripten 5.0.5, builds what it needs through its own
 `run-*.sh`, and reads the browser console for single line result markers.
 
-The recorded results below it were taken on Qt 6.11.1 with Emscripten 4.0.7, before the pin
-moved. Each one says so where it sits, and each has to be run again on the current pin before
-it can be quoted as a claim about it: a browser proof is a statement about one toolchain in
-one engine, and a new Emscripten is exactly the kind of change that can move it.
+The dated results further down were taken on Qt 6.11.1 with Emscripten 4.0.7, before the pin
+moved, and each says so where it sits. Run one again on the current pin before quoting it as
+a claim about that pin: a browser proof is a statement about one toolchain in one engine, and
+a new Emscripten is exactly the kind of change that can move it.
 
 ```sh
 # Transport, on every engine present: ws, wss, and reconnect
@@ -98,7 +98,8 @@ WebAssembly kit, which ships no QtRemoteObjects, so neither runs on every push.
 
 - Safari.app is driven only by hand, on macOS. `run-safari.sh` covers the four QtRO
   paths and reconnect in Safari itself, and it passed on 2026-08-02 on macOS 15.7.8
-  with Safari 26.6. It is not in either workflow: Safari has no headless mode, so it
+  with Safari 26.6, on Qt 6.11.1 and Emscripten 4.0.7. It is not in either workflow:
+  Safari has no headless mode, so it
   needs a logged in GUI session, and `safaridriver --enable` needs sudo once per
   machine. Its `wss` case is a further opt in (`SAFARI_WSS=1`), because Safari cannot
   be told to accept the harness's self signed certificate the way every other engine
@@ -114,5 +115,6 @@ WebAssembly kit, which ships no QtRemoteObjects, so neither runs on every push.
   that runs there: it serves the threaded bundle under a strict `worker-src 'self'`
   and prints each engine's violations. Chromium, Firefox, and WebKit have all now
   answered no `blob:` and yes SharedArrayBuffer, WebKit on 2026-07-31 on macOS 15.7.8
-  (WebKit 26.5). The allowance stays as a margin for a future toolchain. See
+  (WebKit 26.5), all on Qt 6.11.1 and Emscripten 4.0.7. The allowance stays as a margin
+  for a future toolchain. See
   [Content-Security-Policy](csp.md).
