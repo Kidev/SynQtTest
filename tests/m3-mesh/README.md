@@ -56,7 +56,8 @@ tests/m3-mesh/run-m3.sh
 
 Builds `SynQtService` and the test, generating throwaway certificates at configure
 time (project CA + `alpha`/`beta` entity certs with SANs + a foreign CA + a `rogue`
-cert) into `build/m3-mesh/certs/`. These are git-ignored and never committed; no
+cert + an `impostor` leaf the project CA signs for the address rather than for an
+entity) into `build/m3-mesh/certs/`. These are git-ignored and never committed; no
 production mesh CA key is created here.
 
 ## Notes / findings
