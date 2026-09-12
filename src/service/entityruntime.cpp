@@ -473,10 +473,11 @@ void EntityRuntime::openConsumerLink(const ConnectPointConfig &connectPoint)
                 }
                 // No facade for this contract, and nothing else this entity's QML could
                 // reach the owner through: the raw dynamic Replica takes the name, once
-                // there is one. A framework point takes none, because the C++ that adopts
-                // it does so through consumedReplicaReady above.
-                if (!connectPoint.framework && m_engine
-                        && !m_accessors.contains(accessorName(connectPoint.owner))) {
+                // there is one, and takes it again on every reconnect, since the one it
+                // replaced is retired above and a context property left naming it would
+                // name a deleted object. A framework point takes none, because the C++
+                // that adopts it does so through consumedReplicaReady above.
+                if (!connectPoint.framework && m_engine) {
                     m_accessors.insert(accessorName(connectPoint.owner), replica);
                     m_engine->rootContext()->setContextProperty(
                         accessorName(connectPoint.owner), replica);
