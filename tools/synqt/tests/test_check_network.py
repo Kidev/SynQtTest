@@ -176,6 +176,16 @@ def test_a_limit_that_is_not_a_whole_number_is_refused(key):
     assert any("whole number" in message for message in errors(inbound(**{key: "10mb"})))
 
 
+@pytest.mark.parametrize("key", ["max_connections", "max_connections_per_ip"])
+def test_a_socket_ceiling_of_zero_is_off_and_anything_else_is_a_whole_number(key):
+    # Unlike the request limits, zero here disables the ceiling rather than refusing
+    # the first socket, so it is accepted; a fraction, a string or a negative is not.
+    assert errors(inbound(**{key: 0})) == []
+    assert errors(inbound(**{key: 128})) == []
+    for bad in ("many", -1, 1.5, True):
+        assert any(key in message for message in errors(inbound(**{key: bad}))), bad
+
+
 def test_a_reply_timeout_of_zero_is_allowed_and_says_what_it_costs():
     # Unlike the limits above, zero means something here: no deadline at all. It is a
     # warning rather than a refusal, because somebody may want exactly that.

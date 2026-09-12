@@ -192,6 +192,11 @@ def _api_config_lines(entity: Dict[str, Any], inbound: Dict[str, Any]) -> List[s
         lines.append("    apiConfig.ratePerMinutePerIp = %s;"
                      % _int_literal("network.inbound.rate_per_minute",
                                     inbound["rate_per_minute"]))
+    for key, field in (("max_connections", "maxConnectionsGlobal"),
+                       ("max_connections_per_ip", "maxConnectionsPerIp")):
+        if key in inbound:
+            lines.append("    apiConfig.%s = %s;"
+                         % (field, _int_literal("network.inbound." + key, inbound[key])))
 
     # Which address the rate limit above counts against. Absent, it is the peer that
     # connected; present, that peer is a proxy and the caller is behind it. The edge's

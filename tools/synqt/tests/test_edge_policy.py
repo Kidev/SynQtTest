@@ -472,6 +472,15 @@ class TestInboundTrustedProxies(unittest.TestCase):
     def test_absent_proxies_emit_nothing(self):
         self.assertNotIn("trustedProxies", self.render_api(self.api_entity()))
 
+    def test_the_socket_ceilings_reach_the_surface(self):
+        # What bounds a caller that opens sockets and sends nothing, which the rate limit
+        # and the body ceiling never see. Zero disables one and is carried as written.
+        source = self.render_api(self.api_entity(max_connections=512,
+                                                 max_connections_per_ip=0))
+        self.assertIn("apiConfig.maxConnectionsGlobal = 512;", source)
+        self.assertIn("apiConfig.maxConnectionsPerIp = 0;", source)
+        self.assertNotIn("maxConnections", self.render_api(self.api_entity()))
+
     def test_a_non_list_is_refused(self):
         with self.assertRaises(appmodel.AppGenError):
             self.render_api(self.api_entity(trusted_proxies="10.0.0.1"))

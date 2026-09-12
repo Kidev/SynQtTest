@@ -315,6 +315,18 @@ def _inbound_messages(name: str, entity: Dict[str, Any],
                 f"error: entity '{name}' has network.inbound.{key} {value}; a limit of "
                 "zero or less would refuse every request rather than disable the limit")
 
+    # The socket ceilings, where zero is a word: it disables that ceiling, and the
+    # per-address one is disabled by the runtime anyway behind a proxy, since every
+    # socket is then the proxy's.
+    for key in ("max_connections", "max_connections_per_ip"):
+        value = inbound.get(key)
+        if value is None:
+            continue
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            messages.append(
+                f"error: entity '{name}' has network.inbound.{key} {value!r}; it must be a "
+                "whole number, and 0 disables that ceiling")
+
     # Separate from the two above because zero means something here: no deadline at all.
     timeout = inbound.get("reply_timeout_ms")
     if timeout is not None:

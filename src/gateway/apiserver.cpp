@@ -164,6 +164,16 @@ bool ApiServer::start()
     QHttpServerConfiguration httpConfiguration;
     httpConfiguration.setMaximumBodySize(m_config.maxBodyBytes);
     httpConfiguration.setKeepAliveTimeout(std::chrono::seconds{kKeepAliveTimeoutSeconds});
+    // The socket ceilings, at accept: what bounds a caller that opens connections and
+    // never sends a request the two checks above could see. Per address only when the
+    // address is the caller's; behind a proxy every socket is the proxy's, and a ceiling on
+    // it would refuse the whole API at the sixty-fifth caller.
+    httpConfiguration.setMaximumConnections(
+        static_cast<quint32>(qMax(0, m_config.maxConnectionsGlobal)));
+    httpConfiguration.setMaximumConnectionsPerHost(
+        m_config.trustedProxies.isEmpty()
+            ? static_cast<quint32>(qMax(0, m_config.maxConnectionsPerIp))
+            : quint32{0});
     m_server->setConfiguration(httpConfiguration);
 
     // One catch-all route rather than one route per declared path: the routing table lives

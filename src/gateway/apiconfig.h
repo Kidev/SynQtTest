@@ -46,6 +46,17 @@ struct ApiConfig
     /// Resource limits, enforced before a handler sees anything.
     qint64 maxBodyBytes{1048576};
     int ratePerMinutePerIp{600};
+    /// How many sockets may be open at once, in total and from one address, counted at
+    /// accept. The rate limit and the body ceiling see a request; neither sees a caller
+    /// that opens a socket and sends nothing, or a byte every few seconds, and without
+    /// this the number of those one address could hold was the operating system's to
+    /// decide. These are Qt's own ceilings (QHttpServerConfiguration, 6.12), which count
+    /// correctly here because an API socket is never upgraded; the edge has to count its
+    /// own for exactly that reason (WebEdge::trackPendingUpgrade). The per-address one
+    /// is switched off when `trustedProxies` is set, since every socket is then the
+    /// proxy's; the total still holds. Zero disables either.
+    int maxConnectionsGlobal{4096};
+    int maxConnectionsPerIp{64};
 
     /// Peers whose `X-Forwarded-For` this surface believes, as addresses or CIDR ranges.
     /// Empty (the default) means the peer that connected is the caller, which is true of a
