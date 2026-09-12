@@ -395,6 +395,20 @@ private:
     int m_activeGlobal{0};
     QHash<QString, int> m_activePerIp;
 
+    /// Socket caps: every socket accepted and not yet destroyed, keyed by the peer's own
+    /// address, because at accept there is no request to read a forwarding header from.
+    ///
+    /// Counted here rather than through QHttpServerConfiguration::setMaximumConnections
+    /// and setMaximumConnectionsPerHost, which count the same thing and cannot count it
+    /// back down for a WebSocket link: QHttpServer decrements on the socket's
+    /// `disconnected`, and its upgrade path wildcard-disconnects the socket as it hands it
+    /// over, so every accepted link held its slot for the life of the process (Qt 6.12.0,
+    /// QHttpServerHttp1ProtocolHandler). The raw socket's destruction is the one event no
+    /// hand-over can take away, and it is what these are decremented on. See
+    /// trackPendingUpgrade and tests/m5-webedge's aClosedWebSocketLinkGivesItsSocketBack.
+    int m_socketsGlobal{0};
+    QHash<QString, int> m_socketsPerIp;
+
     /// Attempts on the password gate, per visitor address, in a fixed window.
     ///
     /// The gate derives a PBKDF2 at the operator store's round count, which is deliberately
