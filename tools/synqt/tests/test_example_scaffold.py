@@ -17,7 +17,7 @@ from pathlib import Path
 
 import yaml
 
-from synqt import check, cli, examples
+from synqt import check, cli, examples, newproject
 
 
 class ExamplesListingTest(unittest.TestCase):
@@ -143,3 +143,30 @@ class ExampleCommandLineTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ProjectNameFromAPathTest(unittest.TestCase):
+    """`synqt new` takes a directory, and a directory is not always a bare name: `synqt new
+    ../shop`, `synqt new ~/src/shop`, `synqt new .` from an empty folder. The project is
+    the directory's last component; the whole path was being written into `project.name`,
+    from where it named the CMake project, the mesh certificates and the docker image."""
+
+    def test_a_new_project_given_a_path_is_named_after_its_directory(self):
+        parent = Path(tempfile.mkdtemp())
+        printed = newproject.scaffold(parent, str(parent / "nested" / "shop"))
+        config = yaml.safe_load((parent / "nested" / "shop" / "synqt.yaml").read_text())
+        self.assertEqual(config["project"]["name"], "shop")
+        self.assertIn("Scaffolded 'shop'", printed)
+
+    def test_an_example_copied_to_a_path_is_named_after_its_directory(self):
+        parent = Path(tempfile.mkdtemp())
+        examples.scaffold(parent, str(parent / "nested" / "shop"), "stall")
+        config = yaml.safe_load((parent / "nested" / "shop" / "synqt.yaml").read_text())
+        self.assertEqual(config["project"]["name"], "shop")
+
+    def test_a_dot_names_the_directory_it_is_run_in(self):
+        root = Path(tempfile.mkdtemp()) / "shop"
+        root.mkdir()
+        newproject.scaffold(root, ".")
+        config = yaml.safe_load((root / "synqt.yaml").read_text())
+        self.assertEqual(config["project"]["name"], "shop")

@@ -147,13 +147,15 @@ def scaffold(parent_dir: os.PathLike[str] | str, name: str, example: str) -> str
         # it keeps the two `synqt new` shapes behaving the same way.
         destination.rmdir()
     _copy(directory, destination)
+    project_name = destination.resolve().name  # `name` may be a path; see newproject
 
     config_path = destination / "synqt.yaml"
     # Edited rather than re-serialised, because an example's synqt.yaml is a file somebody
     # is meant to read: it is commented throughout, and yaml.safe_dump would hand the reader
     # a version of their new project with every one of those comments deleted.
     config_path.write_text(
-        yamledit.set_scalar(config_path.read_text(encoding="utf-8"), "project.name", name),
+        yamledit.set_scalar(config_path.read_text(encoding="utf-8"), "project.name",
+                            project_name),
         encoding="utf-8")
     config = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
 
@@ -163,7 +165,7 @@ def scaffold(parent_dir: os.PathLike[str] | str, name: str, example: str) -> str
     appgen.generate(destination, config)
 
     about = headline(directory)
-    lines = [f"Copied the '{example}' example into '{name}'"
+    lines = [f"Copied the '{example}' example into '{project_name}'"
              + (f": {about}." if about else "."),
              f"  cd {name} && synqt dev"]
     if secrets(config):

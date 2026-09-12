@@ -269,6 +269,10 @@ def scaffold(parent_dir: os.PathLike[str] | str, name: str, *,
     if root.exists() and any(root.iterdir()):
         raise NewProjectError(f"{root} already exists and is not empty")
     root.mkdir(parents=True, exist_ok=True)
+    # `name` is a directory, and a directory is not always a bare name (`../shop`, `.` from
+    # an empty folder). The project is called after its last component; the whole path had
+    # gone into project.name, from where it named the CMake project and the docker image.
+    project_name = root.resolve().name
 
     # Named for what they are rather than for their type, because the type is already the
     # folder they sit in: the client is `client/app/`, the edge is `web/edge/`. An entity
@@ -285,7 +289,7 @@ def scaffold(parent_dir: os.PathLike[str] | str, name: str, *,
          "tls": {"cert_file": "certs/edge/fullchain.pem",
                  "key_file": "certs/edge/privkey.pem"}},
     ]
-    config = _config(name, entities)
+    config = _config(project_name, entities)
     if auth:
         # Mark the edge so the license generator knows it links Network Authorization.
         config["entities"][1]["identity"] = True
@@ -314,7 +318,7 @@ def scaffold(parent_dir: os.PathLike[str] | str, name: str, *,
     appgen.generate(root, config)
 
     lines = [
-        f"Scaffolded '{name}'. Next:",
+        f"Scaffolded '{project_name}'. Next:",
         f"  cd {name} && synqt dev",
         "",
         licenses.CLIENT_GPL_WARNING,
