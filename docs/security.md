@@ -892,7 +892,9 @@ Authorization and data:
   refusal says nothing about it and carries `Retry-After`. It is also a POST that ends
   in a session, so it refuses a form another site submitted on the same terms as the
   sign-out route: the browser says where the request came from in `Sec-Fetch-Site`, and
-  a cross-site one is refused before the credentials are read.
+  a cross-site one is refused before the credentials are read. A browser too old to say
+  so still names itself in `Origin`, which every browser puts on a POST, and one the
+  edge did not list is refused on that alone.
 
 System wide:
 

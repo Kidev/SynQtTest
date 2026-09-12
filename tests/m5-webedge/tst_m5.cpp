@@ -1686,7 +1686,7 @@ private slots:
         WebEdge edge{config, &engine};
         QVERIFY2(edge.start(), qPrintable(edge.errorString()));
 
-        const auto post{[&](const QByteArray &site) {
+        const auto post{[&](const QByteArray &site, const QByteArray &origin = {}) {
             QNetworkRequest request{QUrl{edge.httpOrigin() + QStringLiteral("/monitor/signin")}};
             request.setSslConfiguration(insecureClientConfig());
             useOnlyTheCookiesNamedHere(request);
@@ -1694,6 +1694,9 @@ private slots:
                               QByteArrayLiteral("application/x-www-form-urlencoded"));
             if (!site.isEmpty()) {
                 request.setRawHeader("Sec-Fetch-Site", site);
+            }
+            if (!origin.isEmpty()) {
+                request.setRawHeader("Origin", origin);
             }
             QNetworkReply *reply{m_nam.post(request, QByteArrayLiteral("name=alice&password=pw"))};
             QSignalSpy finished{reply, &QNetworkReply::finished};
@@ -1706,6 +1709,18 @@ private slots:
         QCOMPARE(statusOf(crossSite), 403);
         QVERIFY(sessionCookie(crossSite).isEmpty());
         crossSite->deleteLater();
+
+        // A browser that does not say where a request came from (Sec-Fetch-Site arrived in
+        // Safari years after the others) still says who is asking: every browser puts an
+        // Origin on a POST. One this edge never named is the same cross-site form, and is
+        // refused on that alone.
+        QNetworkReply *foreignOrigin{post(QByteArray{}, "https://evil.example")};
+        QCOMPARE(statusOf(foreignOrigin), 403);
+        QVERIFY(sessionCookie(foreignOrigin).isEmpty());
+        foreignOrigin->deleteLater();
+        QNetworkReply *ownOrigin{post(QByteArray{}, edge.httpOrigin().toUtf8())};
+        QCOMPARE(statusOf(ownOrigin), 200);
+        ownOrigin->deleteLater();
 
         // The same credentials from the application's own page, and from a caller that
         // is not a browser at all: both are the gate working, so that the refusal above is
