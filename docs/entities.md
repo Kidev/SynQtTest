@@ -309,6 +309,15 @@ is how an internal API ends up answering the internet, so the omission is an err
 the exposure is a sentence you have to write. A request carrying an `Origin` the block
 does not list is refused, so a key that leaked into a page still buys nothing.
 
+`allowed_origins` is what lets a page call in at all. A browser sends a preflight before
+any cross-origin request that carries a custom header, and the key is one, so the
+preflight arrives with no key: the surface answers it for an origin the list names,
+allowing the method and the headers the browser asked about, and refuses it for any other,
+which is what stops the real request from being sent. An answer to a named origin carries
+`Access-Control-Allow-Origin` for that origin and nothing wider, and never allows
+credentials, because a caller here authenticates with the key header and this surface
+reads no cookie.
+
 The rate limit counts one address, and which address that is depends on what sits in
 front. Reached directly it is the peer that connected; behind a proxy every request
 arrives from the proxy, so name it in `network.inbound.trusted_proxies` and the address

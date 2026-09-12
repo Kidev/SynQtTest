@@ -14,6 +14,8 @@
 #include <QObject>
 #include <QString>
 
+#include <optional>
+
 QT_BEGIN_NAMESPACE
 class QHttpServer;
 class QHttpServerRequest;
@@ -74,6 +76,16 @@ private:
     /// given, so nothing else in here reads the forwarding header.
     QString callerAddress(const QHttpServerRequest &request) const;
     QString originOf(const QHttpServerRequest &request) const;
+    /// The answer to a browser's preflight, when the request is one. A browser sends an
+    /// OPTIONS carrying the origin and the method it means to use, and no key, before any
+    /// cross-origin request with a custom header; this is answered for an origin the
+    /// surface names and refused for any other, before the key is looked for, because a
+    /// preflight never carries one. Empty when the request is not a preflight.
+    std::optional<QHttpServerResponse> preflightAnswer(const QHttpServerRequest &request,
+                                                       const QString &origin) const;
+    /// Add the one header a browser needs to hand an answer to the page, when the request
+    /// came from an origin the surface names. Nothing for any other caller.
+    static void allowOrigin(QHttpServerResponse &response, const QString &origin);
 
     ApiConfig m_config;
     /// Which address a request counts against, built once from the configured list.
