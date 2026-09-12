@@ -4,6 +4,7 @@
 #include "consumerbase.h"
 
 #include "connectpointresolver.h"
+#include "promise.h"
 
 #include <QtRemoteObjects/QRemoteObjectDynamicReplica>
 #include <QtRemoteObjects/QRemoteObjectReplica>
@@ -44,6 +45,19 @@ void ConsumerBase::setReplica(QObject *replica)
 {
     if (m_replica == replica) {
         return;
+    }
+    // Every answer the old Replica still owed is now owed by nobody: a call is answered
+    // on the connection it was sent on, and a Replica is replaced only when that
+    // connection is gone. Left pending, each of those promises stayed a child of this
+    // facade for as long as the client ran, one per call cut off by a reconnect, and the
+    // handler written for exactly this failure never ran. The generated forwarders parent
+    // their promises here, so this is where all of them are.
+    const QList<QObject *> held{children()};
+    for (QObject *child : held) {
+        if (Promise *promise{qobject_cast<Promise *>(child)}) {
+            promise->abandon(QStringLiteral("the '%1' connect point's link dropped before "
+                                            "the answer arrived").arg(m_point));
+        }
     }
     clearConnections();
     m_replica = replica;
