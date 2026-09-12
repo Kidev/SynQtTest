@@ -837,6 +837,23 @@ class TestHttpLimits(unittest.TestCase):
         errors = self._messages({"max_requests_per_second": -1})
         self.assertTrue(any("max_requests_per_second" in m for m in errors), errors)
 
+    def test_the_session_ceiling_reads_zero_as_off_and_says_what_that_costs(self):
+        # Zero disables the ceiling rather than refusing every visitor, so it is accepted;
+        # in a release it is worth a line, because the table it leaves unbounded is the one
+        # a stranger grows with page loads.
+        self.assertEqual([m for m in self._messages({"max_sessions": 0}) if "max_sessions" in m],
+                         [])
+        warnings = [m for m in check.validate(base_config(security={"max_sessions": 0}),
+                                              release=True)[1]
+                    if m.startswith("warn") and "max_sessions" in m]
+        self.assertEqual(len(warnings), 1, warnings)
+        self.assertEqual([m for m in self._messages({"max_sessions": 5000})
+                          if "max_sessions" in m], [])
+        for value in ("100", 1.5, -1, True):
+            with self.subTest(value=value):
+                errors = self._messages({"max_sessions": value})
+                self.assertTrue(any("max_sessions" in m for m in errors), errors)
+
     def test_the_new_ceilings_are_whole_positive_numbers(self):
         for key, value in (("keep_alive_timeout_s", "15"),
                            ("keep_alive_timeout_s", 0),

@@ -710,8 +710,9 @@ private slots:
                                      plain.describe("the same file from a bare QHttpServer"))));
     }
 
-    // Sessions are the edge's one unbounded structure: anyone who can reach it can ask for
-    // one. Creating, elevating and revoking has to leave the table exactly as it found it,
+    // Sessions are the structure anyone who can reach the edge can ask for. The ceiling
+    // (SessionManager::setMaximumSessions) is what bounds a flood; this is the other half:
+    // creating, elevating and revoking has to leave the table exactly as it found it,
     // rotation records included, or the table is a slow leak with a public entry point.
     void theSessionStoreLetsGoOfWhatItRevokes()
     {

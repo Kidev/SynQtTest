@@ -15,6 +15,15 @@ namespace SynQt {
 
 namespace {
 
+/// The session table is at its ceiling with nothing to let go of; the same answer every
+/// other route that mints gives, so the picker cannot hand out an empty cookie.
+QHttpServerResponse tableFull()
+{
+    return QHttpServerResponse{QByteArrayLiteral("text/plain"),
+                               QByteArrayLiteral("no session can be issued right now"),
+                               QHttpServerResponder::StatusCode::ServiceUnavailable};
+}
+
 /// The picker's own page. Plain HTML with no script and no styling framework, because it
 /// is served by a development edge whose CSP is the project's own: a page that needed an
 /// inline script would be a page that only works when the project has relaxed its policy,
@@ -240,6 +249,9 @@ QHttpServerResponse IdentityPicker::chooseNamed(const QString &picked,
 
     const QByteArray minted{m_sessions->createSession(resolution.scope,
                                                       identityForNamed(identity.email))};
+    if (minted.isEmpty()) {
+        return tableFull();
+    }
     if (choice) {
         choice->sessionId = minted;
         if (!form.queryItemValue(QStringLiteral("this_tab_only")).isEmpty()) {
@@ -276,6 +288,9 @@ QHttpServerResponse IdentityPicker::choose(const QHttpServerRequest &request,
 
     const QString scope{m_scopeOrder.at(index)};
     const QByteArray minted{m_sessions->createSession(scope, identityFor(scope))};
+    if (minted.isEmpty()) {
+        return tableFull();
+    }
     if (choice) {
         choice->sessionId = minted;
         if (!form.queryItemValue(QStringLiteral("this_tab_only")).isEmpty()) {

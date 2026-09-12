@@ -714,6 +714,11 @@ security:
   # unread: the edge caps each browser socket's read buffer at four times this, and
   # closes a connection that goes past it.
   max_message_bytes: 1048576
+  # How many sessions the edge holds at once. A page load with no live cookie mints
+  # one, so this bounds the one table a stranger can grow; at the ceiling the oldest
+  # anonymous session nobody is connected on is let go of before anyone is refused.
+  # Zero removes the ceiling.
+  max_sessions: 100000
 
   # The three below are Qt's own limits on the HTTP request, which the edge sets
   # rather than leaving at the values Qt picked for a general-purpose server.
@@ -1584,7 +1589,8 @@ fast. Non negotiable checks:
 - A `security` limit (`handshake_timeout_ms`, the two connection caps,
   `max_message_bytes`) that is not a whole number is rejected, and so is one that is
   zero or less: the caps are compared with `>=`, so a cap of zero reads like "no
-  limit" and refuses the first connection.
+  limit" and refuses the first connection. `security.max_sessions` is the exception:
+  zero there removes the ceiling, and a release build says what that leaves unbounded.
 - `security.session_transport` and `identity.flow` are rejected unless they name
   something this version implements (`cookie` and `authorization_code`). A setting
   the edge cannot honor is refused rather than dropped, because an edge that quietly

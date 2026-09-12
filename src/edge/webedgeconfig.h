@@ -214,6 +214,11 @@ struct WebEdgeConfig
     int maxConnectionsPerIp{20};
     int maxConnectionsGlobal{1000};
     qint64 maxMessageBytes{1048576};
+    /// How many sessions the edge holds at once (`security.max_sessions`). A page load with
+    /// no live cookie mints one, so this is the bound on the one table a stranger can grow;
+    /// at the ceiling the oldest anonymous session with no live connection is let go of
+    /// before anyone is refused. See SessionManager::setMaximumSessions. Zero disables it.
+    int maxSessions{100000};
 
     /// Limits on the HTTP request itself, which QHttpServer enforces before a route runs.
     ///
