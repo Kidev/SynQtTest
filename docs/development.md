@@ -89,19 +89,22 @@ two it is allowed to.
 | `SynQtEdge`      | [`src/edge`](https://github.com/Kidev/SynQt/tree/main/src/edge)      | `SynQtIdentity`, Qt HttpServer | The one entity a browser reaches: `WebEdge` (bundle serving, the header policy, the WebSocket upgrade pipeline), `IdentityProvider` (the login, callback and logout routes), the `Pages` connect point (`PageStore`, `PagesService`, `PagesEdgeSource`) and the dev-only `StubIdentityServer`. Qt HTTP Server is GPLv3-only, so only a `type: web_edge` entity links this. |
 | `SynQtGateway`   | [`src/gateway`](https://github.com/Kidev/SynQt/tree/main/src/gateway)   | `SynQtService`, Qt HttpServer | The inbound HTTP surface an entity's `network.inbound` opens: `ApiServer` (the rate, key, origin and body-size checks, run before any handler exists) and the `Api` helper the entity's own singleton declares its routes on. Qt HTTP Server again, and not `SynQtIdentity`: a gateway authenticates machine callers with a key, so it has no reason to carry Qt Network Authorization. |
 | `SynQtProviders` | [`src/providers`](https://github.com/Kidev/SynQt/tree/main/src/providers)  | Qt Sql, optional hiredis and mongo-c                               | The backend facing family interfaces (`IPersistenceProvider`, `IDocumentProvider`, `ICacheProvider`), the bundled providers (`sqlite`, `postgres`, `mysql`, the `memory` cache), the optional external ones (`redis`, `mongodb`, gated by their client libraries), the `ProviderRegistry` a custom provider registers with, and the entity QML helpers `Db`, `Cache`, `Docs`, `Http`, and `Jobs`. |
+| `SynQtMonitor`   | [`src/monitor`](https://github.com/Kidev/SynQt/tree/main/src/monitor)    | `SynQtEdge`, Qt Sql | What a `type: monitor` entity is: `SynQtEdge` serving the operator console, plus `EventStore` (the SQLite history), `MonitorService` (the `ingest` and `console` connect points) and the two exporters (`OtlpExporter`, `JsonlExporter`). GPLv3 like the edge, which is a fact about the console and not a surprise for an operations tool nobody conveys. |
+| `SynQtContract`  | [`src/contract`](https://github.com/Kidev/SynQt/tree/main/src/contract)   | Qt Core, Gui | `SourceModel`, the model a generated Source publishes its rows through: a `QStandardItemModel` a consumer cannot write into. Linked by [`SynQtContracts.cmake`](https://github.com/Kidev/SynQt/blob/main/cmake/SynQtContracts.cmake) into every owner, which is why a service that owns a connect point links Qt Gui. |
+| `SynQtTesting`   | [`src/testing`](https://github.com/Kidev/SynQt/tree/main/src/testing)    | `SynQtService`, `SynQtProviders`, Qt Qml | `EntityTest`, the `SynQt.Test` import behind `synqt test`: loads one owned Source on its own, mints its `Caller` through the same factories the transports use, and substitutes only the engine behind a helper. Linked by the generated test runner and by nothing a project deploys. |
 
 The client links only `SynQtTransport`, `SynQtClient`, and `SynQtConsumer`. It never links
 `SynQtService` or `SynQtProviders`; the build fails on purpose if it tries, because those
 carry storage drivers and credentials that must never reach the browser.
 
-The license is what separates the last three. Qt HTTP Server and Qt Network
-Authorization are GPLv3-only, and linking one makes that entity's binary GPLv3, so they are
-reached only through `SynQtEdge`, `SynQtIdentity` and `SynQtGateway`.
-`appmodel.service_libraries` says which of the four an entity links, and both the
-generated CMake and its generated
-`THIRD-PARTY-LICENSES` read that one function, so what the file claims and what the binary
-links cannot drift apart. A topology with no web edge and no auth entity never adds those
-directories at all, so those modules need not even be installed.
+The license is what separates `SynQtEdge`, `SynQtIdentity`, `SynQtGateway` and
+`SynQtMonitor` from the rest. Qt HTTP Server and Qt Network Authorization are GPLv3-only,
+and linking one makes that entity's binary GPLv3, so they are reached only through those
+four. `appmodel.service_libraries` says which of the five service libraries an entity
+links, and both the generated CMake and its generated `THIRD-PARTY-LICENSES` read that one
+function, so what the file claims and what the binary links cannot drift apart. A topology
+with no web edge, no auth entity and no monitor never adds those directories at all, so
+those modules need not even be installed.
 
 ## The tooling ([`tools/`](https://github.com/Kidev/SynQt/tree/main/tools))
 
@@ -261,7 +264,7 @@ five commits without ever running.
 | [`entity-test`](https://github.com/Kidev/SynQt/tree/main/tests/entity-test)            | The `SynQt.Test` harness an application's own QML tests use, driven against a Source written the way an application writes one. |
 | [`graphics`](https://github.com/Kidev/SynQt/tree/main/tests/graphics)               | The fallback for a browser with no WebGL: what the runtime net recognises, that it chains to the handler already installed, the notice, and the route guard. Its `tst_softwarebackend` renders each candidate type on the raster adaptation and counts pixels, which is what decides whether a type needs the accelerated pipeline rather than a reading of Qt's source. |
 | [`privacy`](https://github.com/Kidev/SynQt/tree/main/tests/privacy)                 | The `Privacy` accessor and the three QML types it backs. It holds the two filters that decide what a visitor has actually permitted: a category the project never declared cannot be granted, and a stored answer naming a category the project has since dropped does not survive into the new configuration. Its `tst_privacycomponents` instantiates `LegalFooter`, `CookieConsent` and `DataErasureRequest` through `import SynQt`, which is what catches the resource prefix and the registered URL drifting apart. |
-| [`memory`](https://github.com/Kidev/SynQt/tree/main/tests/memory)                 | What a repeated workload leaves behind: browser connections, page loads, retired edges, sessions, sign outs and mesh reconnects, each run twice over one long lived object, with the second run required to keep no more than the first. One of them retires an edge while a browser is still holding it, which is the case closing first hides. The sign out case is measured as a difference against the same visit ending in a closed tab, because what it owns is the sign out path and not the cost of a visitor. Its `run-leakcheck.sh` runs the rest of the tree and the benchmarks under LeakSanitizer. |
+| [`memory`](https://github.com/Kidev/SynQt/tree/main/tests/memory)                 | What a repeated workload leaves behind: browser connections, page loads, retired edges, sessions, sign outs, mesh reconnects and a client's whole visit, each run twice over one long lived object, with the second run required to keep no more than the first. One of them retires an edge while a browser is still holding it, which is the case closing first hides. The sign out case is measured as a difference against the same visit ending in a closed tab, because what it owns is the sign out path and not the cost of a visitor. Its `run-leakcheck.sh` runs the rest of the tree and the benchmarks under LeakSanitizer. |
 | [`monitor`](https://github.com/Kidev/SynQt/tree/main/tests/monitor)                | The event pipeline every entity carries and the choke points that feed it. Its `tst_pipeline` covers the record, the bounded ring that drops the oldest and counts what it dropped, the per category levels and the writer thread, and links Qt Core and Qt Test and nothing else, which is what keeps the pipeline out of the GPLv3 libraries. Its `tst_instrumentation` drives a real edge and a real session store and asserts both halves of each gate, plus that no credential reaches the record. Its `tst_export` holds the OTLP encoding to the field names OpenTelemetry publishes and proves a collector that is down costs the monitor no history and no time. |
 | [`wasm-quick3dphysics`](https://github.com/Kidev/SynQt/tree/main/tests/wasm-quick3dphysics)    | Qt Quick 3D Physics builds and loads on the WebAssembly kit. |
 | [`designer`](https://github.com/Kidev/SynQt/tree/main/tests/designer)               | The [designer](visual-editor.md) in a browser, which is the only place most of it exists: drawing a connect point, the diff behind Review, and Apply writing what the diff said. The second case serves the page with nothing behind it, under the site's own content policy, and is what proves the hosted copy still works and still asks for nothing off-origin. No Qt, only Chromium; run by [`tests.yml`](https://github.com/Kidev/SynQt/blob/main/.github/workflows/tests.yml). |
@@ -658,7 +661,11 @@ A QObject tree is that shape by construction, since a child holds a pointer back
 parent. Such a process is named with what it lost rather than counted as zero, and it is
 not charged to a file, because in a graph lost whole the allocation site is where a block
 was born and not what dropped it. The soak pass is the gate that sees this shape, since
-memory a process is still holding is exactly what a peak resident set measures.
+memory a process is still holding is exactly what a peak resident set measures. The
+listing is still worth reading: the client's `SessionState` replica, acquired without a
+parent and so left behind on every reconnect, showed up there as thirty records in the
+generated replica header before any gate had a number for it, and `tests/memory` measures
+a client's visit now because it did.
 
 Both passes name what they did not measure. A suite that will not run twice in one process
 is listed rather than dropped, and the benchmark harnesses that stand up whole systems are
@@ -761,7 +768,7 @@ These are the checks that report on an open pull request and can be required:
 | `CLA` | [`cla.yml`](https://github.com/Kidev/SynQt/blob/main/.github/workflows/cla.yml) |
 | `pytest (ubuntu-24.04)`, `pytest (macos-26)`, `pytest (windows-2025)` | [`tests.yml`](https://github.com/Kidev/SynQt/blob/main/.github/workflows/tests.yml) |
 | `CLI coverage floor`, `node checks`, `design editor (browser)` | [`tests.yml`](https://github.com/Kidev/SynQt/blob/main/.github/workflows/tests.yml) |
-| `ctest (linux)`, `ctest (macos)`, `ctest (windows)` | [`ctest.yml`](https://github.com/Kidev/SynQt/blob/main/.github/workflows/ctest.yml) |
+| `tree (linux)`, `tree (macos)`, `tree (windows)`, `generated (linux)`, `generated (macos)`, `generated (windows)`, `coverage (linux)` | [`ctest.yml`](https://github.com/Kidev/SynQt/blob/main/.github/workflows/ctest.yml) |
 | `leaks (linux)` | [`leaks.yml`](https://github.com/Kidev/SynQt/blob/main/.github/workflows/leaks.yml) |
 
 A check is named by its job's `name:` with the matrix values substituted, so renaming a job
