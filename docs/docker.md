@@ -48,6 +48,7 @@ synqt docker init            # generate everything, asking about secrets it cann
 synqt docker init --force    # regenerate after changing the topology
 synqt docker up              # build the images and start every container
 synqt docker up --detach     # the same, in the background
+synqt docker up --no-build   # start what is already built without rebuilding first
 synqt docker down            # stop everything, keep the certificates and the data
 synqt docker down --volumes  # and throw those away too, for a clean slate
 synqt docker ca              # copy out the authority behind the browser certificate
