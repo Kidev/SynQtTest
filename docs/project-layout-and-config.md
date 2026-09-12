@@ -1586,7 +1586,10 @@ fast. Non negotiable checks:
   throwaway development certificates automatically).
 - `transport: local` is never chosen implicitly: it must be written explicitly,
   and `synqt check` flags every local link with a note that the calling entity is
-  trusted by colocation on it, not authenticated by certificate.
+  trusted by colocation on it, not authenticated by certificate. A local link with
+  more than one consumer is rejected: a local socket identifies nobody, so the owner
+  names every caller after the point's one consumer, and a second one would be
+  reported as the first on every call.
 - A `mesh.host`, a `public.host`, a `network.inbound.bind` or a connect point's own
   `host` that is a name rather than an address is rejected, `localhost` included.
   Each reaches the runtime as a `QHostAddress`, which resolves nothing, so a name
