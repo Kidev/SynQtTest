@@ -524,7 +524,7 @@ handler:
   for a future toolchain rather than a present need: the pinned kit spawns its pthread
   workers from same origin URLs, and the real threaded bundle served under a strict
   `worker-src 'self'` stayed isolated, spawned every worker, and logged no violation
-  in Chromium and Firefox, and the multi threaded proof now serves its bundle under
+  in Chromium, Firefox and WebKit, and the multi threaded proof serves its bundle under
   that strict policy on every run, in every engine it can launch, reporting any
   violation by directive. It is kept because a future Emscripten could go back to
   `blob:` workers, and because it widens the attack surface by almost nothing:
@@ -685,9 +685,10 @@ page protects the page's markup, never the data the page later reads.
   mesh peer is its verified certificate subject, and tokens and certificate private
   material reach no trace call at all. Under that, the pipeline redacts: every event
   passes through `Tracer::record`, which replaces the value of any attribute whose name
-  names a credential (`password`, `secret`, `token`, `authorization`, `cookie`,
-  `credential`, `api_key`, `private_key`, `bearer`, matched case-insensitively anywhere
-  in the name, so `set-cookie`, `refreshToken` and `clientSecret` are all covered) with
+  names a credential (`password`, `passphrase`, `secret`, `token`, `authorization`,
+  `cookie`, `credential`, `bearer`, and `api key` or `private key` in any of their
+  spellings, matched case-insensitively anywhere in the name, so `set-cookie`,
+  `refreshToken` and `clientSecret` are all covered) with
   `[redacted]`, keeping the name so the record says a value was held back rather than
   reading as though there was none. It runs past anything QML can reach, which is what
   makes it cover [`Log`](runtime-api.md#log-what-an-entity-records-about-itself) too: an application that writes

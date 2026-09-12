@@ -194,18 +194,19 @@ Service runtime (native, used by every service entity):
 - `ConnectPointHost`: for each owned connect point, instantiates the Source
   (backed by the entity's QML), calls `enableRemoting()`, and (for per session or
   per peer instances) creates one Source per session or per calling entity.
-- `MeshTransport`: the QtRO transport for service links: QSslServer and QSslSocket
-  with mutual verification against the project CA by default (bound to loopback
-  when the link stays on one host), and QLocalServer and QLocalSocket for opt in
-  local links. The consumer side keeps its link up: an owner that is not there yet,
+- `MeshServer` and `MeshClient`: the two ends of a service link: QSslServer and
+  QSslSocket with mutual verification against the project CA by default (bound to
+  loopback when the link stays on one host), and QLocalServer and QLocalSocket for opt
+  in local links. The consumer side keeps its link up: an owner that is not there yet,
   and one that goes away later, are retried with a capped exponential backoff, and
   each time the link comes back the consumer re-acquires the connect point by
   itself. So entities may start in any order, and one service can be restarted
   under a deploy without restarting the entities that consume it.
-- `Provider` (on entities with an engine): the backend behind the entity's connect
-  points, selected by config. The default is an embedded engine (SQLite for
-  persistence, in memory for cache); a third party engine is masked behind the same
-  entity through the same interface (see [providers](providers.md)).
+- `IPersistenceProvider`, `ICacheProvider` and `IDocumentProvider` (on entities with
+  an engine): the backend behind the entity's connect points, selected by config. The
+  default is an embedded engine (SQLite for persistence, in memory for cache and
+  documents); a third party engine is masked behind the same entity through the same
+  interface (see [providers](providers.md)).
 - `WebEdge` (only on a `type: web_edge` entity): owns the QHttpServer,
   TLS for the public port, static bundle serving, the header policy, the
   WebSocket upgrade pipeline, the SessionManager, and the optional IdentityProvider.

@@ -98,6 +98,14 @@ body), and then the word `import` may not appear anywhere the check did not alre
 approve. An import it cannot account for is refused whatever put it there, so the boundary
 does not depend on having thought of every way to write one.
 
+What the palette bounds is what a page declares. A page's JavaScript can still build QML
+at run time (`Qt.createQmlObject` takes a string, imports and all), and a string is data
+the scan does not read. That is not a hole in the model, because the party that could
+send such a page is your own edge, and an edge that would ship a hostile page could ship
+a hostile bundle; [security](security.md#remote-pages-edge-delivered-qml) says the same
+about the client accessors a page can reach. The palette narrows what a page written in
+good faith can reach, and it is not a sandbox against the edge.
+
 ## The page seed: painting the first frame
 
 A delivered page arrives, is parsed, and starts rendering before any connect point replica

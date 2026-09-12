@@ -528,8 +528,8 @@ browser user and reading `Client` there is clearer than reading `Caller`.
 ## Owner: the generated Source surface
 
 The owner of a connect point implements it against the Source type the contract
-generator emits, named `<Owner>Source`. This is the only place authoritative
-state is written. For an `export:` block reading `prop int count`, `model items(string
+generator emits, which carries the owner's own name: an `edge` entity's file is rooted
+at `Edge { ... }`. This is the only place authoritative state is written. For an `export:` block reading `prop int count`, `model items(string
 text, string author)`, `signal rejected(string reason)` and `slot add(string text)`, the
 owner's Source exposes:
 
@@ -818,9 +818,10 @@ makes both a substring hunt where `Log.info("saved rows", { rows: count })` does
 
 Which entity said it is stamped by the runtime, past anything QML can reach, so an entity
 cannot record itself under another entity's name. The same place holds a value back: an
-attribute whose name names a credential (`password`, `secret`, `token`, `authorization`,
-`cookie`, `credential`, `api_key`, `private_key`, `bearer`, matched anywhere in the name
-and in any case) is recorded as `[redacted]`, so `Log.warn("refused", { authorization:
+attribute whose name names a credential (`password`, `passphrase`, `secret`, `token`,
+`authorization`, `cookie`, `credential`, `bearer`, and `api key` or `private key` in any
+of their spellings, matched anywhere in the name and in any case) is recorded as
+`[redacted]`, so `Log.warn("refused", { authorization:
 header })` does not put a bearer token in the console. It reads names and never values, so
 it is a backstop rather than a licence: a credential under a name that does not say so is
 recorded like anything else, and the message is prose and is never touched. See

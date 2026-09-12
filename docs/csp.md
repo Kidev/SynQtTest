@@ -67,8 +67,9 @@ bundle change without you hand-editing the string:
    this directive if you did not write one, so the threaded client can start its pthread
    workers.
 
-    The `blob:` half is a margin for a future toolchain rather than a present need. Against the pinned
-    toolchain (Qt 6.11.1, Emscripten 4.0.7) the loader spawns its workers from the
+    The `blob:` half is a margin for a future toolchain rather than a present need. On the
+    toolchain the measurement was taken on (Qt 6.11.1, Emscripten 4.0.7, before the pin
+    moved to 6.12.0) the loader spawns its workers from the
     same-origin `client.js`, not from `blob:` URLs, and the
     [multi threaded proof](https://github.com/Kidev/SynQt/blob/main/tests/m0-transport/verify/verify-mt.mjs)
     serves its threaded bundle under this exact policy, `worker-src 'self'` with no
