@@ -62,7 +62,8 @@ bool SourceFactory::bindCaller(QObject *source, QObject *caller)
 
 bool SourceFactory::relay(QObject *source, QObject *behind)
 {
-    if (!source || !behind) {
+    // A null `behind` is a real instruction: stop following whatever it was following.
+    if (!source) {
         return false;
     }
     return QMetaObject::invokeMethod(source, "synqtRelay", Qt::DirectConnection,

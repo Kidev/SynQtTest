@@ -326,6 +326,13 @@ callers of one scope and no other, so it authorizes on `Caller` and never asks a
 nothing enforces that at run time because nothing has to. And with a tier per process, an
 admin surface's rows never exist in the process serving anonymous visitors.
 
+Which tier answers a caller follows their scope for as long as the connection lives, not
+only when it is accepted: a `Caller.setScope` under a live connection re-points the front
+at the tier the new scope names (or withdraws it, for a scope no tier serves), so a demoted
+admin stops reaching the backoffice entity at the moment of the demotion and not at their
+next reload. The same holds when the mesh link to a tier reconnects: the fresh Replica
+takes over for every browser already connected.
+
 A scope with no line of its own is handed to the highest tier at or below what the caller
 holds, so `anonymous` and `admin` alone still serve a moderator (the anonymous one). Under
 set-based scopes there is no order to fall back along, and a scope nobody named is served by

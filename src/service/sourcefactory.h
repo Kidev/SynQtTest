@@ -52,6 +52,11 @@ public:
     /// own point; everything it publishes is followed outward and every slot is forwarded
     /// back, carrying the session the call is being made for. Returns false when the object
     /// does not answer it.
+    ///
+    /// Not a one-time binding: calling it again with another object lets go of the first
+    /// and follows the second, and a null `behind` lets go and follows nothing. Both are
+    /// what a front needs, since the entity answering a caller changes with their scope and
+    /// the Replica of one entity changes with every mesh reconnect.
     static bool relay(QObject *source, QObject *behind);
 
     /// Say that this Source holds the state every caller's view is made from, so its

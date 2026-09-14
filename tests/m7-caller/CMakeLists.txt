@@ -49,6 +49,13 @@ synqt_add_contract(tst_m7 ROLE both FORWARDS_SESSION
 # Draft holds state in the Source and nowhere else, which is what lets a test see how
 # many Sources one connect point minted.
 synqt_add_contract(tst_m7 ROLE source SYN "${CMAKE_CURRENT_SOURCE_DIR}/shared/Draft.syn")
+# A front (`behind:`) on the edge: Gated is what the browser acquires, and Backoffice is
+# the slice each entity behind it answers. The entities are stood in for by Sources of
+# their own contract, as tst_front does, because the relay works by name and has no
+# opinion about what is on the other side of the edge.
+synqt_add_contract(tst_m7 ROLE source SYN
+    "${CMAKE_CURRENT_SOURCE_DIR}/shared/Gated.syn"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shared/Backoffice.syn")
 
 target_compile_definitions(tst_m7 PRIVATE
     M7_CERT_DIR="${M7_CERTS}"

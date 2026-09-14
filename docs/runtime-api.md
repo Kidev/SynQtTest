@@ -842,7 +842,8 @@ The framework owns each accessor's lifecycle:
   hiding buttons. On a scope change under a live connection (`Caller.setScope` in a
   slot) the newly permitted connect points are acquired without a reconnect, and the
   ones the session no longer meets the scope of are withdrawn; on logout they are all
-  released.
+  released. A fronted point (`behind:`) is re-pointed at the tier the new scope names
+  on the same event, so which entity answers it is never older than the scope.
 - Attached signal handlers (`<Owner>.on<Signal>`) fire only while the connect
   point is live. Before acquisition, or during `reconnecting`, they simply do not
   fire, and they resume on reconnect.
