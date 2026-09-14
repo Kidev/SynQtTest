@@ -559,6 +559,37 @@ private:
         return response;
     }
 
+    /// The verifier's answer, waited for.
+    ///
+    /// The verifier itself offers no form that waits, on purpose: its caller is a connect
+    /// point slot, and a slot that waits holds its entity's event loop. A test is the one
+    /// place where waiting is the right thing to do, so the wait is composed here out of
+    /// the same asynchronous call production makes, rather than kept in the class where
+    /// production could reach it.
+    static QVariantMap verified(JwksVerifier *verifier, const QString &idToken,
+                                const IdentityProviderConfig &provider,
+                                const QString &expectedNonce, QString *error)
+    {
+        QVariantMap claims;
+        QString failure;
+        bool answered{false};
+        QEventLoop loop;
+        verifier->verifyAsync(idToken, provider, expectedNonce,
+                              [&](const QVariantMap &result, const QString &why) {
+            claims = result;
+            failure = why;
+            answered = true;
+            loop.quit();
+        });
+        if (!answered) {
+            loop.exec();
+        }
+        if (error != nullptr) {
+            *error = failure;
+        }
+        return claims;
+    }
+
     /// One whole login on `backend`, from begin to a finished exchange, answering with the
     /// state key its tokens are stored under. False if any step of it did not work.
     bool exchangeOn(OAuthBackend *backend, QString *tokenKey)
@@ -932,7 +963,7 @@ private slots:
 
         // The control: this token, this JWKS, this nonce, and the claims come back.
         QString error;
-        const QVariantMap claims{verifier.verify(idToken, good, nonce, &error)};
+        const QVariantMap claims{verified(&verifier, idToken, good, nonce, &error)};
         QVERIFY2(!claims.isEmpty(), qPrintable(error));
         QCOMPARE(claims.value(QStringLiteral("iss")).toString(), m_stub->baseUrl());
         QCOMPARE(claims.value(QStringLiteral("nonce")).toString(), nonce);
@@ -940,7 +971,7 @@ private slots:
         const auto refuses{[&](const QString &token, const IdentityProviderConfig &provider,
                                const QString &expectedNonce, const QString &reason) {
             QString why;
-            const QVariantMap result{verifier.verify(token, provider, expectedNonce, &why)};
+            const QVariantMap result{verified(&verifier, token, provider, expectedNonce, &why)};
             QVERIFY2(result.isEmpty(),
                      qPrintable(QStringLiteral("expected a refusal (%1) but the token "
                                                "verified").arg(reason)));
@@ -992,7 +1023,7 @@ private slots:
 
         // And nothing above quietly broke the verifier: the good token still verifies.
         error.clear();
-        QVERIFY2(!verifier.verify(idToken, good, nonce, &error).isEmpty(), qPrintable(error));
+        QVERIFY2(!verified(&verifier, idToken, good, nonce, &error).isEmpty(), qPrintable(error));
     }
 
     /// Which key verifies an ID token, when the provider publishes more than one.
@@ -1056,19 +1087,19 @@ private slots:
         // One key published: the token names none and there is only one it could be, so
         // selection succeeds and the token is refused on its signature instead.
         QString why;
-        QVERIFY(verifier.verify(noKid, soleKey, nonce, &why).isEmpty());
+        QVERIFY(verified(&verifier, noKid, soleKey, nonce, &why).isEmpty());
         QVERIFY2(why.contains(QStringLiteral("signature invalid")), qPrintable(why));
 
         // Two keys published: there is no telling which of them signed it, and guessing by
         // position is exactly what must not happen.
         why.clear();
-        QVERIFY(verifier.verify(noKid, rotating, nonce, &why).isEmpty());
+        QVERIFY(verified(&verifier, noKid, rotating, nonce, &why).isEmpty());
         QVERIFY2(why.contains(QStringLiteral("cannot be told")), qPrintable(why));
 
         // And a token that does name its key still verifies against the rotating set, which
         // is the whole reason a provider publishes two.
         why.clear();
-        QVERIFY2(!verifier.verify(idToken, rotating, nonce, &why).isEmpty(), qPrintable(why));
+        QVERIFY2(!verified(&verifier, idToken, rotating, nonce, &why).isEmpty(), qPrintable(why));
     }
 
     /// Callbacks arriving together are bounded, with identity running on the edge.
@@ -1221,7 +1252,7 @@ private slots:
             QNetworkAccessManager network;
             JwksVerifier verifier{&network};
             QString why;
-            QVERIFY2(verifier.verify(token, against, nonce, &why).isEmpty(),
+            QVERIFY2(verified(&verifier, token, against, nonce, &why).isEmpty(),
                      qPrintable(QStringLiteral("a token with no %1 verified").arg(claim)));
             QVERIFY2(why.contains(reason),
                      qPrintable(QStringLiteral("refused with '%1', expected '%2'")

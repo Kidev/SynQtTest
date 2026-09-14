@@ -594,6 +594,33 @@ class BuildEntitySelectionTest(unittest.TestCase):
         self.assertIn("app", str(caught.exception))
         self.assertIn("edge", str(caught.exception))
 
+    def test_a_build_names_every_entity_whose_store_does_not_outlive_it(self):
+        """The document type's embedded default holds everything in memory.
+
+        It is the right default to start on and the wrong one to discover after a
+        deploy, so a build that produced such an entity says so. Only for one it
+        produced, and only while it is still on that provider: a notice that fires for
+        an entity this build did not make, or for one already moved to a real engine,
+        teaches the reader to skim past it.
+        """
+        from synqt import build as buildmod
+
+        memory_doc = {"name": "notes", "type": "document"}
+        named_memory = {"name": "drafts", "type": "document",
+                        "provider": {"name": "memory"}}
+        on_mongo = {"name": "records", "type": "document",
+                    "provider": {"name": "mongodb"}}
+        relational = {"name": "books", "type": "relational"}
+
+        notices = buildmod.volatile_store_notices([memory_doc, named_memory, on_mongo,
+                                                   relational])
+        self.assertEqual(len(notices), 2)
+        self.assertIn("'notes' keeps its documents in memory", notices[0])
+        self.assertIn("'drafts' keeps its documents in memory", notices[1])
+        for notice in notices:
+            self.assertIn("gone when the process stops", notice)
+        self.assertEqual(buildmod.volatile_store_notices([on_mongo, relational]), [])
+
     def test_a_failed_compile_is_an_error_and_never_a_summary_bullet(self):
         # The rule: `synqt build` must not report success for a build that did not happen.
         # It used to. A failing cmake was caught, turned into a note, appended to a "Built N

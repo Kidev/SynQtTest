@@ -34,19 +34,15 @@ class JwksVerifier : public QObject
 public:
     explicit JwksVerifier(QNetworkAccessManager *network, QObject *parent = nullptr);
 
-    /// The verified claims (sub, email, name, ...) on success, or an empty map with *error
-    /// set on any failure (bad signature, wrong issuer/audience, expired, nonce mismatch).
+    /// The verified claims (sub, email, name, ...), or an empty map with the error, once
+    /// the key set is on hand: at once when it is cached, after the fetch when it is not.
     ///
-    /// Waits for the key set when it has to be fetched. That is fine on an HTTP route and
-    /// never inside a connect point slot; a slot uses verifyAsync.
-    QVariantMap verify(const QString &idToken, const IdentityProviderConfig &provider,
-                       const QString &expectedNonce, QString *error);
-
-    /// The same verification, answered through `done` (the claims, or empty with the
-    /// error) once the key set is on hand: at once when it is cached, after the fetch when
-    /// it is not. Nothing waits. A slot on an entity may run this, because a slot that
-    /// blocks holds the entity's event loop and, worse, lets a link that drops meanwhile
-    /// tear down the very objects the slot is running on.
+    /// Answered through `done` rather than returned, and there is deliberately no form
+    /// that waits. The one caller is an entity's connect point slot, and a slot that waits
+    /// holds its entity's event loop: every caller that arrives meanwhile ends up under it
+    /// on the stack, answerable only when the slowest one below them is. A verifier that
+    /// offered a returning form would be a way back into that, so it does not offer one;
+    /// a test that wants to wait composes the wait itself.
     using VerifyCallback = std::function<void(const QVariantMap &claims, const QString &error)>;
     void verifyAsync(const QString &idToken, const IdentityProviderConfig &provider,
                      const QString &expectedNonce, VerifyCallback done);
