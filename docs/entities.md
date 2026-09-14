@@ -275,6 +275,14 @@ is how an upstream that wants an API key is reached without the key appearing in
 QML, since a header value written as `env:GITHUB_TOKEN` is read from the entity's
 environment and attached by the runtime.
 
+Outbound calls leave the host the way every other server runtime's do: through the
+proxy the entity's own environment names (`HTTPS_PROXY`, `HTTP_PROXY`, `ALL_PROXY`, with
+`NO_PROXY` for the hosts reached directly, and loopback always direct), and otherwise
+directly, never through the machine's user-level proxy settings. A proxy is spoken to in
+plaintext, so an `https://` proxy URL, which means the proxy itself is reached over TLS,
+is refused with a warning rather than downgraded: the credential such a URL usually
+carries would otherwise cross the network in the clear.
+
 `Api` is the inbound half: the entity's own singleton declares its routes on it, and
 each handler is ordinary JavaScript that can validate a body, reach several connect
 points, and shape an answer.

@@ -58,7 +58,17 @@ QNetworkProxy proxyFrom(const QString &value)
     if (url.scheme() == QLatin1String("socks5") || url.scheme() == QLatin1String("socks5h")) {
         type = QNetworkProxy::Socks5Proxy;
         defaultPort = 1080;
-    } else if (url.scheme() != QLatin1String("http") && url.scheme() != QLatin1String("https")) {
+    } else if (url.scheme() == QLatin1String("https")) {
+        // `https://` names a proxy that is itself reached over TLS, which is how every
+        // other runtime reads it and why a deployment puts a credential in that URL. Qt
+        // has no proxy type for it: HttpProxy sends the CONNECT, and the
+        // Proxy-Authorization with it, in the clear. Refused rather than downgraded, so
+        // the setting fails where it is written instead of leaking where it is used.
+        qWarning("SynQt: ignoring a proxy that is itself reached over TLS (https://): Qt "
+                 "speaks to a proxy in plaintext only, and the credential in the URL "
+                 "would go across in the clear");
+        return QNetworkProxy{QNetworkProxy::NoProxy};
+    } else if (url.scheme() != QLatin1String("http")) {
         qWarning("SynQt: ignoring a proxy with an unsupported scheme: %s", qPrintable(value));
         return QNetworkProxy{QNetworkProxy::NoProxy};
     }
