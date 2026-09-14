@@ -11,6 +11,7 @@
 #include <QMutex>
 #include <QObject>
 #include <QPointer>
+#include <QRemoteObjectReplica>
 #include <QString>
 
 QT_BEGIN_NAMESPACE
@@ -68,6 +69,15 @@ public:
     /// health view; it reads the file, so it is not for a hot path.
     qint64 spooledEvents() const;
 
+private slots:
+    /// The Replica's link came or went. QtRO does not take a Replica away when the link
+    /// under it drops: it marks it Suspect and drops every call made on it, with a
+    /// warning, until the link is back. Publishing to it in that state is publishing to
+    /// nobody, so a Replica that is not Valid is treated exactly as no Replica at all,
+    /// which is what makes the spool cover the outage rather than only the time before
+    /// the monitor was first reached.
+    void onReplicaStateChanged(QRemoteObjectReplica::State state);
+
 private:
     bool send(const QList<TraceEvent> &batch);
     void spool(const QList<TraceEvent> &batch);
@@ -90,7 +100,13 @@ private:
     /// Read on the writer thread and written on the entity's, so it is guarded. A raw
     /// QPointer read across threads is a race whatever the pointer is worth.
     mutable QMutex m_replicaMutex;
+    /// The Replica publish() hands batches to, or null while there is nothing that would
+    /// deliver them: no Replica yet, or one whose link is down. Written on the entity's
+    /// thread, read on the tracer's, hence the mutex.
     QPointer<QObject> m_replica;
+    /// The Replica the runtime last handed over, valid or not, so a link coming back on
+    /// the same object can be adopted again.
+    QPointer<QObject> m_attached;
     QString m_spoolPath;
     qint64 m_spoolCapBytes{0};
 

@@ -303,6 +303,14 @@ its own build directory and replayed when the monitor returns. Past the cap the 
 dropped, the newest kept, and the number dropped is published to the monitor when it comes
 back, so the gap is visible rather than silent.
 
+Unreachable covers both halves of an outage: a monitor that was never there when the
+entity started, and one that went away under a live link. The second is the ordinary
+one (a restart, a redeploy), and it is not the same event on the wire: the Replica the
+entity holds stays where it is and is marked suspect, and a call on it is dropped by
+QtRemoteObjects rather than refused. The entity reads that state as "no monitor" and
+spools from the moment the link drops, so the record has no hole between the outage and
+the reconnect.
+
 ## Testing what an entity says
 
 `Log.info("bid accepted", { amount: amount })` is a fact about how an entity behaves, so it
