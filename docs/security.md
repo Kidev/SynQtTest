@@ -434,7 +434,12 @@ read them.
   to four times `max_message_bytes` per connection, so tightening that one knob
   tightens both, and with the global connection cap the two bound the edge's total
   read memory. A drained buffer also returns its allocation instead of keeping it
-  for the life of the connection.
+  for the life of the connection. On an edge running `threads: N` the ceiling is
+  measured on the socket's thread rather than the device's: there the socket is
+  read by a thread that is never busy, and each message it takes off the wire is
+  posted to the thread hosting the caller's Sources, so the queue between the two
+  is the buffer. The channel counts what it has sent across and not yet been told
+  was read, and cuts the peer off at the same ceiling.
 - Stalled peers. The same concern the other way round. A tab that stops reading (a
   debugger paused on the page, a script that froze it, or a client written to do
   exactly this) fills its receive window and the kernel's send buffer, and from then

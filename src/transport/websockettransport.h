@@ -155,7 +155,10 @@ private:
     /// arrives straight from the socket on the unsplit one and as a queued signal from
     /// the channel on the split one, and there is nothing to tell apart after that.
     void deliver(const QByteArray &message);
-    void discardOnOverflow(qint64 incomingBytes);
+    void discardOnOverflow(qint64 pendingBytes, qint64 incomingBytes);
+    /// Tell the channel what the reader has taken, so the count it keeps of bytes in
+    /// flight between the threads comes down. Nothing on the unsplit form.
+    void acknowledgeRead();
     /// The peer was found stalled after a flush: mark the device, and put the connection
     /// down on the next turn, because this can run under a Source that is mid-emission and
     /// tearing the socket down here would deliver disconnected() into that stack.
@@ -192,6 +195,9 @@ private:
     /// first read of a message would otherwise copy the whole message to remove the part
     /// it had just consumed.
     qsizetype m_readOffset{0};
+    /// Bytes delivered by the channel and not yet reported back to it as read. Only the
+    /// split form keeps it; the unsplit one has nobody to report to.
+    qint64 m_unacknowledged{0};
     /// What has been written since the last flush, waiting to cross as one message. Only
     /// the split form uses it; the unsplit one hands each message straight to the socket.
     QByteArray m_writeBatch;

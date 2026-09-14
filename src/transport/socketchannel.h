@@ -54,6 +54,19 @@ public:
     void setWriteBufferLimit(qint64 bytes);
     void setWriteStallTimeout(int milliseconds);
 
+    /// The ceiling on bytes taken off the wire and not yet read on the device's side.
+    ///
+    /// On the split form the event queue between the two threads is a buffer nothing else
+    /// bounds: this thread reads the socket whenever the kernel has bytes, and the device's
+    /// own ceiling measures only what its reader has not taken, which is nothing while
+    /// QtRO drains every message the moment it lands. So what has crossed and not been
+    /// acknowledged is counted here, and a peer that fills it is cut off exactly as one
+    /// that fills the unsplit device's buffer would be. Set before the channel moves.
+    void setReadBufferLimit(qint64 bytes);
+
+    /// The device has read `bytes` of what was sent across. Same threading rule as send().
+    void acknowledgeRead(qint64 bytes);
+
     /// Close the connection with a WebSocket close code and reason. Same threading rule
     /// as send().
     void shutdown(QWebSocketProtocol::CloseCode closeCode, const QString &reason);
@@ -65,11 +78,19 @@ signals:
     /// The socket's backlog sat above the ceiling with nothing moving for longer than the
     /// stall timeout; it has been aborted, and `closed` follows.
     void writeBufferOverflowed(qint64 unsent);
+    /// More was taken off the wire than the device's side has read; the socket has been
+    /// aborted, the message that went over was never sent across, and `closed` follows.
+    void readBufferOverflowed(qint64 unread, qint64 incoming);
 
 private:
     bool isWriteStalled(qint64 unsent);
+    void forward(const QByteArray &message);
 
     QWebSocket *m_socket{nullptr};
+    qint64 m_readBufferLimit{0};
+    /// Bytes sent across to the device and not yet acknowledged as read.
+    qint64 m_unread{0};
+    bool m_readOverflowed{false};
     qint64 m_writeBufferLimit{0};
     int m_writeStallMs{0};
     /// When the backlog first went over the ceiling and stayed there, and how much the

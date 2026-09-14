@@ -21,7 +21,7 @@ SocketChannel::SocketChannel(QWebSocket *socket, QAbstractSocket *rawSocket, QOb
     }
     // Relayed rather than exposed: the device on the other thread never gets a pointer to
     // the socket, so there is no way for it to reach across by accident.
-    connect(socket, &QWebSocket::binaryMessageReceived, this, &SocketChannel::received);
+    connect(socket, &QWebSocket::binaryMessageReceived, this, &SocketChannel::forward);
     connect(socket, &QWebSocket::bytesWritten, this, &SocketChannel::bytesSent);
     // What the socket has actually handed the kernel, which is the only thing that
     // separates a peer draining slowly from one that has stopped reading.
@@ -35,6 +35,38 @@ SocketChannel::~SocketChannel() = default;
 QWebSocket *SocketChannel::socket() const
 {
     return m_socket;
+}
+
+void SocketChannel::setReadBufferLimit(qint64 bytes)
+{
+    m_readBufferLimit = bytes;
+}
+
+/// One message off the wire, on its way across. Counted before it goes, because the
+/// device's acknowledgement is the only thing that brings the count down and nothing
+/// else on this thread can tell whether the device's thread is reading at all.
+void SocketChannel::forward(const QByteArray &message)
+{
+    if (m_readOverflowed) {
+        return;
+    }
+    const qint64 incoming{message.size()};
+    if (m_readBufferLimit > 0 && (m_unread + incoming) > m_readBufferLimit) {
+        m_readOverflowed = true;
+        emit readBufferOverflowed(m_unread, incoming);
+        // Aborted, not closed: the peer is the one filling the queue, and a close frame
+        // would go out behind whatever it has already sent, which is what the abort is
+        // there to stop reading.
+        m_socket->abort();
+        return;
+    }
+    m_unread += incoming;
+    emit received(message);
+}
+
+void SocketChannel::acknowledgeRead(qint64 bytes)
+{
+    m_unread = qMax(qint64{0}, m_unread - bytes);
 }
 
 void SocketChannel::setWriteBufferLimit(qint64 bytes)
