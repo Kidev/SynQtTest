@@ -180,8 +180,12 @@ loopback TLS link for a QLocalServer and QLocalSocket pair, a filesystem object 
 Unix domain socket or a named pipe) that never touches the network. The operating
 system's filesystem permissions decide who may connect, and the framework
 restricts the socket to the user the entities run as and checks the peer's OS
-credentials (the connecting user id) through the socket descriptor where the
-platform provides them. Understand what that does not give you: the OS identifies
+credentials (the user id at the other end) through the socket descriptor where the
+platform provides them, on both ends of the link: the owner asks it of every
+process that connects, and the consumer asks it of whatever is listening at the
+socket's path, because that path lives in a directory every user of the machine
+can write and a process of another user that took the name first would otherwise
+be taken for the owner. Understand what that does not give you: the OS identifies
 the connecting user, not the connecting entity, so any process running as that
 user can connect and present itself as any entity. `Caller.entity` on a local link
 is therefore trusted by colocation, not authenticated. The framework treats it

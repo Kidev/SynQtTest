@@ -4,6 +4,7 @@
 #include "meshclient.h"
 
 #include "deletesoon.h"
+#include "localpeer.h"
 #include "socketoptions.h"
 
 #include <QLocalSocket>
@@ -107,6 +108,21 @@ void MeshClient::openLocal()
     m_localSocket = new QLocalSocket{this};
     QLocalSocket *socket{m_localSocket};
     connect(socket, &QLocalSocket::connected, this, [this, socket]() {
+        // The same question the owner asks of every consumer, asked of the owner. A
+        // local socket is a path, and a path in a shared directory is something any
+        // process on the machine can listen on first: without this a process of
+        // another user squatting the owner's socket name was taken for the owner, and
+        // this entity handed it every call and every session it forwards. The owner
+        // checked its side from the start; a check on one end of a link is half a
+        // check.
+        if (!localPeerRunsAsThisUser(socket)) {
+            emit errorOccurred(QStringLiteral("local mesh owner failed the OS credential "
+                                              "check"));
+            socket->disconnect(this);
+            socket->abort();
+            scheduleRetry();
+            return;
+        }
         m_backoffMs = ReconnectBaseMs;
         emit connected(socket);
     });
