@@ -8,6 +8,7 @@
 #include "identityconfig.h"
 
 #include <QObject>
+#include <QPointer>
 #include <QString>
 #include <QVariantMap>
 
@@ -50,9 +51,22 @@ public:
     /// `presentedBinding` is checked against what beginLogin stored, before the code is
     /// spent, and the record is consumed either way, so a callback is answerable exactly
     /// once across every edge consuming this point.
-    Q_INVOKABLE QVariantMap exchangeCode(const QString &state, const QString &code,
-                                         const QString &redirectUri,
-                                         const QString &presentedBinding = QString{});
+    /// The token step, answered later.
+    ///
+    /// This is reached from a connect point slot, and a slot may not wait. It used to:
+    /// the exchange drove the provider round trip in a nested event loop and returned
+    /// when it had an answer, which kept the entity serving but put every caller that
+    /// arrived meanwhile UNDER it on the stack, so none of them could be answered until
+    /// the slowest one below them was. Two people signing in at once is ordinary, and one
+    /// slow provider answer held every other sign-in on the entity behind it.
+    ///
+    /// So nothing waits. `answerTo` is the Source that asked, and it is answered through
+    /// its own `emitExchangeResult`, which reaches that one caller and nobody else; held
+    /// as a QPointer, so an edge whose link dropped meanwhile is simply not answered.
+    Q_INVOKABLE void exchangeCode(const QString &state, const QString &code,
+                                  const QString &redirectUri,
+                                  const QString &presentedBinding,
+                                  QObject *answerTo, const QString &requestId);
 
     /// Move the tokens from the temporary state key to the stable session id.
     Q_INVOKABLE void bindSession(const QString &state, const QString &sessionId);

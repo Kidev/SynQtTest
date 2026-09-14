@@ -376,6 +376,13 @@ and the two customizations either side of it.
   `identity.refresh.interval_seconds` (60 by default) it renews anything within
   `identity.refresh.margin_seconds` (120) of expiring. Widen the margin for a provider
   that issues short lived tokens; a non-positive interval turns the sweep off.
+- Tokens nobody claimed. A finished exchange holds what the provider issued under the
+  login's state key until a session is bound to it, which is normally the next thing
+  that happens. When the caller that started the login goes away in between, the
+  entity that holds the tokens lets go of them five minutes later rather than keeping
+  a live refresh token, and refreshing it, on behalf of somebody who was never signed
+  in. This sweep is always on, unlike the refresh one above: whether tokens are
+  renewed is a project's choice, and whether an unclaimed secret is let go of is not.
 - Expiry and revocation. A session expires at its TTL or can be revoked (logout, or
   an administrative action). A revoked or expired session fails the upgrade
   verifier, and the client retries with its backoff as it would against an edge

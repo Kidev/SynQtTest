@@ -4,6 +4,7 @@
 #include "stubidentityserver.h"
 
 #include <QCryptographicHash>
+#include <QFuture>
 #include <QHostAddress>
 #include <QHttpHeaders>
 #include <QHttpServer>
@@ -11,8 +12,10 @@
 #include <QHttpServerResponse>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QPromise>
 #include <QRandomGenerator>
 #include <QTcpServer>
+#include <QTimer>
 #include <QUrlQuery>
 
 #include <jwt-cpp/jwt.h>
@@ -22,6 +25,7 @@
 #include <openssl/pem.h>
 
 #include <chrono>
+#include <memory>
 #include <system_error>
 
 namespace SynQt {
@@ -175,6 +179,11 @@ std::string StubIdentityServer::signIdToken(const QString &nonce,
     return ec ? std::string{} : token;
 }
 
+void StubIdentityServer::setTokenDelayMs(int milliseconds)
+{
+    m_tokenDelayMs = milliseconds;
+}
+
 void StubIdentityServer::setRefreshOmitsExpiry(bool omits)
 {
     m_refreshOmitsExpiry = omits;
@@ -192,8 +201,24 @@ bool StubIdentityServer::start(quint16 port)
     m_server->route(QStringLiteral("/authorize"), [this](const QHttpServerRequest &request) {
         return handleAuthorize(request);
     });
-    m_server->route(QStringLiteral("/token"), [this](const QHttpServerRequest &request) {
-        return handleToken(request);
+    m_server->route(QStringLiteral("/token"),
+                    [this](const QHttpServerRequest &request) -> QFuture<QHttpServerResponse> {
+        // Computed now, delivered after the delay: the answer is what it always was, and
+        // only its timing is the stub's to play with.
+        auto promise{std::make_shared<QPromise<QHttpServerResponse>>()};
+        QFuture<QHttpServerResponse> future{promise->future()};
+        promise->start();
+        auto answer{std::make_shared<QHttpServerResponse>(handleToken(request))};
+        const auto deliver{[promise, answer]() {
+            promise->addResult(std::move(*answer));
+            promise->finish();
+        }};
+        if (m_tokenDelayMs <= 0) {
+            deliver();
+        } else {
+            QTimer::singleShot(m_tokenDelayMs, this, deliver);
+        }
+        return future;
     });
     m_server->route(QStringLiteral("/userinfo"), [this](const QHttpServerRequest &request) {
         return handleUserinfo(request);

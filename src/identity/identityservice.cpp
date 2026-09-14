@@ -53,16 +53,30 @@ QVariantMap IdentityService::beginLogin(const QString &provider, const QString &
         {QStringLiteral("error"), result.error}};
 }
 
-QVariantMap IdentityService::exchangeCode(const QString &state, const QString &code,
-                                          const QString &redirectUri,
-                                          const QString &presentedBinding)
+void IdentityService::exchangeCode(const QString &state, const QString &code,
+                                   const QString &redirectUri,
+                                   const QString &presentedBinding,
+                                   QObject *answerTo, const QString &requestId)
 {
-    const OAuthBackend::ExchangeResult result{
-        m_backend->exchange(state, code, redirectUri, presentedBinding)};
-    return QVariantMap{
-        {QStringLiteral("identityJson"), identityToJson(result.identity)},
-        {QStringLiteral("context"), result.context},
-        {QStringLiteral("error"), result.error}};
+    const QPointer<QObject> source{answerTo};
+    m_backend->exchangeAsync(state, code, redirectUri, presentedBinding,
+                             [source, requestId](const OAuthBackend::ExchangeResult &result) {
+        if (source.isNull()) {
+            // The edge that asked is gone: its link dropped while the provider was being
+            // waited on. There is nobody to answer, and the tokens this exchange stored
+            // are reclaimed by the sweep that reclaims every login no session was ever
+            // bound to (OAuthBackend::releaseUnclaimedTokens).
+            return;
+        }
+        // By name, and on the Source that asked rather than on this shared engine: one
+        // auth entity answers every edge, and an answer broadcast from here would hand
+        // each of them somebody else's identity.
+        QMetaObject::invokeMethod(source, "emitExchangeResult", Qt::DirectConnection,
+                                  Q_ARG(QString, requestId),
+                                  Q_ARG(QString, identityToJson(result.identity)),
+                                  Q_ARG(QString, result.context),
+                                  Q_ARG(QString, result.error));
+    });
 }
 
 void IdentityService::bindSession(const QString &state, const QString &sessionId)

@@ -87,6 +87,14 @@ public:
     /// exchange answer is what a test needs in order to get a first sweep at all.
     void setRefreshOmitsExpiry(bool omits);
 
+    /// Answer the token exchange this much later than it is ready.
+    ///
+    /// A real provider takes a round trip, and what an entity does while it waits is the
+    /// thing worth being able to see: a slot that blocks on the exchange holds its
+    /// entity's event loop, and only a provider that is slow on purpose can show whether
+    /// the entity kept serving in the meantime. The answer itself is unchanged.
+    void setTokenDelayMs(int milliseconds);
+
     bool start(quint16 port = 0);
     quint16 port() const;
     QString baseUrl() const;                  // http://127.0.0.1:<port>
@@ -131,6 +139,8 @@ private:
     QSet<QString> m_omittedClaims;
     /// Whether a refresh answer names a lifetime (setRefreshOmitsExpiry).
     bool m_refreshOmitsExpiry{false};
+    /// How long /token sits on a ready answer (setTokenDelayMs).
+    int m_tokenDelayMs{0};
     QString m_jwkModulus;  ///< base64url
     QString m_jwkExponent; ///< base64url
 };

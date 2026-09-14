@@ -273,9 +273,16 @@ class SourceQmlBridges(unittest.TestCase):
         # the memory of whichever process happened to answer first.
         self.assertIn("IdentityEngine.beginLogin(provider, redirectUri, binding, context)",
                       identity)
-        self.assertIn("IdentityEngine.exchangeCode(state, code, redirectUri, presentedBinding)",
+        # Handed the Source and the request id rather than returning a result: the engine
+        # answers when the provider does, and it answers the one edge that asked.
+        self.assertIn("IdentityEngine.exchangeCode(state, code, redirectUri, presentedBinding,\n"
+                      "                                    root, requestId)",
                       identity)
-        self.assertIn("result.context", identity)
+        # The desktop `context` is no longer named here. The engine answers this Source
+        # directly, with the identity, the context and the error together, so a bridge
+        # cannot carry two of the three; what is held here is that it delegates rather
+        # than emitting a result of its own, which is what made it wait.
+        self.assertNotIn("root.emitExchangeResult", identity)
         session = authentity.render_source_qml("SessionStore")
         self.assertIn("SessionStore {", session)
         self.assertIn("Sessions.applyUpsert(token, scope, identityJson, createdMs)",
