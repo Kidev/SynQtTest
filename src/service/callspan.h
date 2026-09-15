@@ -31,13 +31,21 @@ namespace SynQt {
 /// member that genuinely needs them says so in its contract (see `capture`).
 ///
 /// Nothing is minted while tracing is off. The constructor reads one atomic, and if the
-/// answer is no it does nothing else. When the call will be recorded, or when it continues
-/// a trace that arrived with the caller, the span is opened here and now and made the
-/// current one for as long as the slot runs (TraceScope): a call the slot makes on
+/// answer is no it does nothing else. Otherwise the span is opened here and now and made
+/// the current one for as long as the slot runs (TraceScope): a call the slot makes on
 /// another entity carries it, a record written meanwhile joins it, and a promise the slot
-/// creates keeps it for its continuation. That is what makes a click one trace rather
-/// than one root per entity. A call that is only ever going to be recorded if it is
-/// refused mints nothing until the destructor knows.
+/// creates keeps it for its continuation. That is what makes a click one trace rather than
+/// one root per entity, and it is why the span is opened for a call that may well turn out
+/// not to be recorded: everything that hangs off it happens while the call is still
+/// running, which is before anyone can know how it ends.
+///
+/// One invariant holds this together, and it is worth stating because nothing enforces it:
+/// **a slot must not spin a nested event loop.** The span it opened is the thread's for as
+/// long as it runs, so work resumed inside such a loop is another caller's call recorded
+/// under this one's trace. Today nothing does (the identity waits are reached from a route
+/// handler or a timer, never from a slot, which is what
+/// `OAuthBackend::exchangeAsync` exists for); a slot that starts to would merge two
+/// people's stories into one, and the console would show them as one click.
 class CallSpan
 {
 public:
