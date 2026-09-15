@@ -305,3 +305,39 @@ def test_a_line_to_or_from_a_monitor_is_refused_before_it_is_made():
     # Every other pair is untouched: this refuses one entity type, not drawing in general.
     assert _refusal(web, db) == ""
     assert _refusal(db, web) == ""
+
+
+def _offered(entities, kept):
+    """`endsToOffer` as the browser runs it: the names a panel may put in a list."""
+    return _node(f"""
+        import {{ endsToOffer }} from {_module('canvas.js')};
+        process.stdout.write(JSON.stringify(
+            endsToOffer({json.dumps(entities)}, {json.dumps(kept)})));
+    """)
+
+
+def test_a_monitor_already_at_one_end_of_a_point_is_still_offered_there():
+    """Refusing to draw a line is not licence to drop one the project arrived with.
+
+    `synqt check` allows a monitor to OWN a declared connect point; what it refuses is a
+    monitor consuming one, and `test_the_console_client_may` is a project that does the
+    first. Opening it in the editor listed every entity but the monitor, so the point it
+    owns showed no owner at all, and one touch of the control rewrote the project to say
+    something its author never did. The same is true of the consumer a finding has just
+    told somebody to take off: a list that omits it reports an error and offers no way to
+    fix it, and rewrites it away as a side effect of an unrelated tick.
+    """
+    ops = {"name": "ops", "type": "monitor"}
+    web = {"name": "web", "type": "web_edge"}
+    console = {"name": "ops-console", "type": "client"}
+    entities = [ops, web, console]
+
+    # Nobody there yet: a monitor is not offered as either end of a new line.
+    assert _offered(entities, []) == ["web", "ops-console"]
+    # Already the owner: kept, so the project opens saying what it says.
+    assert _offered(entities, "ops") == ["ops", "web", "ops-console"]
+    # Already a consumer (which is an error the findings report): kept, so it can be taken
+    # off deliberately rather than lost on the next unrelated click.
+    assert _offered(entities, ["ops"]) == ["ops", "web", "ops-console"]
+    # An entity that is not there is not conjured by asking for it.
+    assert _offered(entities, "nobody") == ["web", "ops-console"]
