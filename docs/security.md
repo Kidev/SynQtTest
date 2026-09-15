@@ -393,7 +393,12 @@ read them.
   HTTP connections before it opens its one sync link; a socket ceiling set equal to the
   link ceiling would refuse real browsers long before it refused an attacker. Eight is
   that headroom, it is derived rather than configured because there is no way for a
-  project to pick it usefully, and releasing a socket readmits the next caller.
+  project to pick it usefully, and releasing a socket readmits the next caller. The
+  per-address half is counted only against a peer `public.trusted_proxies` does not
+  name: behind a balancer every socket is the balancer's, and a per-address ceiling on
+  it would be a ceiling on the whole site that one visitor could reach alone. The global
+  half still holds there, and the link cap above still counts the visitor the forwarding
+  header names.
 
     The edge counts these itself although Qt 6.12 offers the same two ceilings
     (`QHttpServerConfiguration::setMaximumConnections` and
