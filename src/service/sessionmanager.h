@@ -104,6 +104,21 @@ public:
     const SessionRecord *lookup(const QByteArray &id) const;
     bool isLive(const QByteArray &id) const;
 
+    /// Whether a rotation leaves a hand-off behind for the browser still holding the id
+    /// it replaced (see rotationOf).
+    ///
+    /// The hand-off exists for an elevation made where the browser's cookie cannot be
+    /// reached: a slot (`Caller.setScope`) runs on a live socket and sets no header, so the
+    /// next page load is what hands the visitor their new credential. A route that answers
+    /// with the new cookie itself has no such gap, and a hand-off left behind there is only
+    /// ever redeemed by somebody else holding the old id: the pre-sign-in credential a
+    /// planted cookie named, exchanged for the elevated session ten minutes after the
+    /// visitor signed in. That is the fixation rotating on elevation exists to close.
+    enum class Handoff {
+        Keep,  ///< the caller cannot set the cookie; the old id may still name its successor
+        None,  ///< the caller's response carries the cookie; the old id is dead outright
+    };
+
     /// Elevate a session after login and rotate its credential (defeats fixation).
     /// Returns the new id; an empty return means the old id was unknown.
     ///
@@ -112,7 +127,8 @@ public:
     /// that member to the new credential. The implementation copies it first for exactly
     /// that reason.
     QByteArray setScope(const QByteArray &wasId, const QString &scope,
-                        const QVariantMap &identity = QVariantMap());
+                        const QVariantMap &identity = QVariantMap(),
+                        Handoff handoff = Handoff::Keep);
 
     /// The id a rotated-away credential became, while that is still worth knowing.
     ///

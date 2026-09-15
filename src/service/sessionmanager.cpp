@@ -201,7 +201,7 @@ bool SessionManager::isLive(const QByteArray &id) const
 }
 
 QByteArray SessionManager::setScope(const QByteArray &wasId, const QString &scope,
-                                    const QVariantMap &identity)
+                                    const QVariantMap &identity, Handoff handoff)
 {
     // Copied before anything is emitted, and the whole function reads the copy.
     //
@@ -229,33 +229,45 @@ QByteArray SessionManager::setScope(const QByteArray &wasId, const QString &scop
         record.identity = identity;
     }
     record.createdMs = QDateTime::currentMSecsSinceEpoch();
-    // The browser is still holding the id this one replaced, in a cookie nothing on the
-    // live connection can rewrite. Remember what it became, so the next page load hands
-    // the visitor their new credential instead of a fresh anonymous session, and remember
-    // it on the record too so that reclaiming the record reclaims the hand-off with it.
-    record.rotatedFrom = previous;
+    const bool handOff{handoff == Handoff::Keep};
+    if (handOff) {
+        // The browser is still holding the id this one replaced, in a cookie nothing on
+        // the live connection can rewrite. Remember what it became, so the next page load
+        // hands the visitor their new credential instead of a fresh anonymous session, and
+        // remember it on the record too so that reclaiming the record reclaims the
+        // hand-off with it.
+        record.rotatedFrom = previous;
+    }
     m_sessions.insert(record.id, record);
     trackExpiry(record);
-    m_rotations.insert(previous, Rotation{record.id, record.createdMs});
-    // Elevating twice before the visitor's next page load used to sign them out. Their
-    // cookie still holds the credential the FIRST rotation replaced, and that hand-off
-    // pointed at the id the second rotation has just erased; `rotationOf` refuses a
-    // hand-off whose target is gone, so the browser was handed a fresh anonymous session
-    // instead of the elevated one it had earned. A slot that raises scope and then raises
-    // it again (signing somebody in and then granting them a role) is an ordinary
-    // thing to write, so the chain is followed rather than broken.
-    //
-    // The window keeps the clock it started on. A hand-off is for the visitor's next page
-    // load, and refreshing `atMs` here would let a session that rotates every few minutes
-    // keep one alive indefinitely.
-    if (const auto head{m_rotations.find(chained)}; head != m_rotations.end()) {
-        head->to = record.id;
+    if (handOff) {
+        m_rotations.insert(previous, Rotation{record.id, record.createdMs});
+        // Elevating twice before the visitor's next page load used to sign them out. Their
+        // cookie still holds the credential the FIRST rotation replaced, and that hand-off
+        // pointed at the id the second rotation has just erased; `rotationOf` refuses a
+        // hand-off whose target is gone, so the browser was handed a fresh anonymous
+        // session instead of the elevated one it had earned. A slot that raises scope and
+        // then raises it again (signing somebody in and then granting them a role) is an
+        // ordinary thing to write, so the chain is followed rather than broken.
+        //
+        // The window keeps the clock it started on. A hand-off is for the visitor's next
+        // page load, and refreshing `atMs` here would let a session that rotates every few
+        // minutes keep one alive indefinitely.
+        if (const auto head{m_rotations.find(chained)}; head != m_rotations.end()) {
+            head->to = record.id;
+        }
     }
+    // With no hand-off, a chain that led to the old id leads nowhere: its head still names
+    // an id that is gone, `rotationOf` refuses a hand-off whose target is not live, and the
+    // sweep drops it. That is the point: the response that asked for this carries the
+    // cookie, and no earlier credential may still buy the session it became.
     emitUpsert(record);
     // First, so that everything still naming the old credential is holding the new one
     // before anybody acts on the removal below.
     emit sessionRotated(previous, record.id);
-    emit rotationRecorded(QString::fromLatin1(previous), QString::fromLatin1(record.id));
+    if (handOff) {
+        emit rotationRecorded(QString::fromLatin1(previous), QString::fromLatin1(record.id));
+    }
     emit sessionRemoved(QString::fromLatin1(previous));
     if (m_remote) {
         // In this order, because the other replicas apply them in it: the new session
@@ -267,9 +279,11 @@ QByteArray SessionManager::setScope(const QByteArray &wasId, const QString &scop
                                   Q_ARG(QString, record.scope),
                                   Q_ARG(QString, identityToJson(record.identity)),
                                   Q_ARG(double, static_cast<double>(record.createdMs)));
-        QMetaObject::invokeMethod(m_remote, "rotateSession",
-                                  Q_ARG(QString, QString::fromLatin1(previous)),
-                                  Q_ARG(QString, QString::fromLatin1(record.id)));
+        if (handOff) {
+            QMetaObject::invokeMethod(m_remote, "rotateSession",
+                                      Q_ARG(QString, QString::fromLatin1(previous)),
+                                      Q_ARG(QString, QString::fromLatin1(record.id)));
+        }
         QMetaObject::invokeMethod(m_remote, "removeSession",
                                   Q_ARG(QString, QString::fromLatin1(previous)));
     }

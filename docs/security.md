@@ -116,6 +116,17 @@ meets the scope of is withdrawn, so a demotion stops every push on it rather tha
 the next call. `tests/m7-caller` raises and lowers a scope under one live connection to
 hold it to both.
 
+The rotation leaves one thing behind, and only where it has to. A slot can set no
+cookie, so the browser goes on holding the credential the elevation replaced; for ten
+minutes the edge remembers what that id became and hands the visitor their new cookie on
+the next page load, rather than a fresh anonymous session. A route whose own response
+carries the new cookie (the monitor's password gate) leaves no such hand-off: the browser
+that signed in already holds the credential, and the only thing a hand-off could still do
+there is redeem the pre-sign-in id, in somebody else's hands, for the session it became.
+That is session fixation, which rotating on elevation exists to close, so the old id is
+dead outright. `tests/m5-webedge` presents it again after a sign-in and requires that it
+buys nothing.
+
 Rejecting at upgrade, before a socket and before any QtRO state, keeps
 unauthenticated load off the object plane and closes the window where an attacker
 opens many sockets that consume resources before being rejected.
