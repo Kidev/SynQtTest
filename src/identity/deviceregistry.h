@@ -9,6 +9,7 @@
 #include <QByteArray>
 #include <QObject>
 #include <QString>
+#include <QStringList>
 #include <QVariantMap>
 
 #include <memory>
@@ -103,14 +104,22 @@ public:
     ///
     /// Nothing authorizes off this: it is a back-reference, and the authority for what a
     /// credential can do is the family row itself.
+    ///
+    /// What the row holds is the session's key (SessionManager::keyFor), never the id. The
+    /// id is the credential, and this table is on a disk or in a shared database, where a
+    /// copy of it would be a copy of every live session it named. The three calls that
+    /// take an id derive the key themselves; what comes back out of the table is keys.
     void bindSession(const QByteArray &sessionId, const QString &family);
     QString familyOf(const QByteArray &sessionId) const;
     void unbindSession(const QByteArray &sessionId);
+    /// The same, for a key read out of the table rather than an id held in memory.
+    void unbindSessionKey(const QString &sessionKey);
 
-    /// Every session minted from one family. What reuse detection revokes: two copies of a
-    /// credential are in play and there is no telling which holder is the visitor, so
-    /// everything the family opened goes, wherever it was opened from.
-    QList<QByteArray> sessionsOfFamily(const QString &family) const;
+    /// Every session minted from one family, as session keys. What reuse detection
+    /// revokes: two copies of a credential are in play and there is no telling which
+    /// holder is the visitor, so everything the family opened goes, wherever it was
+    /// opened from (SessionManager::revokeByKey).
+    QStringList sessionsOfFamily(const QString &family) const;
 
     /// Delete every family belonging to a visitor. This is what signing out means for
     /// somebody who signed in on more than one machine.

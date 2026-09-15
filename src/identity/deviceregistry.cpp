@@ -7,6 +7,7 @@
 #include "ipersistenceprovider.h"
 #include "persistencefactory.h"
 #include "secrets.h"
+#include "sessionmanager.h"
 
 #include <QCryptographicHash>
 #include <QDateTime>
@@ -319,7 +320,12 @@ void DeviceRegistry::bindSession(const QByteArray &sessionId, const QString &fam
     }
     // Delete then insert rather than an upsert: the two engines behind this interface
     // spell an upsert differently, and this table is small and written once per sign-in.
-    const QString token{QString::fromLatin1(sessionId)};
+    //
+    // The key, never the id. This table is the one thing on the edge that outlives the
+    // process, and it is a file or a shared database: written with the id, a backup of it
+    // was a holder of every live session it named. The key is what names a session
+    // everywhere else in the system (SessionManager::keyFor), and it buys nobody a session.
+    const QString token{SessionManager::keyFor(sessionId)};
     m_store->exec(QStringLiteral("DELETE FROM synqt_session_family WHERE session_id = ?"),
                   {token});
     m_store->exec(QStringLiteral("INSERT INTO synqt_session_family "
@@ -334,7 +340,7 @@ QString DeviceRegistry::familyOf(const QByteArray &sessionId) const
     }
     const DbResult found{m_store->query(
         QStringLiteral("SELECT family FROM synqt_session_family WHERE session_id = ?"),
-        {QString::fromLatin1(sessionId)})};
+        {SessionManager::keyFor(sessionId)})};
     if (!found.ok || found.rows.isEmpty()) {
         return QString{};
     }
@@ -343,16 +349,24 @@ QString DeviceRegistry::familyOf(const QByteArray &sessionId) const
 
 void DeviceRegistry::unbindSession(const QByteArray &sessionId)
 {
-    if (!isOpen() || sessionId.isEmpty()) {
+    if (sessionId.isEmpty()) {
+        return;
+    }
+    unbindSessionKey(SessionManager::keyFor(sessionId));
+}
+
+void DeviceRegistry::unbindSessionKey(const QString &sessionKey)
+{
+    if (!isOpen() || sessionKey.isEmpty()) {
         return;
     }
     m_store->exec(QStringLiteral("DELETE FROM synqt_session_family WHERE session_id = ?"),
-                  {QString::fromLatin1(sessionId)});
+                  {sessionKey});
 }
 
-QList<QByteArray> DeviceRegistry::sessionsOfFamily(const QString &family) const
+QStringList DeviceRegistry::sessionsOfFamily(const QString &family) const
 {
-    QList<QByteArray> sessions;
+    QStringList sessions;
     if (!isOpen() || family.isEmpty()) {
         return sessions;
     }
@@ -364,8 +378,7 @@ QList<QByteArray> DeviceRegistry::sessionsOfFamily(const QString &family) const
     }
     sessions.reserve(found.rows.size());
     for (const QVariant &row : found.rows) {
-        sessions.append(
-            row.toMap().value(QStringLiteral("session_id")).toString().toLatin1());
+        sessions.append(row.toMap().value(QStringLiteral("session_id")).toString());
     }
     return sessions;
 }

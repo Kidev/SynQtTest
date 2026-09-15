@@ -162,7 +162,9 @@ Three properties follow:
 
 Signing out deletes the credential on both sides, and the edge reads which one to
 delete from what it recorded when it minted that session, not from anything the client
-sends.
+sends. What it recorded is the session's key, the same handle a downstream entity is
+given, and never the session id: the device table is the one thing on the edge that
+outlives the process, and a copy of it must not be a copy of every live session it names.
 
 **A credential buys a session, not a connection.** The client spends it once per session
 it gets accepted, and no more: if the session it bought cannot get a socket accepted, it

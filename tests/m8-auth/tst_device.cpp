@@ -502,6 +502,40 @@ private slots:
         }
     }
 
+    // The store holds the session's key, never the session id. The device table is the one
+    // thing on the edge that outlives the process, and it is a file (or a shared database):
+    // a backup of it, or a reader of it, must not be a holder of every live session it
+    // names. So what is written beside the family is the same handle a downstream entity
+    // gets (SessionManager::keyFor), which names the session and buys nobody a session.
+    void theStoreHoldsTheSessionKeyAndNeverTheCredential()
+    {
+        const Held held{signIn(QStringLiteral("user"))};
+        QVERIFY(held.hasCredential());
+        QVERIFY(m_edge->sessionManager()->isLive(held.session.toUtf8()));
+        // The edge still finds the family from the credential it holds in memory...
+        QCOMPARE(m_edge->identityProvider()->devices()->familyOf(held.session.toUtf8()),
+                 held.deviceId);
+
+        // ...and nothing on the disk is that credential.
+        const QString connection{QStringLiteral("device-test-read")};
+        QStringList stored;
+        {
+            QSqlDatabase db{QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection)};
+            db.setDatabaseName(storeFile());
+            QVERIFY(db.open());
+            QSqlQuery select{db};
+            QVERIFY(select.exec(QStringLiteral("SELECT session_id FROM synqt_session_family")));
+            while (select.next()) {
+                stored.append(select.value(0).toString());
+            }
+        }
+        QSqlDatabase::removeDatabase(connection);
+        QVERIFY(!stored.isEmpty());
+        QVERIFY2(!stored.contains(held.session),
+                 "the live session credential was written to the device store");
+        QVERIFY(stored.contains(SessionManager::keyFor(held.session.toUtf8())));
+    }
+
     // Rebinding is a replace and not a second row: a session id is rotated on elevation,
     // and the rotated id naming the same family must not leave the old one naming it too.
     void rebindingASessionReplacesTheFamily()
