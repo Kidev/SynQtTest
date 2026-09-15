@@ -247,6 +247,11 @@ members as well. With the default hierarchical scopes a higher scope satisfies a
 which is why admin reaches everything; with `scopes.hierarchical: false` a caller holds
 exactly one scope, and a member reachable by two names them both, `<admin,auditor>`.
 
+The point above is the edge's, which is where the hierarchy lives. The same gate on a point
+a service owns is an exact match on the name the forwarded session holds, so name every
+scope it is meant for: a service is not handed the vocabulary by its caller. See
+[scope down the chain](runtime-api.md#scope-down-the-chain).
+
 **The gate is on what crosses, not on what is declared.** The member is still part of the
 contract, so a consumer's `Server.storefront` has an `auditLog` model either way. What
 changes is that for a caller without the scope it is never seeded, never followed, and
@@ -514,7 +519,9 @@ a connect point a service consumes carries the session the caller is acting for,
 `Caller.identity` and `Caller.hasScope(...)` still mean something on an entity the browser
 can never reach. `Caller.isEntity` stays true, because the caller is still that entity;
 what it gained is a person behind it, asserted by the entity its certificate identified.
-The rules, the limits and what exactly travels are in
+`hasScope` there is an exact match on the name the session holds, because the hierarchy is
+configured for the edge and a service is not told a vocabulary by a caller. The rules, the
+limits and what exactly travels are in
 [the session down the chain](runtime-api.md#the-session-down-the-chain).
 
 `Client` remains available on web edge connect points as a convenience alias for

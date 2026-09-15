@@ -421,7 +421,7 @@ ambient global.
 | `Caller.session` | `hasSession` | object | the session: `key`, `scope`, `identity`. The same three fields on the edge that authenticated it and down the chain. |
 | `Caller.identity` | `hasSession` | object \| null | the caller's normalized identity (same fields as [`Session.identity`](#client-session)), or `null` if anonymous. |
 | `Caller.scope` | `hasSession` | string | the one scope name the caller's session holds. |
-| `Caller.hasScope(name)` | `hasSession` | bool | whether the caller holds `name` (hierarchical where configured). |
+| `Caller.hasScope(name)` | `hasSession` | bool | whether the caller holds `name`. Hierarchical on the web edge, which is where the vocabulary is; an exact match on a service (see [scope down the chain](#scope-down-the-chain)). |
 | `Caller.setScope(scope)` | `isUser` | action | set the session's scope. Used by the identity flow after login; rotates the session id on privilege change. The live connection carries on with the new id, and the browser is handed it on its next page load, so a refresh keeps the raised scope rather than starting over. |
 | `Caller.emit<Signal>(...)` | `isUser` | action | emit a contract signal back to **this one caller** (see [targeting](#emitting-a-signal-to-one-caller-versus-all)). |
 | `Caller.id` | `isUser` | string | the session key (also `Client.id`): a name derived from the credential, the same as `Caller.session.key`, and never the credential itself. It changes when `setScope` rotates the session. Use it to mark what a session owns; it buys nobody a session. |
@@ -494,6 +494,36 @@ session.
     wire at all, and a user's `Caller` ignores one if it somehow arrives: a session reaches
     the edge as a credential the edge looks up, and nothing inside a call can change who
     that is.
+
+#### Scope down the chain
+
+The scope travels with the session, and what it means does not. `scopes.order` is
+configured for the edge, which is the entity that authenticates people and the only one
+that raises anybody, so a hierarchy is something the edge knows and a service does not.
+On a service, `Caller.hasScope("user")` and a `<user>` member gate are an exact match on
+the one name the session holds, and `Caller.hasScope("user")` is therefore false for a
+moderator. Nothing is silently permitted either way: an unknown name is a refusal.
+
+That is the boundary working, not a gap in it. Authorizing the person is the edge's job,
+because the edge is the entity that knows who they are; a service authorizes the calling
+entity, by its certificate, and reads the session to know who the work is for. Where a
+service really does need to act differently per tier, the edge decides and says so in the
+call:
+
+```qml
+// web/edge/Edge.qml: the edge holds the vocabulary, so it does the reasoning
+function publish(item) {
+    if (Caller.hasScope("admin")) {        // hierarchical here: an admin is also a user
+        Store.publishImmediately(item)
+    } else {
+        Store.queueForReview(item)
+    }
+}
+```
+
+Two members rather than one flag, because the two calls are two different pieces of work
+and the service authorizes each of them on its own terms. A service that wants a tier of
+its own puts it in its own configuration; nothing it is told over a link is a vocabulary.
 
 Two limits apply. `Caller.setScope` is the edge's alone: a downstream service
 cannot elevate a session it did not authenticate. And a downstream entity answers each

@@ -320,6 +320,18 @@ make that safe to build on:
   not the id. A downstream entity can correlate and can key its own state on it, and
   cannot replay it at the edge. `Caller.setScope` stays the edge's alone, since only the
   entity that authenticated a session may elevate it.
+- **The scope travels; the vocabulary does not.** `scopes.order` is the edge's, so a
+  `<user>` gate on a service is an exact match on the name the session holds rather than a
+  hierarchy (see [scope down the chain](runtime-api.md#scope-down-the-chain)). Deciding
+  what a tier may do belongs to the entity that knows who the person is.
+
+The [trace identifiers](monitoring.md#how-one-click-becomes-one-trace) ride in the same map
+and are governed by the same two rules, because they are repeated by every entity further
+down the chain and written into the monitoring history. A browser's `Caller` discards them
+exactly as it discards a claimed session, so a trace begins at the edge; between entities
+they are read only in the shape the tracer mints, so a peer cannot choose the length or the
+content of a value that travels under this entity's name. Nothing is authorized by one: a
+trace identifier says which story a call belongs to and never who may make it.
 
 ## Data minimization in the contract
 
