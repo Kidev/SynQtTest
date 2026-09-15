@@ -46,6 +46,21 @@ qint64 minutesAgo(int minutes)
 
 } // namespace
 
+/// A stand-in for the SessionStore Replica an edge cache writes through. SessionManager
+/// calls removeSession(QString) on whatever attachRemote was given, by name, so this
+/// records the id it is handed. It carries no signals of its own; attachRemote's connects
+/// to a plain QObject fail with a warning and leave m_remote set, which is all this needs.
+class RemoteRecorder : public QObject
+{
+    Q_OBJECT
+
+public:
+    QString lastRemoved;
+
+public slots:
+    void removeSession(const QString &token) { lastRemoved = token; }
+};
+
 class TestSessions : public QObject
 {
     Q_OBJECT
@@ -362,6 +377,79 @@ private slots:
         QCOMPARE(removals.count(), 1);
         sessions.revoke(QByteArrayLiteral("never-issued"));
         QCOMPARE(removals.count(), 1);
+    }
+
+    // Revoking by key is the one caller that hands revoke() a reference to the credential
+    // the table itself is holding: revokeByKey walks the map and calls revoke(it.key()).
+    // revoke() erased that entry and then went on reading what it was handed -- the name it
+    // emits, the handle it traces, and the id it hands the authoritative store to drop --
+    // out of a QByteArray whose heap block QHash::erase had already freed.
+    //
+    // A review proved the read is of freed memory: with `__asan_address_is_poisoned` the id's
+    // data block reads poisoned immediately after the erase, while revoke() still reads it.
+    // It has never been caught automatically, for two reasons this test cannot change: the
+    // read is inside precompiled Qt (fromLatin1, keyFor), which AddressSanitizer does not
+    // instrument, so the sanitizer pass stays silent; and the freed block is not reliably
+    // reclaimed in the window before the read, so the bytes come back intact and no
+    // observable value is ever wrong. It is undefined behaviour that has stayed benign, one
+    // refactor or one allocator away from dropping the wrong session on every peer.
+    //
+    // So this is a contract guard, not a red: it fixes the shape (the id copied before the
+    // erase, so nothing reads the freed block) and asserts revoke-by-key names exactly the
+    // session it removed. The proof of the free-then-read is the poison probe above, kept
+    // in the commit message. Reached in production from IdentityProvider::onReuseDetected,
+    // the response to a stolen device credential being replayed.
+    void revokingByKeyEndsExactlyTheSessionItNamed()
+    {
+        // No TTL (`identity.session.ttl_minutes: 0`, sessions end by revocation alone) is the
+        // configuration where the table holds the only reference to the credential, so the
+        // erase frees the block rather than leaving the expiry queue holding a copy of it.
+        SessionManager sessions{QStringLiteral("anonymous"), 0};
+
+        // A stand-in for the SessionStore Replica an edge cache writes through: revoke()
+        // calls removeSession(QString) on it by name, and this records the id. That id is
+        // read after the erase, so it is the one the copy has to keep correct.
+        RemoteRecorder store;
+        sessions.attachRemote(&store);
+
+        QList<QByteArray> issued;
+        QStringList keys;
+        for (int index{0}; index < 8; ++index) {
+            const QByteArray minted{sessions.createSession()};
+            issued.append(QByteArray{minted.constData(), minted.size()});  // a deep copy
+            keys.append(SessionManager::keyFor(minted));
+        }
+        const QByteArray target{issued.at(3)};
+
+        QSignalSpy removals{&sessions, &SessionManager::sessionRemoved};
+        sessions.revokeByKey(keys.at(3));
+
+        // The session it named is gone, and no other survivor was touched.
+        QVERIFY(!sessions.isLive(target));
+        for (const QByteArray &other : std::as_const(issued)) {
+            if (other != target) {
+                QVERIFY(sessions.isLive(other));
+            }
+        }
+
+        // It named the session it removed, to the signal and to the authoritative store:
+        // the two reads that decide whether the revocation reaches anywhere but here.
+        QCOMPARE(removals.count(), 1);
+        QCOMPARE(removals.first().at(0).toString(), QString::fromLatin1(target));
+        QCOMPARE(store.lastRemoved, QString::fromLatin1(target));
+    }
+
+    void revokingByAKeyNobodyHoldsChangesNothing()
+    {
+        SessionManager sessions{QStringLiteral("anonymous"), OneMinuteTtl};
+        const QByteArray id{sessions.createSession()};
+        QSignalSpy removals{&sessions, &SessionManager::sessionRemoved};
+
+        sessions.revokeByKey(SessionManager::keyFor(QByteArrayLiteral("never-issued")));
+        sessions.revokeByKey(QString{});
+
+        QVERIFY(sessions.isLive(id));
+        QCOMPARE(removals.count(), 0);
     }
 
     // The table has a ceiling, and at the ceiling it lets go of the sessions nobody would
