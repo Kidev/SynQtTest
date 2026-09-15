@@ -172,7 +172,15 @@ void Promise::dispatch(const Handler &handler)
 
     QJSValue callback{handler.callback};
     if (!callback.isCallable()) {
-        handler.next->settleFulfilled(m_value);
+        // Nothing to run, so the outcome passes through as it is. A rejection through a
+        // `catchError(undefined)` stays a rejection: turning it into a fulfilment with the
+        // rejected promise's empty value would report a failed call as one that answered
+        // nothing, to a handler further down the chain written for the answer.
+        if (m_state == State::Fulfilled) {
+            handler.next->settleFulfilled(m_value);
+        } else {
+            handler.next->settleRejected(m_reason);
+        }
         return;
     }
     QJSValue argument{m_engine != nullptr

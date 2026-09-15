@@ -24,6 +24,8 @@
 
 #include <QAbstractItemModel>
 #include <QHostAddress>
+#include <QJSEngine>
+#include <QJSValue>
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QQmlEngine>
@@ -63,6 +65,35 @@ private slots:
         // type) and the typed Replica factory, exactly as a generated client main does.
         synqtRegisterWidgetConsumers();
         synqtRegisterWidgetReplicas();
+    }
+
+    // A handler that is not a function is a step with nothing to run, and the outcome
+    // passes through it unchanged. The rejected half used to fulfil the next promise with
+    // the rejected one's (empty) value, so `slot().catchError(undefined).then(v => ...)`
+    // ran the fulfilment handler on a call that had failed.
+    void aHandlerThatIsNotAFunctionPassesTheOutcomeThrough()
+    {
+        QJSEngine engine;
+        engine.globalObject().setProperty(QStringLiteral("seen"), QJSValue{QStringLiteral("")});
+        const QJSValue onFulfilled{engine.evaluate(
+            QStringLiteral("(function (value) { seen = 'fulfilled:' + value; })"))};
+        const QJSValue onRejected{engine.evaluate(
+            QStringLiteral("(function (reason) { seen = 'rejected:' + reason; })"))};
+
+        // A rejection through a non-callable catchError stays a rejection.
+        SynQt::Promise *failed{SynQt::Promise::rejected(QStringLiteral("boom"), &engine)};
+        failed->catchError(QJSValue{})->then(onFulfilled)->catchError(onRejected);
+        QCOMPARE(engine.globalObject().property(QStringLiteral("seen")).toString(),
+                 QStringLiteral("rejected:boom"));
+
+        // And a fulfilment through a non-callable then stays a fulfilment.
+        engine.globalObject().setProperty(QStringLiteral("seen"), QJSValue{QStringLiteral("")});
+        SynQt::Promise *answered{SynQt::Promise::resolved(QVariant{42}, &engine)};
+        answered->then(QJSValue{})->catchError(onRejected)->then(onFulfilled);
+        QCOMPARE(engine.globalObject().property(QStringLiteral("seen")).toString(),
+                 QStringLiteral("fulfilled:42"));
+        delete failed;
+        delete answered;
     }
 
     void facadeSurfacesAndErgonomics()
