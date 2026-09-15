@@ -3,6 +3,8 @@
 
 #include "traceevent.h"
 
+#include "tracecontext.h"
+
 namespace SynQt {
 
 // Field by field, both ways, and no loop over a table of names. A field added to the
@@ -65,9 +67,18 @@ TraceEvent TraceEvent::fromVariant(const QVariantMap &value)
     event.category = enumeratorOr(value.value(QStringLiteral("category")),
                                   Category::Application, Category::Lifecycle);
     event.entity = value.value(QStringLiteral("entity")).toString();
-    event.traceId = value.value(QStringLiteral("traceId")).toString();
-    event.spanId = value.value(QStringLiteral("spanId")).toString();
-    event.parentSpanId = value.value(QStringLiteral("parentSpanId")).toString();
+    // The same rule the enums above get, for the same reason. A trace identifier crosses
+    // as a string, and one that is not the shape the tracer mints is stored, exported and
+    // shown, but can never be followed: the console asks for a trace by a `string[32]`, so
+    // a longer one is in the record and cannot be found in it, and an unbounded one is a
+    // column an entity chooses the size of. Dropped rather than truncated: a shortened
+    // identifier is not the identifier, and it would join this record to a story it does
+    // not belong to. The event itself is kept either way; a record is never swallowed.
+    const TraceContext named{TraceContext::readFrom(value)};
+    event.traceId = named.traceId;
+    event.spanId = named.spanId;
+    const QString parent{value.value(QStringLiteral("parentSpanId")).toString()};
+    event.parentSpanId = TraceContext::isSpanId(parent) ? parent : QString{};
     event.durationUs = value.value(QStringLiteral("durationUs"), -1).toLongLong();
     event.ok = value.value(QStringLiteral("ok"), true).toBool();
     event.message = value.value(QStringLiteral("message")).toString();
