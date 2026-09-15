@@ -15,6 +15,8 @@
 #include "sessionmanager.h"
 
 #include <QDateTime>
+#include "tracescope.h"
+
 #include <QEventLoop>
 #include <QHostAddress>
 #include <QHttpHeaders>
@@ -463,7 +465,12 @@ IdentityProvider::BeginOutcome IdentityProvider::beginLogin(const QString &provi
     QMetaObject::invokeMethod(m_remote, "beginLogin", Q_ARG(QString, requestId),
                               Q_ARG(QString, providerName), Q_ARG(QString, redirectUri),
                               Q_ARG(QString, binding), Q_ARG(QString, context));
-    loop.exec();
+    {
+        // The loop serves other callers while it spins, and they are not this caller's
+        // story; see SynQt::TraceScope on detaching.
+        const SynQt::TraceScope untraced{SynQt::TraceContext{}};
+        loop.exec();
+    }
 
     if (!m_beginResults.contains(requestId)) {
         return BeginOutcome{QString{}, QString{}, QStringLiteral("auth entity timed out")};
@@ -516,7 +523,12 @@ IdentityProvider::ExchangeOutcome IdentityProvider::exchangeCode(const QString &
                               Q_ARG(QString, state), Q_ARG(QString, code),
                               Q_ARG(QString, redirectUri),
                               Q_ARG(QString, presentedBinding));
-    loop.exec();
+    {
+        // The loop serves other callers while it spins, and they are not this caller's
+        // story; see SynQt::TraceScope on detaching.
+        const SynQt::TraceScope untraced{SynQt::TraceContext{}};
+        loop.exec();
+    }
 
     if (!m_exchangeResults.contains(requestId)) {
         return ExchangeOutcome{QVariantMap{}, QString{},
@@ -573,7 +585,12 @@ QByteArray IdentityProvider::takeClaim(const QString &code, const QString &verif
     QTimer::singleShot(kRemoteTimeoutMs, &loop, &QEventLoop::quit);
     QMetaObject::invokeMethod(m_remote, "takeClaim", Q_ARG(QString, requestId),
                               Q_ARG(QString, code), Q_ARG(QString, verifier));
-    loop.exec();
+    {
+        // The loop serves other callers while it spins, and they are not this caller's
+        // story; see SynQt::TraceScope on detaching.
+        const SynQt::TraceScope untraced{SynQt::TraceContext{}};
+        loop.exec();
+    }
     return m_claimResults.take(requestId);
 }
 

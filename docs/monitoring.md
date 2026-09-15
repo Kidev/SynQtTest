@@ -99,6 +99,10 @@ anything by a trace identifier. Concretely:
 * **Everything the entity says while answering joins the span.** `Log.info` in a slot, a
   provider's query, a refusal by a scope gate: a record written inside a call belongs to
   the call, so following a trace shows what happened and not only who called whom.
+* **A wait does not lend its trace to what it serves.** The identity routes wait for an
+  answer in a bounded nested event loop, which keeps serving while it spins, so the calls
+  that arrive during one are other people's. Each wait detaches for its length, and those
+  calls start their own traces. A slot never waits this way at all.
 * **A continuation is still the click.** `Store.recent().then(rows => Cache.put(rows))`
   runs turns later, when the slot is long finished, and the second call carries the first
   one's trace. The session does not follow it: by then the entity is acting on its own
