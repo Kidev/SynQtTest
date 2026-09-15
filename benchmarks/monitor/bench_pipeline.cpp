@@ -210,6 +210,79 @@ Distribution measureSpans(const QString &name, int threadCount, int batches, int
     return distribution;
 }
 
+/// What one record costs, on `threads` threads at once, written the way the framework
+/// writes one.
+///
+/// Every `trace()` call site builds its event through `recordNow`, which names no entity:
+/// the tracer stamps the process's own name on. So the path a call site actually takes
+/// reads `m_entity`, and the measurement above does not, because it hands `record` an
+/// event that already names one. Swept over thread count for the reason the span sweep is:
+/// a shared field read under a process-wide lock and one read without it are within noise
+/// on one thread, and only the shape of the curve tells them apart.
+Distribution measureRecords(const QString &name, int threadCount, int batches, int batchSize)
+{
+    Distribution distribution;
+    distribution.name = name;
+    distribution.unit = QStringLiteral("ns");
+
+    Tracer tracer;
+    tracer.setEntity(QStringLiteral("web"));
+    tracer.setBatch(1 << 30, 3600000);   // never drains: the ring is not what is measured
+
+    std::atomic<bool> go{false};
+    std::atomic<int> warmed{0};
+    QList<double> perBatch;
+    QMutex guard;
+
+    // The event a call site hands over: no entity, because `recordNow` does not set one.
+    const auto makeEvent = []() {
+        TraceEvent event;
+        event.timestampMs = QDateTime::currentMSecsSinceEpoch();
+        event.severity = Severity::Info;
+        event.category = Category::Call;
+        event.message = QStringLiteral("placeBid");
+        event.attributes.insert(QStringLiteral("caller"), QStringLiteral("user"));
+        event.attributes.insert(QStringLiteral("args"), 2);
+        return event;
+    };
+
+    auto worker = [&](int) {
+        const TraceEvent event{makeEvent()};
+        for (int index{0}; index < batchSize; ++index) {
+            tracer.record(event);
+        }
+        warmed.fetch_add(1, std::memory_order_release);
+        while (!go.load(std::memory_order_acquire)) {
+            std::this_thread::yield();
+        }
+        QElapsedTimer clock;
+        for (int batch{0}; batch < batches; ++batch) {
+            clock.start();
+            for (int index{0}; index < batchSize; ++index) {
+                tracer.record(event);
+            }
+            const double perRecord{static_cast<double>(clock.nsecsElapsed()) / batchSize};
+            QMutexLocker locker{&guard};
+            perBatch.append(perRecord);
+        }
+    };
+
+    std::vector<std::thread> pool;
+    pool.reserve(threadCount);
+    for (int thread{0}; thread < threadCount; ++thread) {
+        pool.emplace_back(worker, thread);
+    }
+    while (warmed.load(std::memory_order_acquire) < threadCount) {
+        std::this_thread::yield();
+    }
+    go.store(true, std::memory_order_release);
+    for (std::thread &one : pool) {
+        one.join();
+    }
+    distribution.samples = perBatch;
+    return distribution;
+}
+
 /// The same, with a span current on the thread.
 ///
 /// `Log.info` inside a slot, a provider's query, a gate's refusal: a record written while a
@@ -355,6 +428,20 @@ int main(int argc, char *argv[])
         out << name.leftJustified(22) << " p50="
             << QString::number(spans.at(0.50), 'f', 2) << " ns  p99="
             << QString::number(spans.at(0.99), 'f', 2) << " ns" << Qt::endl;
+    }
+
+    // Writing a record, swept the same way and for the same reason. The path measured here
+    // is the one every `trace()` call site takes, which the fixed-thread measurements above
+    // do not: they hand `record` an event that already names its entity.
+    out << Qt::endl;
+    for (const int threadCount : {1, 2, 4, 8}) {
+        const QString name{QStringLiteral("record_threads_%1").arg(threadCount)};
+        const Distribution records{measureRecords(name, threadCount, batches,
+                                                  qMax(1, batchSize / 8))};
+        latency.append(records.toJson());
+        out << name.leftJustified(22) << " p50="
+            << QString::number(records.at(0.50), 'f', 2) << " ns  p99="
+            << QString::number(records.at(0.99), 'f', 2) << " ns" << Qt::endl;
     }
 
     out << Qt::endl << "delivered=" << delivered << " dropped=" << dropped

@@ -306,6 +306,27 @@ The run also reports the ring's accounting: with a live sink nothing was dropped
 and counted, which is the whole ring capacity's worth kept and every other event accounted
 for rather than silently lost.
 
+#### Two paths swept over threads
+
+Both numbers above are single-threaded, and a single-threaded number cannot see a lock: a
+generator behind a process-wide mutex and one that is not read within noise of each other on
+one thread, and only the shape of the curve as threads are added tells them apart. A
+`threads: N` edge records on N threads at once, so each hot path is swept over thread count.
+
+`open_span_threads_*` is flat: about 230 ns at 1, 2, 4 and 8 threads, which is what a
+per-thread span generator looks like (it was 8x at eight threads before the generator was
+made per-thread; see the commit that minted spans per thread).
+
+`record_threads_*` is not: about 46 ns at one thread, 290 at two, 530 at four, 1230 at eight.
+That is the `EventRing`'s single `QMutex` (and the entity-name lookup under the tracer's own
+mutex) serializing every recording thread. On one thread it is the ~46 ns the row above
+reports; the climb is the contention a busy multi-threaded edge with a category switched on
+actually pays, per record. It is characterized here rather than fixed: closing it is a
+sharded or lock-free ring, a deliberate change to `EventRing`'s stated single-mutex choice,
+and this sweep is the baseline that change would have to move from a climbing line to a flat
+one. The disabled path (the budget row) is untouched by any of this, since it never reaches
+the ring.
+
 ## fanout: the edge publish() growth (M5)
 
 `fanout/` measures the arena's server-authoritative `publish()` as one owner change reaches N
