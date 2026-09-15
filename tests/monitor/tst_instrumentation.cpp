@@ -565,6 +565,51 @@ private slots:
         QVERIFY(said.first().parentSpanId.isEmpty());
     }
 
+    /// A shared entity's two spans nest, rather than reading as the same call twice.
+    ///
+    /// A shared Source answers everybody, and the per-caller mirror in front of it hands
+    /// the call over: both run the generated body, so one call over the link is two spans.
+    /// That is honest, but only if the second is inside the first. Parented off what
+    /// arrived on the wire they are siblings with the same name and the same arguments,
+    /// which in the console is one call rendered as two, and an operator counting calls on
+    /// a busy edge counts double.
+    ///
+    /// The rule that decides it: the span a call belongs to is the work enclosing it on
+    /// this thread when there is any, and what the wire said only when there is not. A call
+    /// arriving over a link encloses nothing (every bounded wait detaches, and a slot must
+    /// not spin a loop at all), so that reads the wire exactly as before.
+    void aSharedEntityHandsTheCallOnInsideItsOwnSpan()
+    {
+        Recorded recorded;
+        QObject owner;
+        Ledger mirror;
+        Ledger shared;
+        Caller *mirrorCaller{Caller::forEntity(QStringLiteral("Ledger"),
+                                               QStringLiteral("web"), true, &mirror, &owner)};
+        Caller *sharedCaller{Caller::forEntity(QStringLiteral("Ledger"),
+                                               QStringLiteral("web"), true, &shared, &owner)};
+        mirror.synqtSetCaller(mirrorCaller);
+        shared.synqtSetCaller(sharedCaller);
+        mirror.synqtMirror(&shared);
+
+        const TraceContext click{
+            Tracer::instance()->startSpan(TraceContext{}, QStringLiteral("add"))};
+        QVariantMap session;
+        session.insert(QStringLiteral("key"), QStringLiteral("k"));
+        click.writeTo(session);
+        mirror.post(session, QStringLiteral("bread"));
+
+        const QList<TraceEvent> calls{recorded.withMessage(QStringLiteral("post"))};
+        QCOMPARE(calls.size(), 2);
+        // The inner span closes first, so the shared Source's is the one recorded first.
+        const TraceEvent &inner{calls.first()};
+        const TraceEvent &outer{calls.last()};
+        QCOMPARE(inner.traceId, click.traceId);
+        QCOMPARE(outer.traceId, click.traceId);
+        QCOMPARE(outer.parentSpanId, click.spanId);
+        QCOMPARE(inner.parentSpanId, outer.spanId);
+    }
+
     /// Turning ordinary calls down must not take the refusals' story with them.
     ///
     /// `monitoring.levels.call: warning` is the documented way to keep what went wrong and

@@ -59,15 +59,27 @@ CallSpan::CallSpan(const char *contract, const char *member, QObject *caller,
     }
     m_active = true;
     m_startedUs = nowUs();
-    // The span a mesh caller says this call continues, read after the generated body has
-    // taken the session it arrived with; otherwise whatever the thread is doing, which is
-    // nothing for a call arriving over a link and the enclosing span for a call made in
-    // process.
-    if (const Caller *typed{qobject_cast<Caller *>(caller)}) {
-        m_parent = typed->traceContext();
-    }
+    // The work this one is part of: what is already running on this thread when there is
+    // any, and what the caller says arrived with the call when there is not.
+    //
+    // That order, and not the other one. A call reaching an entity over a link encloses
+    // nothing -- every bounded wait detaches for the length of its loop, and a slot must
+    // not spin one at all (see the note on this class) -- so for the ordinary case the
+    // thread is empty and the wire decides, exactly as it would either way. Where the
+    // thread is not empty the call is genuinely inside other work: a shared Source
+    // answering through its per-caller mirror, or a Source reached in process. The caller
+    // there is the same Caller, still holding the trace the outer call arrived with, so
+    // asking it first makes the inner call a sibling of the outer one rather than a child,
+    // and one call over the link is recorded twice under the same name with nothing saying
+    // one is inside the other.
+    //
+    // Read after the generated body has taken the session, so what the caller holds is
+    // this call's and not the one before it on a reused Caller.
+    m_parent = TraceScope::current();
     if (!m_parent.isValid()) {
-        m_parent = TraceScope::current();
+        if (const Caller *typed{qobject_cast<Caller *>(caller)}) {
+            m_parent = typed->traceContext();
+        }
     }
     // Opened here, for every call that is being timed at all, and not left to the
     // destructor for the ones that turn out not to be worth recording.
