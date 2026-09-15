@@ -121,8 +121,7 @@ private:
     /// when the connection is accepted, and again when a scope change under it makes the
     /// session eligible for a point it was not hosting.
     void hostConnectPoint(const WebEdgeConnectPoint &connectPoint, const QByteArray &sessionId,
-                          QObject *connection, QRemoteObjectHost *node,
-                          QHash<QString, QObject *> *hosted);
+                          QRemoteObjectHost *node, QHash<QString, QObject *> *hosted);
     void trackPendingUpgrade(QAbstractSocket *socket);
     void stampResponse(const QHttpServerRequest &request, QHttpServerResponse &response);
 
@@ -226,8 +225,7 @@ private:
     /// the one Source everybody is answered from; otherwise it is that session's own
     /// Source. Returns nullptr on a load failure, with the reason in *error.
     QObject *sourceForConnection(const WebEdgeConnectPoint &connectPoint,
-                                 const QByteArray &sessionId, QObject *connection,
-                                 QString *error);
+                                 const QByteArray &sessionId, QString *error);
     /// The one Source a shared edge answers a connect point from, loaded on first use and
     /// kept for the life of the edge.
     QObject *sharedSource(const WebEdgeConnectPoint &connectPoint, QString *error);
@@ -377,8 +375,6 @@ private:
     /// connection closes. Without the count the map would grow for the life of the process,
     /// one entry per session that ever connected.
     ///
-    /// A session id is required to key on, so an anonymous browser holding no session falls
-    /// back to a Source per connection. There is no identity to continue.
     struct SessionSources
     {
         int connections{0};
