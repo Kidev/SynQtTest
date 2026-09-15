@@ -162,6 +162,11 @@ model, and there are four:
 - **The transport.** The harness calls slots directly, so nothing here proves a contract
   replicates, a model reaches a browser, or a link comes up. Those are the framework's
   own guarantees, tested in SynQt's suite, not yours.
+- **The contract's own checks.** `harness.subject.placeBid(...)` reaches your QML
+  function itself, not the generated slot in front of it, so a `<admin>` gate or a
+  `string[64]` bound written in the `export:` block is not what refuses a call here.
+  Those run on the wire, where SynQt's suite proves them; what a test here proves is the
+  authorization your function writes, `Caller.hasScope` and the rest.
 - **The topology.** Whether an entity is even allowed to reach a connect point is decided
   by the consumer allowlist, not by a slot, and `synqt check` is what answers it.
 - **The engine.** A statement that works on SQLite may not on PostgreSQL. Testing the
