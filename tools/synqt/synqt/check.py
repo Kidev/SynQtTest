@@ -591,6 +591,7 @@ def validate(config: Dict[str, Any], *, release: bool = False,
     # with a declared connect point is exactly what the expansion silently steps around.
     messages += _provider_entity_messages(config, entities)
     messages += _monitor_entity_messages(config, entities, release)
+    messages += _monitor_as_consumer_messages(config, entities)
     messages += _console_delivery_messages(config)
     config = appmodel.with_auth_connect_points(config)
     config = appmodel.with_monitoring_connect_points(config)
@@ -1463,6 +1464,42 @@ def _console_delivery_messages(config: Dict[str, Any]) -> List[str]:
             f"static sign-in directory instead, the way "
             f"'synqt add entity {name} --type monitor' writes it")
     return findings
+
+
+def _monitor_as_consumer_messages(config: Dict[str, Any],
+                                  entities: Dict[str, Any]) -> List[str]:
+    """A declared connect point that a monitor consumes.
+
+    Entities report to a monitor; a monitor reaches none of them. The one link it has is
+    the ingest point it owns, derived from `monitoring.entity` and consumed by every
+    service, and the console point its own console client reads. Nothing in the framework
+    ever makes a monitor a consumer, so a declared point that does is a line that was
+    never going to be built, and what it asks for is the inversion of what the entity is
+    for: the operations record is the shape of what happened, and an entity that consumed
+    application data would be keeping the substance of it instead, in the one store that
+    outlives the request and is read by people the data is not about.
+
+    Owning a declared point is a different question and is left to
+    :func:`_monitor_consumer_messages`, which refuses the dangerous half of it: the
+    application's own client reading the whole record.
+    """
+    monitors = {name for name, entity in entities.items()
+                if appmodel.entity_type(entity) == "monitor"}
+    if not monitors:
+        return []
+    found: List[str] = []
+    for connect_point in appmodel.connect_points(config):
+        name = appmodel.point_name(connect_point) or "<unnamed>"
+        for consumer in (connect_point.get("consumers") or []):
+            if str(consumer) not in monitors:
+                continue
+            found.append(
+                f"error: connect point '{name}' lists '{consumer}' as a consumer, and it "
+                f"is a monitor. Entities report to a monitor and a monitor reaches none of "
+                f"them, so nothing would open this link; what it asks for is application "
+                f"data in the operations record, which keeps the shape of what happened "
+                f"rather than the substance. Take the consumer out")
+    return found
 
 
 def _unreported_monitor_messages(owner: str,

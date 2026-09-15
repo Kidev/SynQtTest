@@ -78,6 +78,13 @@ unwired on purpose: the link every service opens to it comes from the one `monit
 line rather than from a line anybody draws. A second monitor beside it is marked, because
 that line names one entity and nothing would ever report to the other.
 
+For the same reason you cannot draw a line to one or from one. The editor says so where the
+gesture is made, rather than drawing a line it would have to report a moment later, and it
+leaves the monitor out of the consumer menu and the panel's own lists. A project that
+arrives with one already written is not quietly edited: a point naming a monitor as a
+consumer is marked, and `synqt check` refuses it too, because entities report to a monitor
+and it reaches none of them.
+
 The boxes behind the nodes are the three sides of a system, and they are drawn from what each
 entity is rather than from where it sits: CLIENTS, FACES THE INTERNET, and MESH. Hovering a
 box's name says what it means. Under each node is the file to open next: `client/app/Main`,

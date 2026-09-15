@@ -358,6 +358,42 @@ function extraMonitors(design) {
     }));
 }
 
+// A drawn link a monitor consumes, which the editor will not make and a project can still
+// arrive with: a hand-written `synqt.yaml`, or one from before this rule. Reported rather
+// than dropped on opening, because silently deleting a line somebody wrote is how a project
+// opened in the editor stops being the project they had.
+//
+// Only the consuming half, which is the half `synqt check` refuses too: entities report to
+// a monitor and a monitor reaches none of them, so what this asks for is application data
+// in the operations record. A point the monitor OWNS is a different question and is left
+// alone here for the same reason the CLI leaves it alone, so the editor and the command
+// never disagree about one project. Neither can be drawn; see canvas.linkRefusal.
+function monitorAsConsumer(design) {
+    const monitors = new Set(entitiesOf(design)
+        .filter((entity) => entityType(entity) === "monitor")
+        .map((entity) => nameOf(entity)));
+    if (monitors.size === 0) {
+        return [];
+    }
+    const found = [];
+    for (const link of linksOf(design)) {
+        for (const consumer of link.consumers || []) {
+            if (!monitors.has(consumer)) {
+                continue;
+            }
+            found.push({
+                rule: "monitor-as-consumer",
+                level: "error",
+                link: link.name,
+                message: `'${consumer}' is a monitor, and a monitor consumes nothing: `
+                    + `entities report to it, and the one link it has comes from `
+                    + `monitoring.entity. Take it off this point's consumers.`,
+            });
+        }
+    }
+    return found;
+}
+
 // What turning an edge into a front does to everything already drawn.
 //
 // The switch is one click and it changes what the point means: the edge stops answering its
@@ -495,6 +531,7 @@ export function findings(design) {
         ...frontFindings(design),
         ...orphanEntities(design),
         ...extraMonitors(design),
+        ...monitorAsConsumer(design),
     ];
     for (const link of linksOf(design)) {
         found.push(...linkFindings(design, link));

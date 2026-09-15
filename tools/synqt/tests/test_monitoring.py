@@ -407,6 +407,36 @@ def test_the_application_client_cannot_consume_what_the_monitor_owns():
     assert "only client that may read one is its console" in findings[0]
 
 
+def test_a_monitor_is_refused_as_a_consumer():
+    # The inversion. Entities report to a monitor and it reaches none of them, so a point
+    # naming it as a consumer is a link nothing would open, asking for application data in
+    # the one store that keeps the shape of what happened rather than the substance.
+    config = _config()
+    config["connect_points"] = [{"owner": "web", "consumers": ["db", "ops"],
+                                 "export": "prop string headline\n"}]
+    entities = {entity["name"]: entity for entity in config["entities"]}
+    findings = check._monitor_as_consumer_messages(config, entities)
+    assert len(findings) == 1
+    assert findings[0].startswith("error:")
+    assert "'ops'" in findings[0]
+    # The other consumer on the same point is left alone: what is refused is the monitor,
+    # not the point.
+    assert "'db'" not in findings[0]
+
+
+def test_a_point_the_monitor_owns_is_not_refused_by_that_rule():
+    # Owning one is a different question, and the answer to it is next door
+    # (_monitor_consumer_messages, which refuses the application's own client reading the
+    # whole record). Said here because the two rules are one paragraph apart and a blanket
+    # refusal would quietly take this case with it.
+    config = _config(extra=[{"name": "ops-console", "type": "client", "console": True,
+                             "edge": "ops"}])
+    config["connect_points"] = [{"owner": "ops", "consumers": ["ops-console"],
+                                 "export": "prop string headline\n"}]
+    entities = {entity["name"]: entity for entity in config["entities"]}
+    assert check._monitor_as_consumer_messages(config, entities) == []
+
+
 def test_the_console_client_may():
     config = _config(extra=[{"name": "ops-console", "type": "client", "console": True,
                              "edge": "ops"}])
