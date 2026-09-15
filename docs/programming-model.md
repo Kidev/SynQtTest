@@ -294,6 +294,12 @@ monitoring:
   capture_identity: acknowledged
 ```
 
+A captured value is held to the same ceiling as every other attribute of a record (512
+characters): text past it is cut, and a `list`, a `var` or a `record` that serializes to
+more than that is replaced by a note saying how much was dropped. A member worth capturing
+is one whose values are small; bounding its arguments in the contract (`string[80]`,
+`list[20]`) is what keeps every capture whole.
+
 `capture` is not a reserved word: a slot may still be called `capture`, which is settled by
 what follows it, exactly as the compiler settles it.
 
