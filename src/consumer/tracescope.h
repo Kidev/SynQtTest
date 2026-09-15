@@ -25,6 +25,17 @@ namespace SynQt {
 /// records: the tracer mints, `TraceContext::fromWire` validates, and this is only where
 /// the answer to "which trace is this" is kept between them.
 ///
+/// **Detaching.** Constructed with an invalid context it says the opposite: that whatever
+/// this thread was doing is not what happens next on it. That is what a nested event loop
+/// needs. A loop spun inside a wait keeps serving, so the work resumed inside it is other
+/// callers' calls arriving on the same thread, while the span installed is the waiting
+/// caller's; left in place it becomes the parent of theirs, and the console shows two
+/// people's requests as one story. Every bounded wait in the runtime detaches for the
+/// length of its `exec()` and restores afterwards, which is why a call delivered during a
+/// login starts its own trace. A slot must not spin one at all (see SynQt::CallSpan): this
+/// keeps the waits that are reached from a route handler or a timer honest, and does not
+/// make it safe to wait somewhere a caller is being answered.
+///
 /// It is in the consumer library rather than beside the tracer because the client links
 /// this library and not the service runtime: a promise on the client snapshots an empty
 /// context and installs an empty one, which costs a thread-local read and is right, since
@@ -41,6 +52,19 @@ public:
 
     /// The context installed on this thread, or an invalid one when none is.
     static TraceContext current();
+
+    /// Name the span this thread is in on a record that names none, and answer whether
+    /// there was one.
+    ///
+    /// The same answer as \ref current, without the copy. Two out-parameters rather than a
+    /// returned context because the one caller that needs this is `Tracer::record`, which
+    /// runs for every event an entity writes and wants two strings, not five: taking the
+    /// context by value there costs eight atomic reference-count operations where two will
+    /// do, measured at 19.7 ns on a 63.8 ns path, which is a third of the cost of recording
+    /// anything an entity says while it is answering somebody. A reference to the
+    /// thread-local would do it too, and would hand out something that changes under
+    /// whoever held it at the next TraceScope on the thread.
+    static bool stampCurrent(QString &traceId, QString &spanId);
 
 private:
     TraceContext m_displaced;

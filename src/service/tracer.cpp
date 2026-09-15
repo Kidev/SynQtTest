@@ -78,12 +78,34 @@ const QList<quint32> &secretMasks()
 /// every span, so a `QRegularExpression` built here is a pattern compiled per span, on a
 /// path whose whole enabled cost is measured in hundreds of nanoseconds; the answer to "is
 /// any character not a zero" does not need a pattern at all.
+/// The generator the span identifiers come from: one per thread, seeded from the system's.
+///
+/// Not `QRandomGenerator::global()`, which takes a process-wide mutex on every call. Every
+/// instrumented call opens a span and a `threads: N` edge opens them on N threads at once,
+/// so that lock is on the request path of a threaded entity, and the cost of it is not
+/// visible on one thread: measured on this machine one span costs 233 ns on one thread and
+/// 1901 ns on eight, climbing with the thread count, which is the shape a contended lock
+/// makes and the shape nothing else makes. Per thread it is 233 ns at any width. The sweep
+/// that says so is `open_span_threads_*` in benchmarks/monitor.
+///
+/// Seeded from `QRandomGenerator::system()`, which is what `securelySeeded` does, so two
+/// threads do not share a stream: a per-thread generator seeded from anything less would
+/// have every thread mint the same identifiers, and the console would show one trace made
+/// of unrelated work. These are names and not secrets (nothing is authorized by a span
+/// identifier, and an authenticated peer may already assert any well-formed one), so what
+/// is required of them is that they do not repeat.
+QRandomGenerator &spanGenerator()
+{
+    static thread_local QRandomGenerator generator{QRandomGenerator::securelySeeded()};
+    return generator;
+}
+
 QString randomHex(int characters)
 {
     QString value;
     value.reserve(characters);
     while (value.size() < characters) {
-        value += QString::number(QRandomGenerator::global()->generate64(), 16)
+        value += QString::number(spanGenerator().generate64(), 16)
                      .rightJustified(16, QLatin1Char('0'));
     }
     value.truncate(characters);
@@ -318,11 +340,7 @@ void Tracer::record(TraceEvent event)
     // event recorded from a thread that has no span current, the ingest side included,
     // stays where it was.
     if (event.traceId.isEmpty()) {
-        const TraceContext current{TraceScope::current()};
-        if (current.isValid()) {
-            event.traceId = current.traceId;
-            event.spanId = current.spanId;
-        }
+        TraceScope::stampCurrent(event.traceId, event.spanId);
     }
     // Before the bound, so a credential long enough to be truncated is replaced rather
     // than recorded as its first 512 characters.

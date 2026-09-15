@@ -35,4 +35,15 @@ TraceContext TraceScope::current()
     return installed();
 }
 
+bool TraceScope::stampCurrent(QString &traceId, QString &spanId)
+{
+    const TraceContext &context{installed()};
+    if (!context.isValid()) {
+        return false;
+    }
+    traceId = context.traceId;
+    spanId = context.spanId;
+    return true;
+}
+
 } // namespace SynQt

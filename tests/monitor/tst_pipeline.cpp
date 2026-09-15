@@ -20,7 +20,11 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QRegularExpression>
+#include <QSet>
 #include <QTest>
+
+#include <thread>
+#include <vector>
 #include <QThread>
 
 using namespace SynQt;
@@ -463,6 +467,54 @@ private slots:
         entity->assumeSession(emptyKey);
         QVERIFY(!entity->hasSession());
         QVERIFY(entity->scope().isEmpty());
+    }
+
+    /// Two threads minting spans at once mint different ones.
+    ///
+    /// Every instrumented call opens a span, and a `threads: N` edge opens them on N
+    /// threads at once, so the generator behind them is on the request path of a threaded
+    /// entity. A process-wide one puts every thread through one mutex there, which is what
+    /// the `open_span_threads_*` sweep in benchmarks/monitor measures; a per-thread one
+    /// costs nothing and has a failure mode of its own, and this is that failure mode. A
+    /// generator seeded per thread from anything but real entropy gives every thread the
+    /// same stream, so two entities' spans, or two threads' of one entity, collide and the
+    /// console shows one trace made of unrelated work. Silent, and worse than slow.
+    void twoThreadsMintingAtOnceMintDifferentIdentifiers()
+    {
+        constexpr int kThreads{4};
+        constexpr int kSpansPerThread{2000};
+        QMutex guard;
+        QStringList minted;
+        minted.reserve(kThreads * kSpansPerThread * 2);
+
+        std::vector<std::thread> pool;
+        pool.reserve(kThreads);
+        for (int thread{0}; thread < kThreads; ++thread) {
+            pool.emplace_back([&guard, &minted]() {
+                QStringList mine;
+                mine.reserve(kSpansPerThread * 2);
+                for (int index{0}; index < kSpansPerThread; ++index) {
+                    const TraceContext span{
+                        Tracer::instance()->startSpan(TraceContext{},
+                                                      QStringLiteral("placeBid"))};
+                    mine.append(span.traceId);
+                    mine.append(span.spanId);
+                }
+                QMutexLocker locker{&guard};
+                minted.append(mine);
+            });
+        }
+        for (std::thread &one : pool) {
+            one.join();
+        }
+
+        QCOMPARE(minted.size(), kThreads * kSpansPerThread * 2);
+        for (const QString &identifier : std::as_const(minted)) {
+            QVERIFY2(TraceContext::isTraceId(identifier) || TraceContext::isSpanId(identifier),
+                     qPrintable(QStringLiteral("not an identifier: '%1'").arg(identifier)));
+        }
+        const QSet<QString> distinct{minted.cbegin(), minted.cend()};
+        QCOMPARE(distinct.size(), minted.size());
     }
 
     /// A reported identifier is a trace identifier, or it is not stored as one.
