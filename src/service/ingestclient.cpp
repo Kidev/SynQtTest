@@ -112,30 +112,50 @@ void IngestClient::publish(const QList<TraceEvent> &batch)
 
 bool IngestClient::send(const QList<TraceEvent> &batch)
 {
-    QObject *replica{nullptr};
+    QPointer<QObject> replica;
     {
         QMutexLocker locker{&m_replicaMutex};
-        replica = m_replica.data();
+        replica = m_replica;
     }
-    if (replica == nullptr) {
+    if (replica.isNull()) {
         return false;
     }
-    // Fire and forget, by name: this library knows nothing of the generated Ingest
-    // replica's type, and a monitor is a consumer like any other.
+    // The expensive half stays on this (the writer) thread: the list is serialized here, so
+    // what crosses is one already-built payload. Copy-initialized, not brace-initialized: a
+    // QVariantList is a QList<QVariant>, so `QVariantList{aList}` would take the whole list
+    // as one element rather than copy it.
+    const QVariantList payload = toVariants(batch);
+
+    // The hand-off crosses to the entity's thread, and it crosses through `this` rather than
+    // through the Replica directly. A Replica belongs to the thread that acquired it -- the
+    // entity's -- and that is the only thread that may touch it, including to read which
+    // thread to post to. Posting to it straight from here dereferences it on the writer
+    // thread, and a reconnect retires the previous Replica on its own thread (deleteSoon in
+    // EntityRuntime): in the window between the mutex read above and the metacall, that
+    // Replica can be freed under this thread, and the read inside QMetaObject::invokeMethod
+    // is then a use-after-free. It is a crash in QMetaObject::invokeMethodImpl under a
+    // stress that retires the Replica while this publishes, and it is invisible to
+    // AddressSanitizer because the read is inside precompiled Qt.
     //
-    // Queued, and this is not a preference. A Replica belongs to the thread that acquired
-    // it, which is the entity's; calling into it from the writer thread starts and stops
-    // that thread's timers, which is undefined behaviour and which Qt reports as
-    // "QObject::killTimer: Timers cannot be stopped from another thread". The expensive
-    // half stays here: `toVariants` runs on this thread, so what crosses is one metacall
-    // carrying a list that is already built, and the entity's loop only hands it to a
-    // socket.
+    // `this` lives on the entity's thread (it is parented to the runtime), so a metacall to
+    // it is posted with only its own, stable, affinity read here. The Replica is then
+    // touched on its owning thread, where its deletion is serialized against this call: the
+    // QPointer is resolved there, and a Replica already retired is dropped rather than
+    // dereferenced. It is safe to post to `this` for the same reason the sink may hold it:
+    // the runtime clears the sink before the client is destroyed. `toVariants` still ran on
+    // the writer thread, so the entity's loop only hands an already-built list to a socket.
     //
-    // True on a successful hand-off rather than on delivery: a queued call returns before
-    // anything is sent, so there is no answer to wait for. The case the spool exists for
-    // is the one above, where there is no replica at all.
-    return QMetaObject::invokeMethod(replica, "publish", Qt::QueuedConnection,
-                                     Q_ARG(QVariantList, toVariants(batch)));
+    // Fire and forget, by name: this library knows nothing of the generated Ingest replica's
+    // type, and a monitor is a consumer like any other. True on a successful hand-off rather
+    // than on delivery; the case the spool exists for is the one above, no replica at all.
+    QPointer<IngestClient> self{this};
+    return QMetaObject::invokeMethod(this, [self, replica, payload]() {
+        if (self.isNull() || replica.isNull()) {
+            return;
+        }
+        QMetaObject::invokeMethod(replica.data(), "publish", Qt::DirectConnection,
+                                  Q_ARG(QVariantList, payload));
+    });
 }
 
 void IngestClient::spool(const QList<TraceEvent> &batch)
@@ -242,7 +262,13 @@ QList<QVariantList> IngestClient::readSpoolLocked() const
 QList<QVariantList> IngestClient::takeSpooledLocked()
 {
     const QList<QVariantList> batches{readSpoolLocked()};
-    QFile::remove(m_spoolPath);
+    // Only when there is a file to take. With spooling off (no state directory) the path is
+    // empty, and QFile::remove on an empty path does nothing but warn -- once per reconnect,
+    // which is exactly when replay runs, so an entity that cannot spool would print the
+    // warning every time a monitor comes back.
+    if (!m_spoolPath.isEmpty()) {
+        QFile::remove(m_spoolPath);
+    }
     return batches;
 }
 
