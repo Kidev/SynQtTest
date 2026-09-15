@@ -146,12 +146,13 @@ public:
     /// call never keeps the last one's session.
     Q_INVOKABLE void assumeSession(const QVariantMap &session);
 
-    /// Where this call sits in the story a click tells, empty when nothing told us.
+    /// The span the calling entity says its call continues, invalid when it said nothing.
     ///
-    /// Set by whichever transport minted the Caller: at the edge the span opened when the
-    /// browser's call arrived, on a mesh link the span the calling entity says its call
-    /// continues. The entity's own spans hang off it, which is what makes one click one
-    /// trace across three entities instead of three unrelated ones.
+    /// Taken off the wire by \ref assumeSession, on a mesh link only, and only when both
+    /// identifiers have the shape the tracer mints (TraceContext::fromWire). The span the
+    /// generated slot body opens hangs off it, which is what makes one click one trace
+    /// across three entities instead of three unrelated ones. A browser's Caller never
+    /// holds one: the trace starts at the edge, in the span the edge opens itself.
     TraceContext traceContext() const;
     void setTraceContext(const TraceContext &context);
 
@@ -192,9 +193,6 @@ private:
 
     const SessionRecord *record() const;
 
-    /// Adds this call's trace identifiers to a session about to travel downstream.
-    void withTrace(QVariantMap &session) const;
-
     QPointer<SessionManager> m_sessions;
     QByteArray m_sessionId;
     /// The session a calling entity said it was acting for, empty when it said nothing.
@@ -202,7 +200,8 @@ private:
     /// own over any assertion, so a user caller can never be talked into being someone else.
     QVariantMap m_forwarded;
     /// The trace this call continues. Kept beside the forwarded session rather than in
-    /// it, so that map stays exactly the three keys a session is made of.
+    /// it, so that map stays exactly the three keys a session is made of. What travels
+    /// on from here is not this but the span opened for the call; see SynQt::ActingFor.
     TraceContext m_trace;
     QString m_entity;
     QPointer<QObject> m_source;

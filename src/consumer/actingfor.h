@@ -22,8 +22,9 @@ namespace SynQt {
 /// generated Source helper opens one of these around the owner's implementation of a slot,
 /// naming the Caller that slot is answering; any outbound call the implementation then
 /// makes reads current() and carries it on. Work that finishes later, in a timer or a
-/// continuation, is outside the object's life and carries nothing, which is right: by then
-/// the entity is acting on its own behalf.
+/// continuation, is outside the object's life and carries no session, which is right: by
+/// then the entity is acting on its own behalf. It still carries the trace, which is the
+/// thread's and not the caller's; see TraceScope.
 ///
 /// One entity is one event loop, so nothing here is contended; the storage is per thread
 /// anyway, so that stays true of a runtime that one day runs a slot somewhere else. It
@@ -44,10 +45,13 @@ public:
     ActingFor(const ActingFor &) = delete;
     ActingFor &operator=(const ActingFor &) = delete;
 
-    /// The session to carry on an outbound call made right now, empty when there is none.
+    /// The session to carry on an outbound call made right now, with the trace the work
+    /// belongs to (see TraceScope). Empty when there is neither.
     static QVariantMap current();
 
 private:
+    static void withTrace(QVariantMap &session);
+
     QPointer<QObject> m_displaced;
 };
 

@@ -33,6 +33,10 @@ qt_add_library(SynQtConsumer STATIC
     promise.h
     readonlymodel.cpp
     readonlymodel.h
+    tracecontext.cpp
+    tracecontext.h
+    tracescope.cpp
+    tracescope.h
 )
 
 set_target_properties(SynQtConsumer PROPERTIES AUTOMOC ON)

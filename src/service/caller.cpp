@@ -17,8 +17,6 @@ namespace {
 const QLatin1StringView kKey{"key"};
 const QLatin1StringView kScope{"scope"};
 const QLatin1StringView kIdentity{"identity"};
-const QLatin1StringView kTraceId{"traceId"};
-const QLatin1StringView kSpanId{"spanId"};
 
 // The per-contract Caller factories the generated synqtRegister<Contract>Sources() install,
 // so forUser/forEntity can mint the typed <Contract>Caller that carries the emit<Signal>
@@ -240,29 +238,14 @@ QVariantMap Caller::forwardedSession() const
     if (!rec) {
         // Either this caller is already acting for someone, and the chain continues past
         // this entity unchanged, or it is not, and there is nothing to pass on. The trace
-        // is added either way: an entity with no session of its own is still a hop.
-        QVariantMap session{m_forwarded};
-        withTrace(session);
-        return session;
+        // is not this Caller's to add: SynQt::ActingFor stamps the span the work is in.
+        return m_forwarded;
     }
     QVariantMap session;
     session.insert(kKey, SessionManager::keyFor(rec->id));
     session.insert(kScope, rec->scope);
     session.insert(kIdentity, rec->identity.isEmpty() ? QVariant{} : QVariant{rec->identity});
-    withTrace(session);
     return session;
-}
-
-void Caller::withTrace(QVariantMap &session) const
-{
-    // The trace rides along with the session because the session is already the thing that
-    // travels down the chain, and a second channel for it would be a second thing to
-    // forget. It is not part of the session: nothing authorizes anything by it.
-    if (!m_trace.isValid()) {
-        return;
-    }
-    session.insert(kTraceId, m_trace.traceId);
-    session.insert(kSpanId, m_trace.spanId);
 }
 
 TraceContext Caller::traceContext() const
@@ -285,22 +268,26 @@ void Caller::assumeSession(const QVariantMap &session)
         // a visitor who could name the trace could stitch their call into someone else's.
         return;
     }
-    if (session.isEmpty()) {
+    // Both identifiers, of exactly the shape the tracer mints, or neither: a peer's word
+    // about which story its call belongs to is taken as far as that shape and no further,
+    // so what it sent can neither fill a record nor travel on under this entity's name.
+    m_trace = TraceContext::readFrom(session);
+
+    // A session is one with a key. Decided on that and not on the map being empty, because
+    // a call made by an entity acting for nobody still carries its trace, and a map that
+    // holds only that must not read as a person with an empty name.
+    const QString key{session.value(kKey).toString()};
+    if (key.isEmpty()) {
         m_forwarded.clear();
-        m_trace = TraceContext{};
         return;
     }
     // Only the three keys a session is made of, so nothing else a peer sent is carried
     // further or read by anything downstream.
     QVariantMap taken;
-    taken.insert(kKey, session.value(kKey).toString());
+    taken.insert(kKey, key);
     taken.insert(kScope, session.value(kScope).toString());
     taken.insert(kIdentity, session.value(kIdentity));
     m_forwarded = taken;
-
-    m_trace = TraceContext{};
-    m_trace.traceId = session.value(kTraceId).toString();
-    m_trace.spanId = session.value(kSpanId).toString();
 }
 
 void Caller::setScopeOrder(const QStringList &order, bool hierarchical)

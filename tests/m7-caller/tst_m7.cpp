@@ -16,6 +16,8 @@
 #include "sessionmanager.h"
 #include "sourcefactory.h"
 #include "topology.h"
+#include "traceevent.h"
+#include "tracer.h"
 #include "webedge.h"
 #include "webedgeconfig.h"
 
@@ -33,6 +35,8 @@
 #include "backoffice_sourcehelper.h"  // the slice an entity behind the front answers
 
 #include <QHostAddress>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QQmlEngine>
 #include <QRemoteObjectDynamicReplica>
 #include <QRemoteObjectNode>
@@ -85,6 +89,47 @@ QVariantMap identityFor(const QString &sub)
                        {QStringLiteral("name"), sub},
                        {QStringLiteral("email"), sub + QStringLiteral("@example.com")}};
 }
+
+/// Everything the process tracer recorded while this was alive.
+///
+/// Both entities run in this one process, so both report to one tracer; what says which
+/// hop a record came from is the contract it names, which is what a chain is made of.
+class Recorded
+{
+public:
+    Recorded()
+    {
+        Tracer::instance()->setEnabled(true);
+        Tracer::instance()->setBatch(1, 20);
+        Tracer::instance()->setSink([this](const QList<TraceEvent> &batch) {
+            QMutexLocker locker{&m_mutex};
+            m_events.append(batch);
+        });
+    }
+
+    ~Recorded()
+    {
+        Tracer::instance()->setSink(Tracer::Sink{});
+        Tracer::instance()->setEnabled(false);
+    }
+
+    QList<TraceEvent> withMessage(const QString &message)
+    {
+        Tracer::instance()->flush();
+        QMutexLocker locker{&m_mutex};
+        QList<TraceEvent> matching;
+        for (const TraceEvent &event : std::as_const(m_events)) {
+            if (event.message == message) {
+                matching.append(event);
+            }
+        }
+        return matching;
+    }
+
+private:
+    QMutex m_mutex;
+    QList<TraceEvent> m_events;
+};
 
 SynClientConfig clientConfig(quint16 port, const QByteArray &cookie)
 {
@@ -494,6 +539,45 @@ private slots:
                                           Q_ARG(QString, QStringLiteral("bread"))));
         QTRY_COMPARE(databaseView()->property("actingFor").toString(),
                      QStringLiteral("carol"));
+    }
+
+    /// One click, one trace, across two entities and a mesh link.
+    ///
+    /// The unit tests next door prove each hop in isolation; this is the hop itself, over
+    /// mutual TLS, with the edge's QML calling the database through the generated facade.
+    /// What an operator asks of a monitor is "what did that click do", and the answer is
+    /// only a story if the database's work is a child of the edge's rather than a second
+    /// trace beginning at the second entity.
+    void oneClickIsOneTraceAcrossBothEntities()
+    {
+        Recorded recorded;
+        const QByteArray danToken{
+            m_edge->sessionManager()->createSession(QStringLiteral("user"),
+                                                    identityFor(QStringLiteral("dan")))};
+        QQmlEngine clientEngine;
+        SynClient dan{clientConfig(m_edgePort, cookieFor(danToken)), &clientEngine};
+        dan.start();
+        QTRY_COMPARE_WITH_TIMEOUT(dan.session()->state(), QStringLiteral("connected"), 8000);
+        QRemoteObjectDynamicReplica *danTodo{
+            qobject_cast<QRemoteObjectDynamicReplica *>(todoReplica(&dan))};
+        QVERIFY(danTodo != nullptr);
+        QTRY_VERIFY(danTodo->isReplicaValid());
+
+        QVERIFY(QMetaObject::invokeMethod(danTodo, "add",
+                                          Q_ARG(QString, QStringLiteral("olives"))));
+        QTRY_COMPARE(databaseView()->property("actingFor").toString(), QStringLiteral("dan"));
+        QTRY_COMPARE(recorded.withMessage(QStringLiteral("insert")).size(), 1);
+
+        const QList<TraceEvent> edgeCalls{recorded.withMessage(QStringLiteral("add"))};
+        const QList<TraceEvent> dbCalls{recorded.withMessage(QStringLiteral("insert"))};
+        QCOMPARE(edgeCalls.size(), 1);
+        QCOMPARE(dbCalls.size(), 1);
+        // The browser named no trace, so the edge's span is the root of the story.
+        QVERIFY(edgeCalls.first().parentSpanId.isEmpty());
+        QVERIFY(!edgeCalls.first().traceId.isEmpty());
+        QCOMPARE(dbCalls.first().traceId, edgeCalls.first().traceId);
+        QCOMPARE(dbCalls.first().parentSpanId, edgeCalls.first().spanId);
+        QVERIFY(dbCalls.first().spanId != edgeCalls.first().spanId);
     }
 
     // What a connection hosts follows the session's scope, in both directions, while the

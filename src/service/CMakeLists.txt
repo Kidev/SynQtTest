@@ -49,7 +49,6 @@ qt_add_library(SynQtService STATIC
     meshclient.h
     topology.cpp
     topology.h
-    tracecontext.h
     tracer.cpp
     tracer.h
     clientaddress.cpp

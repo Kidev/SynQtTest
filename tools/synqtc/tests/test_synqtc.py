@@ -424,6 +424,16 @@ class ForwardedSessionTest(unittest.TestCase):
         dispatch = slot.index("synqtQmlSlotIndex")
         self.assertLess(taken, dispatch)
 
+    def test_the_span_opens_after_the_session_it_continues_is_taken(self):
+        # The parent span arrives in the session map. A span opened before the map is
+        # read hangs off whatever the previous call left on a reused Caller, which on a
+        # busy service is somebody else's click.
+        source = emit_source_helper_source(self.parse(True), "ledger")
+        slot = source[source.index("void LedgerSourceHelper::note"):]
+        taken = slot.index('"assumeSession"')
+        opened = slot.index("SynqtCallSpan synqtSpan{")
+        self.assertLess(taken, opened)
+
     def test_the_owner_does_not_hand_the_session_to_the_owners_qml(self):
         # The QML implementation takes the arguments the contract declares and no others.
         source = emit_source_helper_source(self.parse(True), "ledger")

@@ -54,6 +54,10 @@ qt_add_executable(tst_instrumentation tst_instrumentation.cpp)
 # call span the contract compiler emits actually lives. No transport is involved, because
 # what is under test is the generated body and not the link it would be reached over.
 synqt_add_contract(tst_instrumentation ROLE source SYN "${CMAKE_CURRENT_SOURCE_DIR}/shared/Hall.syn")
+# And one a service would own: its slots take the session the calling entity is acting for,
+# and with it the span that call continues.
+synqt_add_contract(tst_instrumentation ROLE source FORWARDS_SESSION
+    SYN "${CMAKE_CURRENT_SOURCE_DIR}/shared/Ledger.syn")
 
 target_compile_definitions(tst_instrumentation PRIVATE
     MONITOR_CERT_DIR="${MONITOR_CERTS}"

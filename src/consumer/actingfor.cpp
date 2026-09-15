@@ -3,6 +3,8 @@
 
 #include "actingfor.h"
 
+#include "tracescope.h"
+
 #include <QMetaObject>
 
 namespace SynQt {
@@ -41,7 +43,9 @@ QVariantMap ActingFor::current()
 {
     QObject *caller{acting().data()};
     if (!caller) {
-        return QVariantMap{};
+        QVariantMap session;
+        withTrace(session);
+        return session;
     }
     // Asked for here rather than on the way in, so an inbound slot that calls nothing out
     // pays nothing for this: the lookup happens only when there is an outbound call to
@@ -50,7 +54,20 @@ QVariantMap ActingFor::current()
     QVariantMap session;
     QMetaObject::invokeMethod(caller, "forwardedSession", Qt::DirectConnection,
                               Q_RETURN_ARG(QVariantMap, session));
+    withTrace(session);
     return session;
+}
+
+void ActingFor::withTrace(QVariantMap &session)
+{
+    // The trace rides along with the session because the session is already the thing that
+    // travels down the chain, and a second channel for it would be a second thing to
+    // forget. It is not part of the session: nothing authorizes anything by it, and a
+    // Caller that ignores the map (a browser's) ignores this with it. Taken from the
+    // thread and not from the caller, because the work that makes an outbound call is
+    // not always answering somebody: a continuation acts for nobody and still belongs to
+    // the click that started it.
+    TraceScope::current().writeTo(session);
 }
 
 } // namespace SynQt

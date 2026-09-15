@@ -4,6 +4,8 @@
 #ifndef SYNQT_PROMISE_H
 #define SYNQT_PROMISE_H
 
+#include "tracecontext.h"
+
 #include <QJSValue>
 #include <QList>
 #include <QObject>
@@ -35,6 +37,14 @@ namespace SynQt {
 /// `.then(...).catchError(...)`) has been attached and run. What that rules out is
 /// storing a promise and attaching to it later, in a different turn: attach where the
 /// call is made, not to a promise kept in a property.
+///
+/// A handler runs in the trace of the call that made the promise. The call was made
+/// inside a slot, which is inside a span; the answer arrives turns later, when the slot
+/// and its span are long closed and the thread is in nothing. So a promise keeps the
+/// context that was current when it was created and puts it back around each handler,
+/// which is what lets `Db.read().then(rows => Cache.put(rows))` reach the second entity
+/// as the same click. The session is not kept the same way, on purpose: a continuation
+/// acts for nobody (see ActingFor), and a trace authorizes nothing.
 class Promise : public QObject
 {
     Q_OBJECT
@@ -82,6 +92,7 @@ private:
     void scheduleDisposal();
 
     QJSEngine *m_engine{nullptr};
+    TraceContext m_trace;
     State m_state{State::Pending};
     QVariant m_value;
     QString m_reason;
